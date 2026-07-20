@@ -403,14 +403,57 @@
 
     .howto-grid{grid-template-columns:1fr;}
   }
+  .login-gate{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:var(--ink);padding:20px;
+  }
+  .login-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:32px 28px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px;
+    text-align:center;
+  }
+  .login-card h1{font-size:1.4rem;}
+  .login-sub{color:var(--fog);margin:0 0 8px;font-size:0.9rem;}
+  .login-card input{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    color:var(--bone);padding:10px 12px;font-size:0.95rem;
+  }
+  .login-card button{
+    background:var(--amber);border:none;border-radius:8px;color:#1c1408;
+    font-weight:600;padding:10px 12px;font-size:0.95rem;margin-top:4px;
+  }
+  .login-error{color:var(--coral);font-size:0.85rem;min-height:1.1em;margin:0;}
+  .login-divider{display:flex;align-items:center;gap:10px;color:var(--fog);font-size:0.8rem;margin:2px 0;}
+  .login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--line);}
+  .google-btn{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    background:var(--bone);color:#1c1c1c;border:none;border-radius:8px;
+    padding:10px 12px;font-size:0.95rem;font-weight:600;
+  }
 </style>
 </head>
 <body>
-<div id="app">
+<div id="loginGate" class="login-gate">
+  <form id="loginForm" class="login-card">
+    <h1>The Ledger</h1>
+    <p class="login-sub">Sign in to continue</p>
+    <input type="email" id="loginEmail" placeholder="Email" autocomplete="username" required>
+    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
+    <button type="submit" id="loginBtn">Sign In</button>
+    <div class="login-divider"><span>or</span></div>
+    <button type="button" id="googleSignInBtn" class="google-btn">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.97l3.05 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
+    <p class="login-error" id="loginError"></p>
+  </form>
+</div>
+<div id="app" style="display:none;">
   <header class="topbar">
     <div class="topbar-actions">
       <button id="saveAllBtn" class="save-btn">Save</button>
       <button id="resetBtn" class="reset-btn">Reset Day</button>
+      <button id="signOutBtn" class="reset-btn">Sign Out</button>
     </div>
     <div class="brand">
       <span class="brand-mark">◐</span>
@@ -455,9 +498,73 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 (function(){
   "use strict";
+
+  // ---------- Firebase Auth (gates access to the cloud database) ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyAuQSzSJgPG4k1-JDlH76vvWo0ZjNIuFJU",
+    authDomain: "dailytracker-2adb7.firebaseapp.com",
+    databaseURL: "https://dailytracker-2adb7-default-rtdb.firebaseio.com",
+    projectId: "dailytracker-2adb7",
+    storageBucket: "dailytracker-2adb7.firebasestorage.app",
+    messagingSenderId: "587080746748",
+    appId: "1:587080746748:web:efb29ddef45f0862f83979"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const fbAuth = firebase.auth();
+
+  const loginGateEl = document.getElementById('loginGate');
+  const appEl = document.getElementById('app');
+  const loginForm = document.getElementById('loginForm');
+  const loginError = document.getElementById('loginError');
+  const loginBtn = document.getElementById('loginBtn');
+
+  loginForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    loginError.textContent = '';
+    loginBtn.disabled = true; loginBtn.textContent = 'Signing in…';
+    try{
+      await fbAuth.signInWithEmailAndPassword(
+        document.getElementById('loginEmail').value.trim(),
+        document.getElementById('loginPassword').value
+      );
+    }catch(err){
+      loginError.textContent = 'Sign-in failed — check your email and password.';
+    }finally{
+      loginBtn.disabled = false; loginBtn.textContent = 'Sign In';
+    }
+  });
+
+  const googleSignInBtn = document.getElementById('googleSignInBtn');
+  googleSignInBtn.addEventListener('click', async ()=>{
+    loginError.textContent = '';
+    googleSignInBtn.disabled = true;
+    try{
+      await fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    }catch(err){
+      loginError.textContent = 'Google sign-in error: ' + (err.code || '') + ' ' + (err.message || '');
+      console.error('Google sign-in error:', err);
+    }finally{
+      googleSignInBtn.disabled = false;
+    }
+  });
+
+  let appStarted = false;
+  fbAuth.onAuthStateChanged((user)=>{
+    if(user){
+      loginGateEl.style.display = 'none';
+      appEl.style.display = '';
+      document.getElementById('signOutBtn').onclick = ()=> fbAuth.signOut();
+      if(!appStarted){ appStarted = true; startApp(); }
+    } else {
+      appEl.style.display = 'none';
+      loginGateEl.style.display = '';
+    }
+  });
 
   // Grouped by family so related categories read as shades of one hue:
   // Blue = Productive, Green = Health, Orange = Life, Purple = Leisure, Gray = Other
@@ -560,7 +667,10 @@
 
   async function pushToCloud(){
     try{
-      const res = await fetch(CLOUD_LEDGER_URL, {
+      const user = fbAuth.currentUser;
+      if(!user) throw new Error('not signed in');
+      const token = await user.getIdToken();
+      const res = await fetch(CLOUD_LEDGER_URL.replace('.json', `.json?auth=${token}`), {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify(buildLocalSnapshot())
@@ -579,7 +689,10 @@
     // device picks up changes made elsewhere. Falls back silently to
     // whatever is already in localStorage if the cloud isn't reachable.
     try{
-      const res = await fetch(CLOUD_LEDGER_URL);
+      const user = fbAuth.currentUser;
+      if(!user) throw new Error('not signed in');
+      const token = await user.getIdToken();
+      const res = await fetch(CLOUD_LEDGER_URL.replace('.json', `.json?auth=${token}`));
       if(!res.ok) throw new Error('bad response');
       const remote = await res.json();
       if(remote && typeof remote==='object'){
@@ -1814,28 +1927,30 @@
     });
   }
 
-  document.getElementById('resetBtn').onclick=async ()=>{
-    if(!confirm('This clears all time blocks logged for '+humanDate(state.date)+'. Continue?')) return;
-    state.ledgerCache[state.date] = [];
-    await saveLedger(state.date);
-    if(state.activeTab==='today') renderToday();
-    toast('Day reset');
-  };
+  function startApp(){
+    document.getElementById('resetBtn').onclick=async ()=>{
+      if(!confirm('This clears all time blocks logged for '+humanDate(state.date)+'. Continue?')) return;
+      state.ledgerCache[state.date] = [];
+      await saveLedger(state.date);
+      if(state.activeTab==='today') renderToday();
+      toast('Day reset');
+    };
 
-  document.getElementById('saveAllBtn').onclick = saveAllNow;
+    document.getElementById('saveAllBtn').onclick = saveAllNow;
 
-  document.getElementById('todayLabel').textContent = humanDate(todayStr());
+    document.getElementById('todayLabel').textContent = humanDate(todayStr());
 
-  window.addEventListener('beforeunload', (e)=>{
-    if(pendingKeys.size>0){ e.preventDefault(); e.returnValue=''; }
-  });
+    window.addEventListener('beforeunload', (e)=>{
+      if(pendingKeys.size>0){ e.preventDefault(); e.returnValue=''; }
+    });
 
-  (async function init(){
-    await loadFromCloud();
-    await loadAll();
-    bindTabs();
-    renderView();
-  })();
+    (async function init(){
+      await loadFromCloud();
+      await loadAll();
+      bindTabs();
+      renderView();
+    })();
+  }
 })();
 </script>
 </body>
