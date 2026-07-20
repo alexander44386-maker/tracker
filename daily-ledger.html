@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ledger — Daily Time & Health Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161c26;
+    --panel:#1f2836;
+    --panel-2:#242f3f;
+    --panel-3:#2a3648;
+    --fog:#8b99ad;
+    --bone:#edeff3;
+    --amber:#e8a33d;
+    --sage:#6fa68c;
+    --coral:#d9614f;
+    --line: rgba(237,239,243,0.09);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--bone);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:'Inter',sans-serif;}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+
+  #app{max-width:1080px;margin:0 auto;padding:0 20px 60px;}
+
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:linear-gradient(180deg, var(--ink) 70%, rgba(22,28,38,0));
+    padding:22px 0 10px;
+  }
+  .topbar-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;}
+  .brand{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+  .brand-mark{font-size:22px;color:var(--amber);}
+  .brand h1{font-size:22px;letter-spacing:0.2px;font-style:italic;font-weight:500;}
+  .brand .sub{color:var(--fog);font-size:13px;margin-left:auto;font-family:'IBM Plex Mono',monospace;}
+  .save-btn{background:var(--amber);border:none;color:#1c1406;font-weight:700;padding:6px 14px;border-radius:7px;font-size:12.5px;}
+  .save-btn:hover{filter:brightness(1.08);}
+  .save-btn:disabled{opacity:0.6;cursor:default;}
+  .reset-btn{background:none;border:1px solid var(--line);color:var(--fog);font-weight:600;padding:6px 14px;border-radius:7px;font-size:12.5px;}
+  .reset-btn:hover{color:var(--coral);border-color:var(--coral);}
+
+  .tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);padding-bottom:0;}
+  .tab{
+    background:none;border:none;color:var(--fog);
+    padding:10px 14px;font-size:13.5px;font-weight:600;
+    letter-spacing:0.2px;white-space:nowrap;
+    border-bottom:2px solid transparent;
+    transition:color .15s, border-color .15s;
+  }
+  .tab:hover{color:var(--bone);}
+  .tab.active{color:var(--amber);border-bottom-color:var(--amber);}
+
+  main{padding-top:22px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px;}
+  .panel h2{font-size:19px;margin-bottom:16px;}
+  .empty{color:var(--fog);font-size:13.5px;font-style:italic;padding:14px 0;}
+
+  /* Today tab */
+  .day-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .day-header button.nav-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);width:30px;height:30px;border-radius:7px;font-size:15px;}
+  .day-header input[type=date]{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:6px 8px;border-radius:7px;}
+  .day-progress{flex:1;min-width:200px;display:flex;flex-direction:column;gap:4px;}
+  .bar{height:6px;background:var(--panel-3);border-radius:4px;overflow:hidden;}
+  .bar .fill{height:100%;background:linear-gradient(90deg,var(--sage),var(--amber));border-radius:4px;transition:width .3s;}
+  .day-progress span{font-size:12px;color:var(--fog);font-family:'IBM Plex Mono',monospace;}
+
+  .today-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:24px;align-items:start;}
+  @media (max-width:760px){.today-grid{grid-template-columns:1fr;}}
+
+  .block-form{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .block-form input[type=text]{flex:2;min-width:140px;}
+  .block-form select{flex:1;min-width:120px;}
+  .block-form input[type=number]{width:56px;}
+  .block-form input, .block-form select{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--bone);
+    padding:8px 10px;border-radius:7px;font-size:13.5px;
+  }
+  .block-form button{background:var(--amber);border:none;color:#1c1406;font-weight:700;padding:8px 14px;border-radius:7px;font-size:13.5px;}
+  .block-form button:hover{filter:brightness(1.08);}
+
+  .icon-btn{background:none;border:none;color:var(--fog);font-size:16px;line-height:1;}
+  .icon-btn:hover{color:var(--coral);}
+
+  /* Activity list (replaces timeline + legend) */
+  .activity-list{width:100%;max-height:640px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-top:4px;}
+  .activity-row{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid transparent;border-radius:8px;padding:10px 12px;cursor:pointer;transition:background .15s,border-color .15s;}
+  .activity-row:hover{background:var(--panel-3);}
+  .activity-row.active{border-color:var(--amber);}
+  .activity-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+  .activity-main{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .activity-task{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .activity-meta{font-size:11.5px;color:var(--fog);font-family:'IBM Plex Mono',monospace;}
+  .activity-del{flex-shrink:0;}
+  .activity-edit{background:var(--panel-3);border-radius:8px;padding:12px;margin-top:-2px;display:flex;flex-direction:column;gap:8px;}
+  .activity-edit .row{display:flex;gap:8px;flex-wrap:wrap;}
+  .activity-edit input[type=text]{flex:2;min-width:140px;}
+  .activity-edit select{flex:1;min-width:120px;}
+  .activity-edit input[type=number]{width:64px;}
+  .activity-edit input, .activity-edit select{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--bone);
+    padding:8px 10px;border-radius:7px;font-size:13.5px;
+  }
+  .activity-edit .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+  .activity-edit .actions button{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:600;}
+  .activity-edit .save-edit{background:var(--amber);color:#1c1406;border:none;}
+  .activity-edit .edit-delete{color:var(--coral);border-color:var(--coral);}
+
+  .wheel-col{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .day-wheel{width:100%;max-width:230px;}
+  .wheel-total{font-family:'Fraunces',serif;font-size:26px;fill:var(--bone);}
+  .wheel-label{font-size:10px;fill:var(--fog);letter-spacing:1px;text-transform:uppercase;}
+
+  /* Sleep */
+  .sleep-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px;}
+  .sleep-form input, .sleep-form label{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--bone);
+    padding:8px 10px;border-radius:7px;font-size:13px;display:flex;align-items:center;gap:6px;
+  }
+  .sleep-form input[type=date], .sleep-form input[type=time]{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);}
+  .sleep-form input[type=text]{flex:1;min-width:140px;}
+  .quality-select{display:flex;gap:2px;background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:6px 8px;}
+  .q-star{background:none;border:none;color:var(--panel-3);font-size:17px;}
+  .q-star.active{color:var(--amber);}
+  .sleep-form button[type=submit]{background:var(--sage);border:none;color:#0e1a15;font-weight:700;padding:8px 16px;border-radius:7px;}
+  .trend-svg{width:100%;height:auto;}
+  .trend-axis{font-size:9px;fill:var(--fog);font-family:'IBM Plex Mono',monospace;}
+  .sleep-trend{margin-bottom:16px;}
+  .sleep-list{display:flex;flex-direction:column;gap:6px;}
+  .sleep-row{display:flex;align-items:center;gap:12px;background:var(--panel-2);border-radius:6px;padding:9px 12px;font-size:13px;flex-wrap:wrap;}
+
+  /* BMI */
+  .bmi-badge{font-family:'IBM Plex Mono',monospace;font-size:11.5px;padding:2px 7px;border-radius:20px;background:var(--panel-3);color:var(--fog);}
+  .bmi-badge.under{color:#8fb8e8;}
+  .bmi-badge.normal{color:var(--sage);}
+  .bmi-badge.over{color:var(--amber);}
+  .bmi-badge.obese{color:var(--coral);}
+  .bmi-calc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
+  .bmi-calc input, .bmi-calc select{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:7px;font-size:13.5px;width:100px;}
+  .bmi-calc label{display:flex;align-items:center;gap:6px;color:var(--fog);font-size:12.5px;}
+  .bmi-result{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:var(--panel-2);border-radius:8px;padding:14px 16px;}
+  .bmi-result .bmi-num{font-family:'Fraunces',serif;font-size:28px;}
+  .bmi-result .bmi-meta{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .bmi-result .bmi-meta .lbl{font-size:11px;color:var(--fog);text-transform:uppercase;letter-spacing:0.5px;}
+  .bmi-note{max-width:260px;}
+  .bmi-scale-wrap{flex:1;min-width:160px;}
+  .bmi-scale{display:flex;height:6px;border-radius:4px;overflow:hidden;margin-top:12px;}
+  .bmi-scale span{height:100%;}
+  .bmi-scale-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--fog);margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+  .unit-suffix{color:var(--fog);font-size:12.5px;}
+  .unit-toggle{display:flex;gap:6px;margin-bottom:10px;}
+  .unit-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--fog);padding:6px 12px;border-radius:7px;font-size:12.5px;font-weight:600;}
+  .unit-btn.active{background:var(--amber);color:#1c1406;border-color:var(--amber);}
+
+  /* Footer / how-to-use */
+  .app-footer{margin-top:26px;border-top:1px solid var(--line);padding-top:18px;}
+  .app-footer summary{
+    cursor:pointer;list-style:none;color:var(--fog);font-size:13px;font-weight:600;
+    display:flex;align-items:center;gap:6px;user-select:none;
+  }
+  .app-footer summary::-webkit-details-marker{display:none;}
+  .app-footer summary:hover{color:var(--bone);}
+  .app-footer summary .caret{transition:transform .15s;font-size:11px;}
+  .app-footer[open] summary .caret{transform:rotate(90deg);}
+  .app-footer summary .q{
+    width:16px;height:16px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);
+    display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:var(--fog);flex-shrink:0;
+  }
+  .howto-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;
+    margin-top:16px;
+  }
+  .howto-card h3{font-size:13.5px;color:var(--amber);margin-bottom:6px;font-family:'Inter',sans-serif;font-weight:600;}
+  .howto-card p{font-size:12.5px;color:var(--fog);line-height:1.55;margin:0;}
+  .howto-foot-note{margin-top:16px;font-size:12px;color:var(--fog);font-style:italic;}
+  .sleep-row .srdate{font-family:'IBM Plex Mono',monospace;color:var(--fog);width:90px;}
+  .sleep-row .srstars{color:var(--amber);letter-spacing:1px;}
+  .sleep-row .srnotes{color:var(--fog);font-style:italic;font-size:12px;flex:1;}
+
+  /* Goals */
+  .add-goal-form{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:12px;}
+  .add-goal-form .row{display:flex;gap:8px;}
+  .add-goal-form input, .add-goal-form select{flex:1;background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:9px 12px;border-radius:7px;font-size:13px;min-width:0;}
+  .add-goal-form select{flex:none;width:130px;}
+  .add-goal-form button{background:var(--amber);border:none;color:#1c1406;font-weight:700;padding:9px 16px;border-radius:7px;align-self:flex-start;}
+  .goal-type-fields{display:none;gap:8px;}
+  .goal-type-fields.active{display:flex;}
+  .goal-type-fields input{width:0;}
+  .goal-card{background:var(--panel-2);border-radius:8px;padding:16px;margin-bottom:12px;}
+  .goal-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .goal-card-head h3{font-size:15.5px;font-weight:600;font-family:'Inter';}
+  .goal-progress-pct{font-family:'IBM Plex Mono',monospace;color:var(--sage);font-size:12.5px;}
+  .goal-steps{display:flex;flex-direction:column;gap:5px;margin:10px 0;}
+  .goal-step{display:flex;align-items:center;gap:8px;font-size:13px;}
+  .goal-step.done span{text-decoration:line-through;color:var(--fog);}
+  .goal-step input[type=checkbox]{accent-color:var(--sage);width:16px;height:16px;}
+  .add-step-form{display:flex;gap:6px;margin-top:8px;}
+  .add-step-form input{flex:1;background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:6px 9px;border-radius:6px;font-size:12.5px;}
+  .add-step-form button{background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:6px 12px;border-radius:6px;font-size:12.5px;}
+  .goal-progress-bar{height:10px;background:var(--panel-3);border-radius:5px;overflow:hidden;margin:10px 0 8px;}
+  .goal-progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--sage),var(--amber));border-radius:5px;transition:width .3s;}
+  .goal-count-row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--fog);}
+  .goal-count-row .frac{font-family:'IBM Plex Mono',monospace;color:var(--bone);font-size:14px;}
+  .goal-range-top{display:flex;justify-content:space-between;align-items:baseline;}
+  .goal-range-now{font-family:'Fraunces',serif;font-size:22px;color:var(--bone);}
+  .goal-range-target{text-align:right;}
+  .goal-range-target .lbl{font-size:10px;color:var(--fog);text-transform:uppercase;letter-spacing:0.4px;}
+  .goal-range-target .val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--sage);}
+  .goal-update-form{display:flex;gap:6px;margin-top:8px;}
+  .goal-update-form input{flex:1;background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:6px 9px;border-radius:6px;font-size:12.5px;}
+  .goal-update-form button{background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:6px 12px;border-radius:6px;font-size:12.5px;}
+  .goal-step-toggle{background:none;border:none;color:var(--fog);font-size:11.5px;padding:0;margin-top:6px;text-decoration:underline;cursor:pointer;}
+
+  /* Habits */
+  .add-habit-form{display:flex;gap:8px;margin-bottom:18px;}
+  .add-habit-form input{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:9px 12px;border-radius:7px;}
+  .add-habit-form button{background:var(--sage);border:none;color:#0e1a15;font-weight:700;padding:9px 16px;border-radius:7px;}
+  .habit-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+  .habit-name{display:flex;flex-direction:column;gap:2px;}
+  .habit-name .streak{font-size:11.5px;color:var(--amber);font-family:'IBM Plex Mono',monospace;}
+  .habit-days{display:flex;gap:4px;flex-wrap:wrap;}
+  .habit-day{width:20px;height:20px;border-radius:4px;background:var(--panel-3);border:1px solid var(--line);}
+  .habit-day.checked{background:var(--sage);border-color:var(--sage);}
+  .habit-day.today{outline:1.5px solid var(--amber);}
+
+  /* Workouts */
+  .timer-card{background:var(--panel-2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:18px;margin-bottom:20px;flex-wrap:wrap;}
+  .timer-ring-wrap{position:relative;width:96px;height:96px;flex-shrink:0;}
+  .timer-ring-wrap svg{transform:rotate(-90deg);}
+  #timerText{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:17px;}
+  .timer-controls{display:flex;flex-direction:column;gap:8px;}
+  .timer-controls .row{display:flex;gap:8px;align-items:center;}
+  .timer-controls input{width:70px;background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:6px 8px;border-radius:6px;}
+  .timer-controls button{background:var(--coral);border:none;color:#2b0d08;font-weight:700;padding:7px 14px;border-radius:6px;font-size:12.5px;}
+  .timer-controls button.secondary{background:var(--panel-3);color:var(--bone);}
+
+  .workout-form{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;background:var(--panel-2);padding:14px;border-radius:8px;}
+  .workout-form .row1{display:flex;gap:8px;flex-wrap:wrap;}
+  .workout-form input, .workout-form textarea{background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:7px;font-size:13px;}
+  .workout-form input[type=text]{flex:1;min-width:140px;}
+  .sets-rows{display:flex;flex-direction:column;gap:6px;}
+  .set-row{display:flex;gap:6px;align-items:center;}
+  .set-row input{width:70px;}
+  .set-row .rm-set{background:none;border:none;color:var(--fog);font-size:15px;}
+  .workout-form .actions{display:flex;gap:8px;}
+  .workout-form .actions button{background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:7px 12px;border-radius:6px;font-size:12.5px;}
+  .workout-form .submit-btn{background:var(--amber) !important;color:#1c1406 !important;font-weight:700;border:none !important;}
+
+  .workout-entry{background:var(--panel-2);border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+  .workout-entry .we-head{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;}
+  .workout-entry .we-date{color:var(--fog);font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:12px;}
+  .workout-entry .we-sets{color:var(--fog);font-size:12.5px;margin-top:4px;}
+  .workout-entry .we-notes{color:var(--fog);font-style:italic;font-size:12px;margin-top:4px;}
+
+  .progress-select{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:7px;margin-bottom:10px;}
+
+  /* Dashboard */
+  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:760px){.dash-grid{grid-template-columns:1fr;}}
+
+  /* Weekly Review */
+  .review-panel{margin-bottom:18px;}
+  .review-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .review-badge{background:var(--amber);color:#1c1406;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;margin-left:10px;letter-spacing:0.3px;vertical-align:middle;}
+  .review-sub{color:var(--fog);font-size:11.5px;font-family:'IBM Plex Mono',monospace;}
+  .review-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin-bottom:16px;}
+  .review-stat{background:var(--panel-2);border-radius:8px;padding:13px 10px 11px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .review-stat-top{display:flex;align-items:baseline;justify-content:center;gap:6px;}
+  .review-stat .num{font-family:'Fraunces',serif;font-size:21px;color:var(--amber);}
+  .review-stat .lbl{font-size:10.5px;color:var(--fog);text-transform:uppercase;letter-spacing:0.5px;}
+  .review-extremes{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .review-extreme{flex:1;min-width:140px;background:var(--panel-2);border-radius:8px;padding:12px 14px;}
+  .review-extreme .lbl{font-size:10.5px;color:var(--fog);text-transform:uppercase;letter-spacing:0.5px;}
+  .review-extreme .val{font-family:'Fraunces',serif;font-size:17px;margin-top:4px;}
+  .review-extreme.most .val{color:var(--sage);}
+  .review-extreme.least .val{color:var(--coral);}
+  .extreme-trend{display:flex;align-items:center;gap:8px;margin-top:8px;}
+  .trend-arrow{font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+  .trend-arrow.up{color:var(--sage);}
+  .trend-arrow.down{color:var(--coral);}
+  .trend-arrow.flat{color:var(--fog);}
+  .spark{width:62px;height:20px;display:block;flex-shrink:0;}
+  .review-suggestion{background:rgba(232,163,61,0.12);border:1px solid rgba(232,163,61,0.35);border-radius:8px;padding:13px 15px;font-size:13.5px;line-height:1.5;color:var(--bone);}
+  .review-suggestion strong{color:var(--amber);}
+  .stat-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line);}
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .val{font-family:'IBM Plex Mono',monospace;color:var(--amber);}
+  .week-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .week-bar-row .wlabel{width:38px;font-size:11.5px;color:var(--fog);font-family:'IBM Plex Mono',monospace;}
+  .week-bar{flex:1;height:14px;border-radius:4px;overflow:hidden;display:flex;background:var(--panel-3);}
+
+  /* Monthly dashboard */
+  .month-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .month-header .nav-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);width:30px;height:30px;border-radius:7px;font-size:15px;}
+  .month-header .nav-btn:disabled{opacity:0.35;cursor:default;}
+  .heat-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .heat-dow{font-size:10px;color:var(--fog);text-align:center;font-family:'IBM Plex Mono',monospace;padding-bottom:2px;}
+  .heat-cell{aspect-ratio:1;border-radius:5px;background:var(--panel-3);display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--bone);font-family:'IBM Plex Mono',monospace;}
+  .heat-cell.empty{background:transparent;}
+  .heat-cell.is-today{box-shadow:inset 0 0 0 1.5px var(--amber);}
+  .cat-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .cat-bar-label{width:130px;font-size:12px;color:var(--fog);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .cat-bar-label i{width:8px;height:8px;border-radius:2px;display:inline-block;flex-shrink:0;}
+  .cat-bar-track{flex:1;height:10px;border-radius:4px;background:var(--panel-3);overflow:hidden;}
+  .cat-bar-fill{height:100%;border-radius:4px;}
+  .cat-bar-val{width:56px;text-align:right;font-size:11px;color:var(--fog);flex-shrink:0;}
+  .mini-progress{height:6px;background:var(--panel-3);border-radius:4px;overflow:hidden;margin-top:4px;}
+  .mini-progress .fill{height:100%;background:var(--sage);}
+
+  .loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--fog);font-style:italic;}
+
+  /* Challenges */
+  .section-intro{color:var(--fog);font-size:13px;line-height:1.5;margin:0 0 16px;}
+  .record-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+  .record-card{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:14px 16px;}
+  .record-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .record-icon{font-size:14px;}
+  .record-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--fog);font-weight:600;}
+  .record-value{font-size:18px;font-family:'Fraunces',serif;font-weight:600;color:var(--bone);margin:0 0 3px;}
+  .record-sub{font-size:12px;color:var(--fog);margin:0;}
+  .challenge-group{margin-bottom:6px;}
+  .challenge-group + .challenge-group{margin-top:14px;}
+  .challenge-card{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:13px 16px;margin-bottom:10px;}
+  .challenge-card.is-complete{border-color:var(--sage);}
+  .challenge-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+  .challenge-icon{font-size:15px;}
+  .challenge-label{flex:1;font-size:13.5px;font-weight:600;color:var(--bone);}
+  .challenge-check{color:var(--sage);font-size:13px;}
+  .challenge-val{font-size:11.5px;color:var(--fog);flex-shrink:0;}
+  .section-meta{color:var(--fog);font-size:11.5px;margin:0 0 14px;}
+  .period-select-row{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap;}
+  .period-select{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);border-radius:6px;padding:6px 10px;font-size:12.5px;font-family:'IBM Plex Mono',monospace;}
+  .period-select:focus-visible{outline:2px solid var(--amber);outline-offset:1px;}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--coral);color:#2b0d08;padding:8px 16px;border-radius:8px;font-size:12.5px;font-weight:600;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none;}
+  .toast.show{opacity:1;}
+
+  /* ---------- Mobile ---------- */
+  @media (max-width:600px){
+    #app{padding:0 12px 44px;}
+    .topbar{padding:16px 0 8px;}
+    .brand{gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+    .brand h1{font-size:19px;}
+    .brand .sub{width:100%;margin-left:0;order:3;font-size:11.5px;}
+    .save-btn,.reset-btn{padding:7px 12px;font-size:12px;}
+
+    .tabs{gap:2px;}
+    .tab{padding:9px 10px;font-size:12.5px;}
+
+    .panel{padding:15px;border-radius:8px;}
+    .panel h2{font-size:17px;margin-bottom:13px;}
+
+    .day-header{gap:8px;}
+    .day-progress{min-width:0;flex-basis:100%;}
+
+    .block-form{gap:6px;}
+    .block-form input[type=text]{flex-basis:100%;}
+    .block-form select{flex:1 1 60%;}
+    .block-form input[type=number]{width:48px;}
+
+    .day-wheel{max-width:180px;}
+
+    /* BMI calculator */
+    .bmi-calc{flex-direction:column;align-items:stretch;gap:10px;}
+    .bmi-calc label{flex-wrap:wrap;gap:8px;}
+    .bmi-calc input, .bmi-calc select{width:auto;flex:1;min-width:70px;}
+    .unit-toggle .unit-btn{flex:1;text-align:center;}
+    .bmi-result{flex-direction:column;align-items:stretch;text-align:left;padding:14px;}
+    .bmi-note{max-width:100%;}
+    .bmi-scale-wrap{min-width:0;width:100%;}
+
+    .sleep-form{flex-direction:column;align-items:stretch;gap:8px;}
+    .sleep-form input, .sleep-form label{width:100%;}
+
+    /* Goals */
+    .add-goal-form .row{flex-wrap:wrap;}
+    .add-goal-form select{width:100%;}
+    .goal-type-fields{flex-wrap:wrap;}
+    .goal-type-fields input{flex:1 1 100%;}
+    .goal-card{padding:14px;}
+    .goal-range-target{text-align:left;}
+
+    /* Dashboard */
+    .cat-bar-label{width:88px;font-size:11px;}
+    .cat-bar-val{width:44px;font-size:10.5px;}
+    .review-grid{grid-template-columns:repeat(auto-fit,minmax(90px,1fr));}
+    .review-extreme{min-width:0;flex-basis:100%;}
+    .heat-cell{font-size:9.5px;}
+
+    .howto-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-actions">
+      <button id="saveAllBtn" class="save-btn">Save</button>
+      <button id="resetBtn" class="reset-btn">Reset Day</button>
+    </div>
+    <div class="brand">
+      <span class="brand-mark">◐</span>
+      <h1>The Ledger</h1>
+      <span class="sub" id="todayLabel"></span>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="today">Today</button>
+      <button class="tab" data-tab="goals">Goals</button>
+      <button class="tab" data-tab="weight">Weight</button>
+      <button class="tab" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="challenges">Challenges</button>
+    </nav>
+  </header>
+  <main id="view"><div class="loading">Loading your ledger…</div></main>
+  <details class="app-footer">
+    <summary><span class="caret">▶</span><span class="q">?</span> How to use The Ledger</summary>
+    <div class="howto-grid">
+      <div class="howto-card">
+        <h3>Today</h3>
+        <p>Log time blocks with a label, category, start time, and duration. They appear on the vertical day timeline and the totals wheel. Use the date arrows or picker to jump to other days. Log sleep here too — just use the "Sleep" category and it'll roll into your dashboard stats automatically.</p>
+      </div>
+      <div class="howto-card">
+        <h3>Goals</h3>
+        <p>Set a target and track progress toward it. Progress bars and the dashboard's overall percentage update as you update each goal.</p>
+      </div>
+      <div class="howto-card">
+        <h3>Weight</h3>
+        <p>Add weigh-ins over time to see your trend on a simple line chart.</p>
+      </div>
+      <div class="howto-card">
+        <h3>Dashboard</h3>
+        <p>A weekly and monthly overview: time by category, sleep averages, goal progress, and a weight trend — all in one place.</p>
+      </div>
+      <div class="howto-card">
+        <h3>Saving</h3>
+        <p>Changes save automatically as you go. Use <strong>Save</strong> in the top bar to force-save immediately, or <strong>Reset Day</strong> to clear all time blocks for the day currently shown.</p>
+      </div>
+    </div>
+    <p class="howto-foot-note">Tip: everything is stored locally per day/entry, so you can revisit past dates any time from the Today tab.</p>
+  </details>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Grouped by family so related categories read as shades of one hue:
+  // Blue = Productive, Green = Health, Orange = Life, Purple = Leisure, Gray = Other
+  let CATEGORIES = [
+    // Productive — blue
+    {id:'work',label:'Work',color:'#3d6fb4'},
+    {id:'learning',label:'Learning',color:'#5f8ed4'},
+    {id:'reading',label:'Reading',color:'#8fb8e8'},
+    // Health — green
+    {id:'exercise',label:'Exercise',color:'#3d9463'},
+    {id:'meals',label:'Meals',color:'#5cae7c'},
+    {id:'sleep',label:'Sleep',color:'#7ec49a'},
+    {id:'rest',label:'Rest',color:'#a3d9bb'},
+    {id:'self_care',label:'Self Care',color:'#7EC49A'},
+    {id:'wellness',label:'Wellness',color:'#5CAE7C'},
+    // Life — orange
+    {id:'family_time',label:'Family Time',color:'#d9722e'},
+    {id:'personal',label:'Personal',color:'#e0893f'},
+    {id:'kids_playtime',label:'Kids Playtime',color:'#eda256'},
+    {id:'giann',label:'Giann',color:'#f0b56f'},
+    {id:'teaching_kids',label:'Teaching Kids',color:'#f5c88a'},
+    {id:'travel',label:'Travel',color:'#c96020'},
+    {id:'shopping',label:'Shopping',color:'#D9722E'},
+    {id:'online_shopping',label:'Online Shopping',color:'#E0893F'},
+    // Leisure — purple
+    {id:'leisure',label:'Leisure',color:'#8a63c9'},
+    {id:'entertainment',label:'Watching',color:'#a583d9'},
+    {id:'social_media',label:'Social Media',color:'#c2a3e8'},
+    // Other — gray
+    {id:'other',label:'Others',color:'#5a6473'}
+  ];
+
+  let state = {
+    date: todayStr(),
+    ledgerCache: {},
+    sleep: {records:{}},
+    goals: {goals:[]},
+    weight: {records:{}},
+    customCategories: [],
+    challengeCache: null,
+    challengeWeek: null,
+    challengeMonth: null,
+    activeTab: 'today',
+    quality: 3,
+    weekCache: null,
+    monthDate: todayStr().slice(0,7)
+  };
+
+  // ---------- utils ----------
+  function pad2(n){return n<10?'0'+n:''+n;}
+  function todayStr(){return fmtDate(new Date());}
+  function fmtDate(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+  function shiftDate(ds,delta){const d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+delta);return fmtDate(d);}
+  function humanDate(ds){const d=new Date(ds+'T00:00:00');return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});}
+  function daysInMonth(ym){const [y,m]=ym.split('-').map(Number);return new Date(y,m,0).getDate();}
+  function shiftMonth(ym,delta){const [y,m]=ym.split('-').map(Number);const d=new Date(y,m-1+delta,1);return d.getFullYear()+'-'+pad2(d.getMonth()+1);}
+  function humanMonth(ym){const [y,m]=ym.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});}
+  function firstWeekdayOfMonth(ym){const [y,m]=ym.split('-').map(Number);return new Date(y,m-1,1).getDay();}
+  function minutesToHM(m){m=Math.round(m);const h=Math.floor(m/60),mm=m%60;if(h<=0)return mm+'m';if(mm===0)return h+'h';return h+'h '+mm+'m';}
+  function minutesToTime(m){m=((m%1440)+1440)%1440;return pad2(Math.floor(m/60))+':'+pad2(m%60);}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+  function slugify(s){ return s.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || 'custom_'+uid(); }
+  const CUSTOM_PALETTE = ['#c2185b','#0097a7','#7cb342','#f57c00','#5e35b1','#00838f','#8d6e63','#3949ab'];
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function catOf(id){return CATEGORIES.find(c=>c.id===id)||CATEGORIES[CATEGORIES.length-1];}
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+  // ---------- storage (browser localStorage + Firebase cloud sync) ----------
+  /* Data lives in localStorage so the app always works offline, and is
+     mirrored to Firebase Realtime Database so the same ledger shows up
+     on every device that opens this page (no accounts — one shared save,
+     same pattern as gcp-shop.html).
+     ⚠️ REPLACE this with YOUR Firebase Realtime Database URL.
+     It looks like: https://your-project-id-default-rtdb.firebaseio.com */
+  const FIREBASE_DB_URL = "https://dailytracker-2adb7-default-rtdb.firebaseio.com/";
+  const CLOUD_LEDGER_URL = `${FIREBASE_DB_URL}/the_ledger.json`;
+
+  const LS_PREFIX = 'theLedger:';
+  function lsKey(key){ return LS_PREFIX+key; }
+
+  // Build a plain object snapshot of everything currently in localStorage
+  // (minus the prefix) so it can be pushed to Firebase as one JSON blob.
+  function buildLocalSnapshot(){
+    const out = {};
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf(LS_PREFIX)===0){
+        try{ out[k.slice(LS_PREFIX.length)] = JSON.parse(localStorage.getItem(k)); }catch(e){}
+      }
+    }
+    return out;
+  }
+
+  let cloudSyncTimer = null;
+  function queueCloudSync(){
+    // Debounce so rapid edits don't fire a network request on every keystroke.
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(pushToCloud, 600);
+  }
+
+  async function pushToCloud(){
+    try{
+      const res = await fetch(CLOUD_LEDGER_URL, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(buildLocalSnapshot())
+      });
+      if(!res.ok) throw new Error('bad response');
+      return true;
+    }catch(e){
+      // Cloud unreachable (offline, or FIREBASE_DB_URL not set yet) — local copy still safe.
+      console.warn('Firebase sync skipped:', e.message);
+      return false;
+    }
+  }
+
+  async function loadFromCloud(){
+    // Pull the shared save down before reading anything locally, so this
+    // device picks up changes made elsewhere. Falls back silently to
+    // whatever is already in localStorage if the cloud isn't reachable.
+    try{
+      const res = await fetch(CLOUD_LEDGER_URL);
+      if(!res.ok) throw new Error('bad response');
+      const remote = await res.json();
+      if(remote && typeof remote==='object'){
+        Object.keys(remote).forEach(k=>{
+          try{ localStorage.setItem(lsKey(k), JSON.stringify(remote[k])); }catch(e){}
+        });
+      }
+    }catch(e){
+      console.warn('Firebase load skipped (offline, or FIREBASE_DB_URL not set yet):', e.message);
+    }
+  }
+
+  async function sGet(key,fallback){
+    try{
+      const raw = localStorage.getItem(lsKey(key));
+      return raw!==null ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
+  }
+  async function sSet(key,val){
+    try{
+      localStorage.setItem(lsKey(key), JSON.stringify(val));
+      pendingKeys.delete(key);
+      queueCloudSync();
+      return true;
+    }catch(e){
+      pendingKeys.add(key);
+      toast('Could not save "'+key+'" — your browser storage may be full or blocked (private mode?)');
+      return false;
+    }
+  }
+  async function sDelete(key){
+    try{ localStorage.removeItem(lsKey(key)); queueCloudSync(); return true; }catch(e){ return false; }
+  }
+  function sListKeys(prefix){
+    const out=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && k.indexOf(LS_PREFIX+prefix)===0) out.push(k.slice(LS_PREFIX.length));
+    }
+    return out;
+  }
+  const pendingKeys = new Set();
+
+  async function loadLedger(date){
+    if(state.ledgerCache[date]) return state.ledgerCache[date];
+    const blocks = await sGet('ledger:'+date, []);
+    state.ledgerCache[date] = blocks;
+    return blocks;
+  }
+  async function saveLedger(date){
+    return sSet('ledger:'+date, state.ledgerCache[date]);
+  }
+
+  async function saveAllNow(){
+    const btn = document.getElementById('saveAllBtn');
+    if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+    const keys = ['sleep-data','goals-data','weight-data','custom-categories-data', ...Object.keys(state.ledgerCache).map(d=>'ledger:'+d)];
+    const values = {
+      'sleep-data': state.sleep, 'goals-data': state.goals,
+      'weight-data': state.weight, 'custom-categories-data': state.customCategories
+    };
+    Object.keys(state.ledgerCache).forEach(d=>{ values['ledger:'+d] = state.ledgerCache[d]; });
+    // Write everything to localStorage first so nothing is lost even if the network is down.
+    const results = keys.map(k=>{
+      try{ localStorage.setItem(lsKey(k), JSON.stringify(values[k])); pendingKeys.delete(k); return true; }
+      catch(e){ pendingKeys.add(k); return false; }
+    });
+    const localOk = results.every(Boolean);
+    // Then push the full snapshot to Firebase right away (skip the debounce).
+    clearTimeout(cloudSyncTimer);
+    const cloudOk = await pushToCloud();
+    if(btn){ btn.disabled=false; btn.textContent='Save'; }
+    if(cloudOk) toast('✔ Saved to Firebase!');
+    else if(localOk) toast('⚠️ Saved on this device only (offline)');
+    else toast('Some data could not save — check your connection and try again');
+    return localOk;
+  }
+
+  async function loadAll(){
+    const [sleep, goals, weight, customCategories, todayBlocks] = await Promise.all([
+      sGet('sleep-data', {records:{}}),
+      sGet('goals-data', {goals:[]}),
+      sGet('weight-data', {records:{}}),
+      sGet('custom-categories-data', []),
+      sGet('ledger:'+state.date, [])
+    ]);
+    state.sleep = sleep;
+    state.goals = goals;
+    state.weight = weight;
+    state.customCategories = customCategories;
+    customCategories.forEach(c=>{ if(!CATEGORIES.some(x=>x.id===c.id)) CATEGORIES.push(c); });
+    state.ledgerCache[state.date] = todayBlocks;
+  }
+
+  // ---------- SVG day wheel ----------
+  function polar(cx,cy,r,angle){
+    const a=(angle-90)*Math.PI/180;
+    return {x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)};
+  }
+  function arcPath(cx,cy,rO,rI,a0,a1){
+    if(a1-a0>=359.999) a1=a0+359.999;
+    const so=polar(cx,cy,rO,a1), eo=polar(cx,cy,rO,a0);
+    const si=polar(cx,cy,rI,a1), ei=polar(cx,cy,rI,a0);
+    const large = a1-a0>180?1:0;
+    return `M ${so.x} ${so.y} A ${rO} ${rO} 0 ${large} 0 ${eo.x} ${eo.y} L ${ei.x} ${ei.y} A ${rI} ${rI} 0 ${large} 1 ${si.x} ${si.y} Z`;
+  }
+  function dayWheelSVG(blocks){
+    const cx=110,cy=110,rO=100,rI=62;
+    let angle=0, paths='';
+    blocks.forEach(b=>{
+      const sweep=b.duration/1440*360;
+      const c=catOf(b.category).color;
+      paths+=`<path d="${arcPath(cx,cy,rO,rI,angle,angle+sweep)}" fill="${c}" opacity="0.92"><title>${escapeHtml(b.task)} — ${minutesToHM(b.duration)}</title></path>`;
+      angle+=sweep;
+    });
+    if(angle<359.9){ paths+=`<path d="${arcPath(cx,cy,rO,rI,angle,360)}" fill="rgba(255,255,255,0.05)"/>`; }
+    let ticks='';
+    for(let h=0;h<24;h++){
+      const a=h/24*360;
+      const p1=polar(cx,cy,rO+3,a), p2=polar(cx,cy,rO+(h%6===0?11:6),a);
+      ticks+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="rgba(237,239,243,0.28)" stroke-width="${h%6===0?1.6:1}"/>`;
+    }
+    const totalH=(blocks.reduce((s,b)=>s+b.duration,0)/60).toFixed(1);
+    return `<svg viewBox="0 0 220 220" class="day-wheel">${ticks}${paths}
+      <circle cx="${cx}" cy="${cy}" r="${rI-3}" fill="var(--panel)"/>
+      <text x="${cx}" y="${cy-2}" text-anchor="middle" class="wheel-total">${totalH}h</text>
+      <text x="${cx}" y="${cy+17}" text-anchor="middle" class="wheel-label">tracked</text>
+    </svg>`;
+  }
+
+  // ---------- render: Today ----------
+  let editingBlockId = null;
+  function editFormHTML(b){
+    const h = Math.floor(b.duration/60), m = b.duration%60;
+    return `<div class="activity-edit" data-edit-id="${b.id}">
+      <div class="row">
+        <input type="text" class="editTask" value="${escapeHtml(b.task)}" maxlength="60" placeholder="Description">
+        <select class="editCategory">${CATEGORIES.map(c=>`<option value="${c.id}" ${c.id===b.category?'selected':''}>${c.label}</option>`).join('')}</select>
+      </div>
+      <div class="row">
+        <input type="number" class="editHours" min="0" max="24" value="${h}" placeholder="h">
+        <input type="number" class="editMins" min="0" max="59" value="${m}" placeholder="m">
+      </div>
+      <div class="actions">
+        <button type="button" class="edit-delete">Delete</button>
+        <button type="button" class="cancel-edit">Cancel</button>
+        <button type="button" class="save-edit">Save</button>
+      </div>
+    </div>`;
+  }
+  function activityRowHTML(b, idx, blocks){
+    const cat = catOf(b.category);
+    const isEditing = editingBlockId === b.id;
+    const row = `<div class="activity-row ${isEditing?'active':''}" data-id="${b.id}">
+      <span class="activity-swatch" style="background:${cat.color}"></span>
+      <div class="activity-main">
+        <span class="activity-task">${escapeHtml(b.task)}</span>
+        <span class="activity-meta">${cat.label} · ${minutesToHM(b.duration)}</span>
+      </div>
+      <button class="icon-btn del-block activity-del" data-id="${b.id}" aria-label="Delete ${escapeHtml(b.task)}">×</button>
+    </div>`;
+    return isEditing ? row + editFormHTML(b) : row;
+  }
+  function activityListHTML(blocks){
+    return blocks.map((b,i)=>activityRowHTML(b,i,blocks)).join('');
+  }
+  function renderToday(){
+    const blocks = state.ledgerCache[state.date] || [];
+    const total = blocks.reduce((s,b)=>s+b.duration,0);
+    const remaining = 1440-total;
+    const view = document.getElementById('view');
+    view.innerHTML = `
+    <section class="panel">
+      <div class="day-header">
+        <button class="nav-btn" id="prevDay">‹</button>
+        <input type="date" id="dateInput" value="${state.date}">
+        <button class="nav-btn" id="nextDay">›</button>
+        <div class="day-progress">
+          <div class="bar"><div class="fill" style="width:${Math.min(100,total/1440*100)}%"></div></div>
+          <span>${minutesToHM(total)} logged · ${remaining>0?minutesToHM(remaining)+' remaining':'day complete ✓'}</span>
+        </div>
+      </div>
+      <div class="today-grid">
+        <div class="ledger-col">
+          <form id="blockForm" class="block-form">
+            <input type="text" id="taskInput" placeholder="e.g. Stretch, Sleep, Deep work (optional)" maxlength="60">
+            <select id="categorySelect">${CATEGORIES.map(c=>`<option value="${c.id}">${c.label}</option>`).join('')}<option value="__add__">+ Add new category…</option></select>
+            <input type="number" id="durHours" min="0" max="24" placeholder="h">
+            <input type="number" id="durMins" min="0" max="59" placeholder="m">
+            <button type="submit">Add</button>
+          </form>
+        </div>
+        <div class="wheel-col">
+          ${dayWheelSVG(blocks)}
+          <div class="activity-list" id="blocksList">
+            ${blocks.length? activityListHTML(blocks) : '<p class="empty">Nothing logged yet — add your first block, like "6h Sleep".</p>'}
+          </div>
+        </div>
+      </div>
+    </section>`;
+
+    document.getElementById('prevDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,-1); await loadLedger(state.date); renderToday(); };
+    document.getElementById('nextDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,1); await loadLedger(state.date); renderToday(); };
+    document.getElementById('dateInput').onchange = async (e)=>{ editingBlockId=null; state.date=e.target.value; await loadLedger(state.date); renderToday(); };
+    document.getElementById('categorySelect').onchange = async (e)=>{
+      if(e.target.value !== '__add__') return;
+      const label = prompt('New category name:');
+      if(!label || !label.trim()){ e.target.value = CATEGORIES[0].id; return; }
+      const id = slugify(label);
+      if(CATEGORIES.some(c=>c.id===id)){
+        toast('That category already exists');
+        e.target.value = id;
+        return;
+      }
+      const color = CUSTOM_PALETTE[state.customCategories.length % CUSTOM_PALETTE.length];
+      const newCat = {id, label:label.trim(), color};
+      CATEGORIES.push(newCat);
+      state.customCategories.push(newCat);
+      await sSet('custom-categories-data', state.customCategories);
+      renderToday();
+      document.getElementById('categorySelect').value = id;
+    };
+    document.getElementById('blockForm').onsubmit = async (e)=>{
+      e.preventDefault();
+      const task = document.getElementById('taskInput').value.trim();
+      const category = document.getElementById('categorySelect').value;
+      const h = parseInt(document.getElementById('durHours').value)||0;
+      const m = parseInt(document.getElementById('durMins').value)||0;
+      const duration = h*60+m;
+      if(duration<=0){ toast('Add a duration above 0'); return; }
+      const date = state.date;
+      const arr = state.ledgerCache[date];
+      const block = {id:uid(), task: task || catOf(category).label, category, duration};
+      arr.push(block);
+      await saveLedger(date);
+      if(category==='sleep'){ await syncSleepFromToday(date); }
+      renderToday();
+    };
+    document.getElementById('blocksList').addEventListener('click', async (e)=>{
+      const date = state.date;
+
+      const delBtn = e.target.closest('.del-block');
+      if(delBtn){
+        const removed = state.ledgerCache[date].find(b=>b.id===delBtn.dataset.id);
+        state.ledgerCache[date] = state.ledgerCache[date].filter(b=>b.id!==delBtn.dataset.id);
+        await saveLedger(date);
+        if(removed && removed.category==='sleep'){ await syncSleepFromToday(date); }
+        if(editingBlockId===delBtn.dataset.id) editingBlockId=null;
+        renderToday();
+        return;
+      }
+
+      const cancelBtn = e.target.closest('.cancel-edit');
+      if(cancelBtn){ editingBlockId=null; renderToday(); return; }
+
+      const editDeleteBtn = e.target.closest('.edit-delete');
+      if(editDeleteBtn){
+        const id = e.target.closest('.activity-edit').dataset.editId;
+        const removed = state.ledgerCache[date].find(b=>b.id===id);
+        state.ledgerCache[date] = state.ledgerCache[date].filter(b=>b.id!==id);
+        await saveLedger(date);
+        if(removed && removed.category==='sleep'){ await syncSleepFromToday(date); }
+        editingBlockId=null;
+        renderToday();
+        return;
+      }
+
+      const saveBtn = e.target.closest('.save-edit');
+      if(saveBtn){
+        const panel = e.target.closest('.activity-edit');
+        const id = panel.dataset.editId;
+        const task = panel.querySelector('.editTask').value.trim();
+        const category = panel.querySelector('.editCategory').value;
+        const hh = parseInt(panel.querySelector('.editHours').value)||0;
+        const mm = parseInt(panel.querySelector('.editMins').value)||0;
+        const duration = hh*60+mm;
+        if(duration<=0){ toast('Add a duration above 0'); return; }
+        const blk = state.ledgerCache[date].find(x=>x.id===id);
+        const wasSleep = blk.category==='sleep';
+        blk.task = task || catOf(category).label; blk.category = category; blk.duration = duration;
+        await saveLedger(date);
+        if(wasSleep || category==='sleep'){ await syncSleepFromToday(date); }
+        editingBlockId=null;
+        renderToday();
+        return;
+      }
+
+      const row = e.target.closest('.activity-row');
+      if(row){
+        const id = row.dataset.id;
+        editingBlockId = (editingBlockId===id) ? null : id;
+        renderToday();
+      }
+    });
+  }
+
+  // ---------- cross-tab sync helpers ----------
+  async function syncSleepFromToday(date){
+    const blocks = state.ledgerCache[date] || await loadLedger(date);
+    const sleepBlocks = blocks.filter(b=>b.category==='sleep');
+    const totalMin = sleepBlocks.reduce((s,b)=>s+b.duration,0);
+    if(totalMin<=0){
+      if(state.sleep.records[date]){ delete state.sleep.records[date]; await sSet('sleep-data', state.sleep); }
+      return;
+    }
+    const existing = state.sleep.records[date] || {};
+    state.sleep.records[date] = {
+      duration: totalMin,
+      quality: existing.quality || 3,
+      notes: existing.notes || ''
+    };
+    await sSet('sleep-data', state.sleep);
+  }
+  // ---------- render: Weight ----------
+  function bmiValue(kg, cm){
+    if(!kg || !cm) return null;
+    const m = cm/100;
+    return kg/(m*m);
+  }
+  function cmToFtIn(cm){
+    if(!cm) return {ft:'', inch:''};
+    const totalIn = cm/2.54;
+    const ft = Math.floor(totalIn/12);
+    const inch = Math.round((totalIn - ft*12)*10)/10;
+    return {ft, inch};
+  }
+  function ftInToCm(ft, inch){
+    ft = parseFloat(ft)||0; inch = parseFloat(inch)||0;
+    const cm = (ft*12+inch)*2.54;
+    return cm>0 ? Math.round(cm*10)/10 : null;
+  }
+  // Standard adult (20+) BMI cutoffs are the same for men and women per WHO/CDC —
+  // sex is captured for context/notes only, it does not change the category math.
+  // Under 20, BMI is properly read via sex- and age-specific growth percentiles
+  // (CDC/WHO charts), not fixed cutoffs, so we flag that instead of guessing.
+  // 65+ research (e.g. Winter et al. 2014 meta-analysis) links a higher BMI band
+  // to lower mortality risk in older adults, so we surface that as a note.
+  function bmiCategory(bmi, age){
+    if(bmi===null) return {label:'—', cls:'', note:''};
+    age = (age===undefined || age===null || age==='') ? null : Number(age);
+    if(age!==null && age<20){
+      return {label:'Age-based', cls:'', note:'Under 20, BMI is assessed against sex- and age-specific growth percentiles rather than fixed cutoffs — ask a pediatrician or use the CDC Child & Teen BMI tool for an accurate read.'};
+    }
+    let label, cls;
+    if(bmi<18.5){label='Underweight';cls='under';}
+    else if(bmi<25){label='Normal';cls='normal';}
+    else if(bmi<30){label='Overweight';cls='over';}
+    else {label='Obese';cls='obese';}
+    let note = '';
+    if(age!==null && age>=65){
+      note = 'Research on adults 65+ links a BMI of roughly 23–30 to lower mortality risk, somewhat higher than the standard cutoffs shown here — talk to a clinician before using this to guide weight change.';
+    }
+    return {label, cls, note};
+  }
+  function bmiBadgeHTML(kg, cm, age){
+    const bmi = bmiValue(kg, cm);
+    if(bmi===null) return '';
+    const cat = bmiCategory(bmi, age);
+    return `<span class="bmi-badge ${cat.cls}">BMI ${bmi.toFixed(1)} · ${cat.label}</span>`;
+  }
+  function weightRowHTML(d, rec){
+    return `<div class="sleep-row">
+      <span class="srdate mono">${d}</span>
+      <span class="mono">${rec.weight} kg</span>
+      ${bmiBadgeHTML(rec.weight, state.weight.heightCm, state.weight.age)}
+      <span class="srnotes">${escapeHtml(rec.notes||'')}</span>
+      <button class="icon-btn del-weight" data-date="${d}" aria-label="Delete">×</button>
+    </div>`;
+  }
+  function weightTrendSVG(entries){
+    if(!entries.length) return '<p class="empty">Log a weekly weigh-in to see your trend.</p>';
+    const w=600,h=160,padL=34,padB=22,padT=14;
+    const weights=entries.map(e=>e.weight);
+    const minW=Math.min(...weights), maxW=Math.max(...weights);
+    const range=(maxW-minW)||1, pad=range*0.2;
+    const lo=minW-pad, hi=maxW+pad;
+    const stepX = entries.length>1 ? (w-padL-15)/(entries.length-1) : 0;
+    const coords = entries.map((e,i)=>({x:padL+i*stepX, y:h-padB-((e.weight-lo)/(hi-lo))*(h-padB-padT)}));
+    const path = coords.map((c,i)=>(i===0?'M':'L')+c.x.toFixed(1)+' '+c.y.toFixed(1)).join(' ');
+    const dots = coords.map((c,i)=>`<circle cx="${c.x}" cy="${c.y}" r="3.5" fill="var(--sage)"><title>${entries[i].date}: ${entries[i].weight}kg</title></circle>`).join('');
+    const skip=Math.ceil(entries.length/6)||1;
+    const labels = coords.map((c,i)=> i%skip===0 ? `<text x="${c.x}" y="${h-6}" text-anchor="middle" class="trend-axis">${entries[i].date.slice(5)}</text>`:'').join('');
+    const yLabels = `<text x="2" y="${padT+4}" class="trend-axis">${hi.toFixed(1)}</text><text x="2" y="${h-padB}" class="trend-axis">${lo.toFixed(1)}</text>`;
+    return `<svg viewBox="0 0 ${w} ${h}" class="trend-svg">${yLabels}<path d="${path}" fill="none" stroke="var(--sage)" stroke-width="2"/>${dots}${labels}</svg>`;
+  }
+  function bmiScaleHTML(bmi){
+    return `<div class="bmi-scale">
+        <span style="width:18.5%;background:#8fb8e8"></span>
+        <span style="width:6.5%;background:var(--sage)"></span>
+        <span style="width:5%;background:var(--amber)"></span>
+        <span style="width:30%;background:var(--coral)"></span>
+      </div>
+      <div class="bmi-scale-labels"><span>0</span><span>18.5</span><span>25</span><span>30</span><span>40+</span></div>`;
+  }
+  function heightInputHTML(unit, cm){
+    if(unit==='ftin'){
+      const {ft, inch} = cmToFtIn(cm);
+      return `<label>Height
+        <input type="number" id="bmiHeightFt" min="1" max="8" step="1" placeholder="ft" value="${ft}" style="width:48px">
+        <span class="unit-suffix">ft</span>
+        <input type="number" id="bmiHeightIn" min="0" max="11.9" step="0.1" placeholder="in" value="${inch}" style="width:56px">
+        <span class="unit-suffix">in</span>
+      </label>`;
+    }
+    return `<label>Height <input type="number" id="bmiHeight" min="50" max="272" step="0.1" placeholder="cm" value="${cm||''}"></label>`;
+  }
+  function renderWeight(){
+    const dates = Object.keys(state.weight.records).sort().reverse();
+    const chron = dates.slice(0,20).reverse().map(d=>({date:d, weight:state.weight.records[d].weight}));
+    const heightCm = state.weight.heightCm || '';
+    const heightUnit = state.weight.heightUnit || 'cm';
+    const age = state.weight.age || '';
+    const sex = state.weight.sex || '';
+    const latestKg = dates.length ? state.weight.records[dates[0]].weight : '';
+    const view = document.getElementById('view');
+    view.innerHTML = `
+    <section class="panel">
+      <h2>Weight</h2>
+      <form id="weightForm" class="sleep-form">
+        <input type="date" id="weightDate" value="${todayStr()}" required>
+        <label>kg <input type="number" id="weightKg" min="1" max="500" step="0.1" placeholder="e.g. 68.5" required></label>
+        <span id="formBmiBadge"></span>
+        <input type="text" id="weightNotes" placeholder="Notes (optional)">
+        <button type="submit">Log weight</button>
+      </form>
+      <div class="sleep-trend">${weightTrendSVG(chron)}</div>
+      <div class="sleep-list">
+        ${dates.length? dates.map(d=>weightRowHTML(d, state.weight.records[d])).join('') : '<p class="empty">No weight logged yet.</p>'}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>BMI Calculator</h2>
+      <div class="unit-toggle">
+        <button type="button" class="unit-btn${heightUnit==='cm'?' active':''}" data-unit="cm">cm</button>
+        <button type="button" class="unit-btn${heightUnit==='ftin'?' active':''}" data-unit="ftin">ft / in</button>
+      </div>
+      <div class="bmi-calc" id="bmiHeightWrap">
+        ${heightInputHTML(heightUnit, heightCm)}
+        <label>Weight <input type="number" id="bmiWeight" min="1" max="500" step="0.1" placeholder="kg" value="${latestKg}"></label>
+        <label>Age <input type="number" id="bmiAge" min="1" max="120" step="1" placeholder="yrs" value="${age}" style="width:70px"></label>
+        <label>Sex <select id="bmiSex">
+          <option value=""${sex===''?' selected':''}>—</option>
+          <option value="female"${sex==='female'?' selected':''}>Female</option>
+          <option value="male"${sex==='male'?' selected':''}>Male</option>
+        </select></label>
+      </div>
+      <div class="bmi-result" id="bmiResult"></div>
+      <p class="howto-foot-note">Adult BMI cutoffs (18.5 / 25 / 30) are the same for men and women per WHO/CDC guidance — sex is shown for context only. Age changes the read: under 20 needs growth-percentile charts, and 65+ has research-backed, more lenient bands.</p>
+    </section>`;
+
+    const unitBtns = document.querySelectorAll('.unit-btn');
+    unitBtns.forEach(btn=>{
+      btn.onclick = async ()=>{
+        state.weight.heightUnit = btn.dataset.unit;
+        await sSet('weight-data', state.weight);
+        renderWeight();
+      };
+    });
+
+    function currentHeightCm(){
+      if((state.weight.heightUnit||'cm')==='ftin'){
+        const ft = document.getElementById('bmiHeightFt').value;
+        const inch = document.getElementById('bmiHeightIn').value;
+        return ftInToCm(ft, inch);
+      }
+      return parseFloat(document.getElementById('bmiHeight').value)||0;
+    }
+    function updateBmiCalc(){
+      const cm = currentHeightCm()||0;
+      const kg = parseFloat(document.getElementById('bmiWeight').value)||0;
+      const ageVal = document.getElementById('bmiAge').value;
+      const bmi = bmiValue(kg, cm);
+      const cat = bmiCategory(bmi, ageVal);
+      document.getElementById('bmiResult').innerHTML = bmi===null ? '<p class="empty">Enter height and weight to calculate BMI.</p>' : `
+        <div class="bmi-num mono">${bmi.toFixed(1)}</div>
+        <div class="bmi-meta">
+          <span class="lbl">Body Mass Index</span>
+          <span class="bmi-badge ${cat.cls}">${cat.label}</span>
+          ${cat.note ? `<span class="srnotes bmi-note">${cat.note}</span>` : ''}
+        </div>
+        <div class="bmi-scale-wrap">${bmiScaleHTML(bmi)}</div>`;
+    }
+    function updateFormBmi(){
+      const kg = parseFloat(document.getElementById('weightKg').value)||0;
+      document.getElementById('formBmiBadge').innerHTML = bmiBadgeHTML(kg, state.weight.heightCm, state.weight.age);
+    }
+    async function persistHeight(){
+      state.weight.heightCm = currentHeightCm()||null;
+      await sSet('weight-data', state.weight);
+      updateBmiCalc();
+      updateFormBmi();
+    }
+    if((heightUnit)==='ftin'){
+      document.getElementById('bmiHeightFt').oninput = persistHeight;
+      document.getElementById('bmiHeightIn').oninput = persistHeight;
+    } else {
+      document.getElementById('bmiHeight').oninput = persistHeight;
+    }
+    document.getElementById('bmiWeight').oninput = updateBmiCalc;
+    document.getElementById('bmiAge').oninput = async (e)=>{
+      state.weight.age = e.target.value ? parseInt(e.target.value) : null;
+      await sSet('weight-data', state.weight);
+      updateBmiCalc();
+    };
+    document.getElementById('bmiSex').onchange = async (e)=>{
+      state.weight.sex = e.target.value || null;
+      await sSet('weight-data', state.weight);
+      updateBmiCalc();
+    };
+    document.getElementById('weightKg').oninput = updateFormBmi;
+    updateBmiCalc();
+    updateFormBmi();
+
+    document.getElementById('weightForm').onsubmit=async(e)=>{
+      e.preventDefault();
+      const date=document.getElementById('weightDate').value;
+      const kg=parseFloat(document.getElementById('weightKg').value);
+      const notes=document.getElementById('weightNotes').value.trim();
+      if(!date || !kg || kg<=0){ toast('Fill in a date and a valid weight'); return; }
+      state.weight.records[date] = {weight:kg, notes};
+      await sSet('weight-data', state.weight);
+      renderWeight();
+    };
+    document.querySelector('.sleep-list').onclick=async(e)=>{
+      const btn=e.target.closest('.del-weight'); if(!btn) return;
+      delete state.weight.records[btn.dataset.date];
+      await sSet('weight-data', state.weight);
+      renderWeight();
+    };
+  }
+
+  // ---------- render: Goals ----------
+  // Shared progress math so the card, the dashboard, and the summary label agree.
+  function goalPct(g){
+    const type=g.type||'checklist';
+    if(type==='count'){
+      const {current=0,target=0}=g.count||{};
+      return target>0? Math.min(100,Math.max(0,Math.round(current/target*100))) : 0;
+    }
+    if(type==='range'){
+      const {start=0,current=0,target=0}=g.range||{};
+      if(target===start) return 100;
+      return Math.min(100,Math.max(0,Math.round((current-start)/(target-start)*100)));
+    }
+    const steps=g.steps||[];
+    const done=steps.filter(s=>s.done).length, total=steps.length;
+    return total? Math.round(done/total*100):0;
+  }
+  function goalSummaryLabel(g){
+    const type=g.type||'checklist';
+    if(type==='count'){
+      const {current=0,target=0,unit=''}=g.count||{};
+      return `${current} / ${target}${unit? ' '+unit : ''}`;
+    }
+    if(type==='range'){
+      const {current=0,target=0,unit=''}=g.range||{};
+      return `${current}${unit} → ${target}${unit}`;
+    }
+    const steps=g.steps||[];
+    return `${steps.filter(s=>s.done).length}/${steps.length} steps`;
+  }
+  function goalCardHTML(g){
+    const type=g.type||'checklist';
+    const pct=goalPct(g);
+    let body='';
+    if(type==='count'){
+      const {current=0,target=0,unit=''}=g.count||{};
+      body=`
+        <div class="goal-progress-bar"><div class="fill" style="width:${pct}%"></div></div>
+        <div class="goal-count-row"><span class="frac">${current} / ${target}${unit? ' '+escapeHtml(unit) : ''}</span><span>${pct}%</span></div>
+        <form class="goal-update-form" data-goal="${g.id}" data-kind="count">
+          <input type="number" step="any" placeholder="Update progress" value="${current}">
+          <button type="submit">Update</button>
+        </form>`;
+    } else if(type==='range'){
+      const {start=0,current=0,target=0,unit=''}=g.range||{};
+      body=`
+        <div class="goal-range-top">
+          <span class="goal-range-now">${current}${escapeHtml(unit)}</span>
+          <span class="goal-range-target"><span class="lbl">Goal</span><br><span class="val">${target}${escapeHtml(unit)}</span></span>
+        </div>
+        <div class="goal-progress-bar"><div class="fill" style="width:${pct}%"></div></div>
+        <form class="goal-update-form" data-goal="${g.id}" data-kind="range">
+          <input type="number" step="any" placeholder="Update current value" value="${current}">
+          <button type="submit">Update</button>
+        </form>`;
+    } else {
+      const steps=g.steps||[];
+      body=`
+        <div class="mini-progress"><div class="fill" style="width:${pct}%"></div></div>
+        <div class="goal-steps">
+          ${steps.map(s=>`<label class="goal-step ${s.done?'done':''}">
+              <input type="checkbox" class="step-check" data-goal="${g.id}" data-step="${s.id}" ${s.done?'checked':''}>
+              <span>${escapeHtml(s.text)}</span>
+            </label>`).join('') || '<p class="empty">No steps yet.</p>'}
+        </div>
+        <form class="add-step-form" data-goal="${g.id}">
+          <input type="text" placeholder="Add a step…" maxlength="80" required>
+          <button type="submit">Add</button>
+        </form>`;
+    }
+    return `<div class="goal-card" data-id="${g.id}">
+      <div class="goal-card-head">
+        <h3>${escapeHtml(g.title)}</h3>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="goal-progress-pct">${pct}%</span>
+          <button class="icon-btn del-goal" data-id="${g.id}" aria-label="Delete goal">×</button>
+        </div>
+      </div>
+      ${body}
+    </div>`;
+  }
+  function renderGoals(){
+    const view=document.getElementById('view');
+    view.innerHTML=`
+    <section class="panel">
+      <h2>Goals & Milestones</h2>
+      <form id="addGoalForm" class="add-goal-form">
+        <div class="row">
+          <input type="text" id="goalTitle" placeholder="New goal, e.g. Read 24 books" required maxlength="60">
+          <select id="goalType">
+            <option value="checklist">Checklist</option>
+            <option value="count">Count (e.g. 12/24 books)</option>
+            <option value="range">Range (e.g. 72kg → 64kg)</option>
+          </select>
+        </div>
+        <div class="goal-type-fields active" data-type="checklist">
+          <span class="empty" style="font-size:12px;">Add steps after creating the goal.</span>
+        </div>
+        <div class="goal-type-fields" data-type="count">
+          <input type="number" id="goalCountTarget" placeholder="Target, e.g. 24" step="any">
+          <input type="text" id="goalCountUnit" placeholder="Unit, e.g. books" maxlength="20">
+        </div>
+        <div class="goal-type-fields" data-type="range">
+          <input type="number" id="goalRangeStart" placeholder="Start, e.g. 72" step="any">
+          <input type="number" id="goalRangeTarget" placeholder="Goal, e.g. 64" step="any">
+          <input type="text" id="goalRangeUnit" placeholder="Unit, e.g. kg" maxlength="10">
+        </div>
+        <button type="submit">Add goal</button>
+      </form>
+      <div id="goalsList">
+        ${state.goals.goals.length? state.goals.goals.map(goalCardHTML).join('') : '<p class="empty">No goals yet — add one above.</p>'}
+      </div>
+    </section>`;
+
+    const typeSelect=document.getElementById('goalType');
+    typeSelect.onchange=()=>{
+      document.querySelectorAll('.goal-type-fields').forEach(el=>el.classList.toggle('active', el.dataset.type===typeSelect.value));
+    };
+
+    document.getElementById('addGoalForm').onsubmit=async(e)=>{
+      e.preventDefault();
+      const title=document.getElementById('goalTitle').value.trim();
+      if(!title) return;
+      const type=typeSelect.value;
+      const goal={id:uid(), title, type};
+      if(type==='count'){
+        const target=parseFloat(document.getElementById('goalCountTarget').value)||0;
+        const unit=document.getElementById('goalCountUnit').value.trim();
+        goal.count={current:0, target, unit};
+      } else if(type==='range'){
+        const start=parseFloat(document.getElementById('goalRangeStart').value)||0;
+        const target=parseFloat(document.getElementById('goalRangeTarget').value)||0;
+        const unit=document.getElementById('goalRangeUnit').value.trim();
+        goal.range={start, current:start, target, unit};
+      } else {
+        goal.steps=[];
+      }
+      state.goals.goals.unshift(goal);
+      await sSet('goals-data', state.goals);
+      renderGoals();
+    };
+    const list=document.getElementById('goalsList');
+    list.addEventListener('click', async (e)=>{
+      const del=e.target.closest('.del-goal');
+      if(del){ state.goals.goals=state.goals.goals.filter(g=>g.id!==del.dataset.id); await sSet('goals-data', state.goals); renderGoals(); return; }
+    });
+    list.addEventListener('change', async (e)=>{
+      const cb=e.target.closest('.step-check'); if(!cb) return;
+      const goal=state.goals.goals.find(g=>g.id===cb.dataset.goal);
+      const step=goal.steps.find(s=>s.id===cb.dataset.step);
+      step.done=cb.checked;
+      await sSet('goals-data', state.goals);
+      renderGoals();
+    });
+    list.addEventListener('submit', async (e)=>{
+      if(e.target.classList.contains('add-step-form')){
+        e.preventDefault();
+        const goal=state.goals.goals.find(g=>g.id===e.target.dataset.goal);
+        const input=e.target.querySelector('input');
+        const text=input.value.trim(); if(!text) return;
+        goal.steps.push({id:uid(), text, done:false});
+        await sSet('goals-data', state.goals);
+        renderGoals();
+        return;
+      }
+      if(e.target.classList.contains('goal-update-form')){
+        e.preventDefault();
+        const goal=state.goals.goals.find(g=>g.id===e.target.dataset.goal);
+        const kind=e.target.dataset.kind;
+        const val=parseFloat(e.target.querySelector('input').value);
+        if(isNaN(val)) return;
+        if(kind==='count') goal.count.current=val;
+        else if(kind==='range') goal.range.current=val;
+        await sSet('goals-data', state.goals);
+        renderGoals();
+      }
+    });
+  }
+
+  // ---------- render: Dashboard ----------
+  async function loadWeek(){
+    const dates=[]; for(let i=6;i>=0;i--) dates.push(shiftDate(todayStr(),-i));
+    const results = await Promise.all(dates.map(d=>loadLedger(d)));
+    return dates.map((d,i)=>({date:d, blocks:results[i]}));
+  }
+  async function loadPrevWeek(){
+    const dates=[]; for(let i=13;i>=7;i--) dates.push(shiftDate(todayStr(),-i));
+    const results = await Promise.all(dates.map(d=>loadLedger(d)));
+    return dates.map((d,i)=>({date:d, blocks:results[i]}));
+  }
+  // ---------- trend helpers (sparklines + up/down indicators) ----------
+  function sparklineSVG(values, color){
+    const w=62, h=20;
+    if(!values || !values.length || values.every(v=>v===0)){
+      return `<svg viewBox="0 0 ${w} ${h}" class="spark"><line x1="2" y1="${h-3}" x2="${w-2}" y2="${h-3}" stroke="var(--line)" stroke-width="1"/></svg>`;
+    }
+    const max=Math.max(...values,0), min=Math.min(...values,0);
+    const range=(max-min)||1;
+    const stepX = values.length>1 ? (w-4)/(values.length-1) : 0;
+    const pts = values.map((v,i)=>({x:2+i*stepX, y:h-3-((v-min)/range)*(h-5)}));
+    const path = pts.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+    const last = pts[pts.length-1];
+    return `<svg viewBox="0 0 ${w} ${h}" class="spark">
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${last.x}" cy="${last.y}" r="1.8" fill="${color}"/>
+    </svg>`;
+  }
+  // invert=true means a decrease is the "good" direction (e.g. time-wasting categories)
+  function trendMeta(curr, prev, invert){
+    if(curr===null || curr===undefined || prev===null || prev===undefined) return {symbol:'—', cls:'flat', pct:null};
+    if(prev===0 && curr===0) return {symbol:'→', cls:'flat', pct:null};
+    if(prev===0) return {symbol:'↑', cls: invert?'down':'up', pct:null};
+    const pct = Math.round(((curr-prev)/prev)*100);
+    if(Math.abs(pct) < 5) return {symbol:'→', cls:'flat', pct};
+    if(pct>0) return {symbol:'↑', cls: invert?'down':'up', pct};
+    return {symbol:'↓', cls: invert?'up':'down', pct};
+  }
+  function trendArrowHTML(curr, prev, invert){
+    const t = trendMeta(curr, prev, invert);
+    return `<span class="trend-arrow ${t.cls}">${t.symbol}${t.pct!==null? ' '+Math.abs(t.pct)+'%':''}</span>`;
+  }
+  function trendColor(curr, prev, invert){
+    const cls = trendMeta(curr, prev, invert).cls;
+    return cls==='up'?'var(--sage)': cls==='down'?'var(--coral)':'var(--fog)';
+  }
+  function trendStatHTML(label, displayVal, dailyValues, curr, prev, invert){
+    return `<div class="review-stat">
+      <div class="review-stat-top"><span class="num">${displayVal}</span>${trendArrowHTML(curr, prev, invert)}</div>
+      ${sparklineSVG(dailyValues, trendColor(curr, prev, invert))}
+      <div class="lbl">${label}</div>
+    </div>`;
+  }
+  function weekBarsHTML(week){
+    return week.map(w=>{
+      const total=w.blocks.reduce((s,b)=>s+b.duration,0);
+      const segs = w.blocks.map(b=>`<div style="width:${b.duration/1440*100}%;background:${catOf(b.category).color}"></div>`).join('');
+      return `<div class="week-bar-row">
+        <span class="wlabel">${humanDate(w.date).slice(0,6)}</span>
+        <div class="week-bar">${segs}</div>
+        <span class="mono" style="font-size:11px;color:var(--fog);width:52px;text-align:right;">${minutesToHM(total)}</span>
+      </div>`;
+    }).join('');
+  }
+  async function renderDashboard(){
+    const view=document.getElementById('view');
+    view.innerHTML = '<div class="loading">Crunching your stats…</div>';
+    const week = await loadWeek();
+    const prevWeek = await loadPrevWeek();
+
+    // ---- weekly review ----
+    const catTotalsWeek = {};
+    week.forEach(w=>w.blocks.forEach(b=>{ catTotalsWeek[b.category]=(catTotalsWeek[b.category]||0)+b.duration; }));
+    const workedMinutesWeek = catTotalsWeek['work'] || 0;
+    const loggedCatsWeek = CATEGORIES.filter(c=>catTotalsWeek[c.id]>0);
+    let mostCatWeek=null, leastCatWeek=null;
+    if(loggedCatsWeek.length){
+      mostCatWeek = loggedCatsWeek.reduce((a,b)=>catTotalsWeek[b.id]>catTotalsWeek[a.id]?b:a);
+      leastCatWeek = loggedCatsWeek.reduce((a,b)=>catTotalsWeek[b.id]<catTotalsWeek[a.id]?b:a);
+    }
+    const catPrevTotal = (catId)=>prevWeek.reduce((s,w)=>s+w.blocks.filter(b=>b.category===catId).reduce((s2,b)=>s2+b.duration,0),0);
+    const catDaily = (catId)=>week.map(w=>w.blocks.filter(b=>b.category===catId).reduce((s,b)=>s+b.duration,0));
+    let reviewSuggestion;
+    if(loggedCatsWeek.length>=2 && leastCatWeek && mostCatWeek && leastCatWeek.id!==mostCatWeek.id){
+      reviewSuggestion = `Spend 2 more hours on <strong>${escapeHtml(leastCatWeek.label)}</strong> next week.`;
+    } else if(loggedCatsWeek.length===0){
+      reviewSuggestion = `Nothing logged this week yet — start tracking to unlock your review.`;
+    } else {
+      reviewSuggestion = `You're keeping a good balance across categories this week.`;
+    }
+    const isSundayToday = new Date(todayStr()+'T00:00:00').getDay()===0;
+
+    const sleepDates = Object.keys(state.sleep.records).sort().reverse().slice(0,7);
+    const avgSleep = sleepDates.length? Math.round(sleepDates.reduce((s,d)=>s+state.sleep.records[d].duration,0)/sleepDates.length) : null;
+    const avgQuality = sleepDates.length? (sleepDates.reduce((s,d)=>s+state.sleep.records[d].quality,0)/sleepDates.length).toFixed(1) : null;
+    const sleepDaily = week.map(w=>state.sleep.records[w.date]? state.sleep.records[w.date].duration : 0);
+    const workDaily = catDaily('work');
+    const sleepPrevDates = prevWeek.map(w=>w.date).filter(d=>state.sleep.records[d]);
+    const avgSleepPrev = sleepPrevDates.length? Math.round(sleepPrevDates.reduce((s,d)=>s+state.sleep.records[d].duration,0)/sleepPrevDates.length) : null;
+    const workedMinutesPrevWeek = catPrevTotal('work');
+
+    const goals = state.goals.goals;
+    const overallGoalPct = goals.length ? Math.round(goals.reduce((s,g)=>s+goalPct(g),0) / goals.length) : null;
+
+    const weightEntries = Object.keys(state.weight.records).sort().map(d=>({date:d, weight:state.weight.records[d].weight}));
+
+    // ---- monthly data ----
+    const ym = state.monthDate;
+    const monthDays = await loadMonth(ym);
+    const sleepDatesInMonth = Object.keys(state.sleep.records).filter(d=>d.slice(0,7)===ym).sort();
+    const avgSleepM = sleepDatesInMonth.length? Math.round(sleepDatesInMonth.reduce((s,d)=>s+state.sleep.records[d].duration,0)/sleepDatesInMonth.length) : null;
+    const avgQualityM = sleepDatesInMonth.length? (sleepDatesInMonth.reduce((s,d)=>s+state.sleep.records[d].quality,0)/sleepDatesInMonth.length).toFixed(1) : null;
+    const totalLoggedMin = monthDays.reduce((s,d)=>s+d.blocks.reduce((s2,b)=>s2+b.duration,0),0);
+    const avgPerDay = Math.round(totalLoggedMin/monthDays.length);
+    const isCurrentMonth = ym===todayStr().slice(0,7);
+
+    view.innerHTML = `
+    <section class="panel review-panel">
+      <div class="review-head">
+        <h2>Weekly Review${isSundayToday? '<span class="review-badge">Today is Sunday</span>' : ''}</h2>
+        <span class="review-sub">Best checked every Sunday · last 7 days</span>
+      </div>
+      <div class="review-grid">
+        ${trendStatHTML('Worked', minutesToHM(workedMinutesWeek), workDaily, workedMinutesWeek, workedMinutesPrevWeek, false)}
+        ${trendStatHTML('Sleep avg', avgSleep!==null? (avgSleep/60).toFixed(1)+'h':'—', sleepDaily, avgSleep, avgSleepPrev, false)}
+      </div>
+      <div class="review-extremes">
+        <div class="review-extreme most">
+          <div class="lbl">Most time spent</div>
+          <div class="val">${mostCatWeek? escapeHtml(mostCatWeek.label) : '—'}</div>
+          ${mostCatWeek? `<div class="extreme-trend">${sparklineSVG(catDaily(mostCatWeek.id), 'var(--sage)')}${trendArrowHTML(catTotalsWeek[mostCatWeek.id], catPrevTotal(mostCatWeek.id), false)}</div>` : ''}
+        </div>
+        <div class="review-extreme least">
+          <div class="lbl">Least time spent</div>
+          <div class="val">${leastCatWeek? escapeHtml(leastCatWeek.label) : '—'}</div>
+          ${leastCatWeek? `<div class="extreme-trend">${sparklineSVG(catDaily(leastCatWeek.id), 'var(--coral)')}${trendArrowHTML(catTotalsWeek[leastCatWeek.id], catPrevTotal(leastCatWeek.id), false)}</div>` : ''}
+        </div>
+      </div>
+      <div class="review-suggestion"><strong>Suggestion —</strong> ${reviewSuggestion}</div>
+    </section>
+
+    <div class="dash-grid">
+      <section class="panel">
+        <h2>This Week — Time by Category</h2>
+        ${weekBarsHTML(week)}
+      </section>
+      <section class="panel">
+        <h2>Sleep</h2>
+        <div class="stat-row"><span>Avg duration (7 nights)</span><span class="val">${avgSleep!==null? minutesToHM(avgSleep):'—'}</span></div>
+        <div class="stat-row"><span>Avg quality</span><span class="val">${avgQuality!==null? avgQuality+' / 5':'—'}</span></div>
+        <div class="stat-row"><span>Nights logged</span><span class="val">${sleepDates.length}</span></div>
+      </section>
+      <section class="panel">
+        <h2>Goals</h2>
+        ${goals.length? `<div class="stat-row"><span>Overall progress</span><span class="val">${overallGoalPct}%</span></div>
+          ${goals.slice(0,5).map(g=>{
+            const pct=goalPct(g);
+            return `<div style="margin-top:8px;font-size:12.5px;">${escapeHtml(g.title)} <span style="color:var(--fog);">(${escapeHtml(goalSummaryLabel(g))})</span><div class="mini-progress"><div class="fill" style="width:${pct}%"></div></div></div>`;
+          }).join('')}` : '<p class="empty">No goals yet.</p>'}
+      </section>
+      <section class="panel" style="grid-column:1 / -1;">
+        <h2>Weekly Weight</h2>
+        ${weightTrendSVG(weightEntries)}
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:6px;">
+      <div class="month-header">
+        <button class="nav-btn" id="prevMonth" aria-label="Previous month">‹</button>
+        <h2 style="flex:1;text-align:center;">${humanMonth(ym)}</h2>
+        <button class="nav-btn" id="nextMonth" aria-label="Next month" ${isCurrentMonth?'disabled':''}>›</button>
+      </div>
+      <div class="stat-row"><span>Total time logged</span><span class="val">${minutesToHM(totalLoggedMin)}</span></div>
+      <div class="stat-row"><span>Avg per day</span><span class="val">${minutesToHM(avgPerDay)}</span></div>
+    </section>
+    <div class="dash-grid">
+      <section class="panel">
+        <h2>Activity Heatmap</h2>
+        ${monthHeatmapHTML(monthDays)}
+      </section>
+      <section class="panel">
+        <h2>Time by Category</h2>
+        ${monthCategoryBarsHTML(monthDays)}
+      </section>
+      <section class="panel">
+        <h2>Sleep</h2>
+        <div class="stat-row"><span>Avg duration</span><span class="val">${avgSleepM!==null? minutesToHM(avgSleepM):'—'}</span></div>
+        <div class="stat-row"><span>Avg quality</span><span class="val">${avgQualityM!==null? avgQualityM+' / 5':'—'}</span></div>
+        <div class="stat-row"><span>Nights logged</span><span class="val">${sleepDatesInMonth.length}</span></div>
+      </section>
+    </div>`;
+
+    document.getElementById('prevMonth').onclick=()=>{ state.monthDate=shiftMonth(state.monthDate,-1); renderDashboard(); };
+    const nextBtn=document.getElementById('nextMonth');
+    if(nextBtn) nextBtn.onclick=()=>{ if(!isCurrentMonth){ state.monthDate=shiftMonth(state.monthDate,1); renderDashboard(); } };
+  }
+
+  // ---------- monthly data helpers ----------
+  async function loadMonth(ym){
+    const n = daysInMonth(ym);
+    const dates=[]; for(let i=1;i<=n;i++) dates.push(ym+'-'+pad2(i));
+    const results = await Promise.all(dates.map(d=>loadLedger(d)));
+    return dates.map((d,i)=>({date:d, blocks:results[i]}));
+  }
+  function monthHeatmapHTML(monthDays){
+    const ym = state.monthDate;
+    const lead = firstWeekdayOfMonth(ym);
+    const totals = monthDays.map(d=>d.blocks.reduce((s,b)=>s+b.duration,0));
+    const maxTotal = Math.max(...totals, 1);
+    const dow = ['S','M','T','W','T','F','S'];
+    const dowRow = dow.map(x=>`<div class="heat-dow">${x}</div>`).join('');
+    const leadCells = Array(lead).fill('<div class="heat-cell empty"></div>').join('');
+    const today = todayStr();
+    const cells = monthDays.map((d,i)=>{
+      const total = totals[i];
+      const intensity = total>0 ? Math.min(1, 0.18+0.82*(total/maxTotal)) : 0;
+      const dayNum = Number(d.date.slice(8));
+      const isToday = d.date===today;
+      return `<div class="heat-cell ${isToday?'is-today':''}" style="background:rgba(232,163,61,${intensity.toFixed(2)})" title="${d.date}: ${minutesToHM(total)} logged">
+        <span>${dayNum}</span>
+      </div>`;
+    }).join('');
+    return `<div class="heat-grid">${dowRow}${leadCells}${cells}</div>`;
+  }
+  function monthCategoryBarsHTML(monthDays){
+    const totalsByCat = {};
+    CATEGORIES.forEach(c=>totalsByCat[c.id]=0);
+    monthDays.forEach(d=>d.blocks.forEach(b=>{ totalsByCat[b.category]=(totalsByCat[b.category]||0)+b.duration; }));
+    const grand = Object.values(totalsByCat).reduce((a,b)=>a+b,0);
+    const rows = CATEGORIES.filter(c=>totalsByCat[c.id]>0).sort((a,b)=>totalsByCat[b.id]-totalsByCat[a.id]);
+    if(!rows.length) return '<p class="empty">No time logged this month yet.</p>';
+    return rows.map(c=>{
+      const t = totalsByCat[c.id];
+      const pct = grand? Math.round(t/grand*100) : 0;
+      return `<div class="cat-bar-row">
+        <span class="cat-bar-label"><i style="background:${c.color}"></i>${c.label}</span>
+        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
+        <span class="mono cat-bar-val">${minutesToHM(t)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ---------- render: Challenges (Personal Bests + Weekly/Monthly) ----------
+  const RECORD_DEFS = [
+    {ids:['exercise'], label:'Longest Workout', icon:'🏋️'},
+    {ids:['reading'], label:'Longest Reading Session', icon:'📚'},
+    {ids:['work'], label:'Longest Work Session', icon:'💼'},
+    {ids:['learning'], label:'Longest Learning Session', icon:'🧠'},
+    {ids:['wellness','self_care'], label:'Longest Wellness Session', icon:'🧘'},
+    {ids:['family_time'], label:'Longest Family Time', icon:'👨‍👩‍👧'},
+    {ids:['kids_playtime'], label:'Longest Playtime', icon:'🧸'},
+    {ids:['teaching_kids'], label:'Longest Teaching Session', icon:'📖'},
+    {ids:['giann'], label:'Longest Time with Giann', icon:'💞'}
+  ];
+  const WEEKLY_CATEGORY_CHALLENGES = [
+    {ids:['exercise'], label:'Exercise', icon:'🏋️', target:180},
+    {ids:['reading'], label:'Reading', icon:'📚', target:180},
+    {ids:['learning'], label:'Learning', icon:'🧠', target:180},
+    {ids:['wellness','self_care'], label:'Wellness & Self-Care', icon:'🧘', target:90},
+    {ids:['family_time'], label:'Family Time', icon:'👨‍👩‍👧', target:240},
+    {ids:['kids_playtime'], label:'Kids Playtime', icon:'🧸', target:180},
+    {ids:['teaching_kids'], label:'Teaching Kids', icon:'📖', target:90},
+    {ids:['giann'], label:'Time with Giann', icon:'💞', target:120}
+  ];
+  const MONTHLY_CATEGORY_CHALLENGES = [
+    {ids:['exercise'], label:'Exercise', icon:'🏋️', target:720},
+    {ids:['reading'], label:'Reading', icon:'📚', target:600},
+    {ids:['learning'], label:'Learning', icon:'🧠', target:600},
+    {ids:['wellness','self_care'], label:'Wellness & Self-Care', icon:'🧘', target:360},
+    {ids:['family_time'], label:'Family Time', icon:'👨‍👩‍👧', target:900},
+    {ids:['kids_playtime'], label:'Kids Playtime', icon:'🧸', target:600},
+    {ids:['teaching_kids'], label:'Teaching Kids', icon:'📖', target:300},
+    {ids:['giann'], label:'Time with Giann', icon:'💞', target:480}
+  ];
+
+  async function loadAllLedgerDays(){
+    const keys = sListKeys('ledger:');
+    const dates = keys.map(k=>k.slice('ledger:'.length)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    const results = await Promise.all(dates.map(d=>loadLedger(d)));
+    return dates.map((d,i)=>({date:d, blocks:results[i]}));
+  }
+
+  function mondayOf(dateStr){
+    const dow = new Date(dateStr+'T00:00:00').getDay();
+    const offset = (dow+6)%7;
+    return shiftDate(dateStr, -offset);
+  }
+  function weekDatesFrom(monday){
+    const dates=[]; for(let i=0;i<7;i++) dates.push(shiftDate(monday,i));
+    return dates;
+  }
+  function monthDatesFor(ym){
+    const n = daysInMonth(ym);
+    const dates=[]; for(let d=1; d<=n; d++) dates.push(ym+'-'+pad2(d));
+    return dates;
+  }
+  function weekLabel(monday){
+    const sunday = shiftDate(monday,6);
+    const mD = new Date(monday+'T00:00:00'), sD = new Date(sunday+'T00:00:00');
+    const sameMonth = mD.getMonth()===sD.getMonth();
+    const startStr = mD.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    const endStr = sD.toLocaleDateString(undefined, sameMonth?{day:'numeric'}:{month:'short',day:'numeric'});
+    return 'Week of '+startStr+'–'+endStr+', '+sD.getFullYear();
+  }
+  function buildWeekOptions(allDays){
+    const currentMonday = mondayOf(todayStr());
+    if(!allDays.length) return [currentMonday];
+    const earliestMonday = mondayOf(allDays[0].date);
+    const opts=[];
+    let m = currentMonday;
+    while(m >= earliestMonday){ opts.push(m); m = shiftDate(m,-7); }
+    return opts.length ? opts : [currentMonday];
+  }
+  function buildMonthOptions(allDays){
+    const currentYm = todayStr().slice(0,7);
+    if(!allDays.length) return [currentYm];
+    const earliestYm = allDays[0].date.slice(0,7);
+    const opts=[];
+    let ym = currentYm;
+    while(ym >= earliestYm){ opts.push(ym); ym = shiftMonth(ym,-1); }
+    return opts.length ? opts : [currentYm];
+  }
+
+  function categoriesEverUsed(allDays){
+    const s = new Set();
+    allDays.forEach(d=>d.blocks.forEach(b=>s.add(b.category)));
+    return s;
+  }
+  function minutesForDatesAndCategories(dayMap, dates, ids){
+    let total=0;
+    dates.forEach(d=>{
+      (dayMap[d]||[]).forEach(b=>{ if(ids.includes(b.category)) total += b.duration; });
+    });
+    return total;
+  }
+  function daysWithAnyLog(dayMap, dates){
+    return dates.filter(d=>(dayMap[d]||[]).length>0).length;
+  }
+  function daysWithSleepLog(dates){
+    return dates.filter(d=>!!state.sleep.records[d]).length;
+  }
+
+  function computeCategoryRecord(allDays, ids){
+    let best=null;
+    allDays.forEach(({date,blocks})=>{
+      blocks.forEach(b=>{
+        if(ids.includes(b.category) && (!best || b.duration>best.duration)){
+          best = {duration:b.duration, date, task:b.task};
+        }
+      });
+    });
+    return best;
+  }
+  function computeMostActiveDay(allDays){
+    let best=null;
+    allDays.forEach(({date,blocks})=>{
+      const total = blocks.reduce((s,b)=>s+b.duration,0);
+      if(total>0 && (!best || total>best.total)) best={date, total};
+    });
+    return best;
+  }
+  function computeLongestStreak(allDays){
+    const activeDates = allDays.filter(d=>d.blocks.length>0).map(d=>d.date).sort();
+    let longest=0, cur=0, prev=null, endDate=null;
+    activeDates.forEach(d=>{
+      cur = (prev && shiftDate(prev,1)===d) ? cur+1 : 1;
+      if(cur>longest){ longest=cur; endDate=d; }
+      prev=d;
+    });
+    return longest>0 ? {length:longest, endDate} : null;
+  }
+  function computeSleepBests(){
+    const dates = Object.keys(state.sleep.records);
+    if(!dates.length) return null;
+    let longest=null, bestQuality=null;
+    dates.forEach(d=>{
+      const r = state.sleep.records[d];
+      if(!longest || r.duration>longest.duration) longest={date:d, duration:r.duration};
+      if(!bestQuality || r.quality>bestQuality.quality || (r.quality===bestQuality.quality && d>bestQuality.date)) bestQuality={date:d, quality:r.quality};
+    });
+    return {longest, bestQuality};
+  }
+
+  function recordCardHTML(icon, label, valueText, subText){
+    return '<div class="record-card">'+
+      '<div class="record-head"><span class="record-icon">'+icon+'</span><span class="record-label">'+escapeHtml(label)+'</span></div>'+
+      '<p class="record-value">'+valueText+'</p>'+
+      (subText?'<p class="record-sub">'+subText+'</p>':'')+
+    '</div>';
+  }
+
+  function personalBestsHTML(allDays){
+    const cards = [];
+    const mostActive = computeMostActiveDay(allDays);
+    if(mostActive) cards.push(recordCardHTML('🔥','Most Active Day', minutesToHM(mostActive.total), humanDate(mostActive.date)));
+    const streak = computeLongestStreak(allDays);
+    if(streak) cards.push(recordCardHTML('📅','Longest Logging Streak', streak.length+(streak.length===1?' day':' days'), 'through '+humanDate(streak.endDate)));
+    const sleepBests = computeSleepBests();
+    if(sleepBests){
+      cards.push(recordCardHTML('😴','Longest Sleep', minutesToHM(sleepBests.longest.duration), humanDate(sleepBests.longest.date)));
+      cards.push(recordCardHTML('⭐','Best Sleep Quality', sleepBests.bestQuality.quality+'/5', humanDate(sleepBests.bestQuality.date)));
+    }
+    RECORD_DEFS.forEach(def=>{
+      const rec = computeCategoryRecord(allDays, def.ids);
+      if(rec) cards.push(recordCardHTML(def.icon, def.label, minutesToHM(rec.duration), escapeHtml(rec.task)+' · '+humanDate(rec.date)));
+    });
+    return cards.length ? '<div class="record-grid">'+cards.join('')+'</div>' : '<p class="empty">Log a few days of activity to start unlocking personal bests.</p>';
+  }
+
+  function challengeCardHTML(icon, label, current, target, fmt){
+    const pct = target>0 ? Math.min(100, Math.round(current/target*100)) : 0;
+    const complete = current>=target && target>0;
+    const color = complete ? 'var(--sage)' : 'var(--amber)';
+    return '<div class="challenge-card'+(complete?' is-complete':'')+'">'+
+      '<div class="challenge-head"><span class="challenge-icon">'+icon+'</span><span class="challenge-label">'+escapeHtml(label)+'</span>'+
+      (complete?'<span class="challenge-check">✓ Done</span>':'')+
+      '<span class="challenge-val mono">'+fmt(current)+' / '+fmt(target)+'</span></div>'+
+      '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+    '</div>';
+  }
+  const dayCountFmt = v=>v+(v===1?' day':' days');
+
+  function challengeCardsHTML(defs, dayMap, dates, usedCats, hasSleepData){
+    const cards = [];
+    defs.filter(def=>def.ids.some(id=>usedCats.has(id))).slice(0,6).forEach(def=>{
+      const current = minutesForDatesAndCategories(dayMap, dates, def.ids);
+      cards.push(challengeCardHTML(def.icon, def.label, current, def.target, minutesToHM));
+    });
+    if(usedCats.size>0){
+      cards.push(challengeCardHTML('🔥','Log Every Day', daysWithAnyLog(dayMap, dates), dates.length, dayCountFmt));
+    }
+    if(hasSleepData){
+      cards.push(challengeCardHTML('😴','Log Sleep Every Night', daysWithSleepLog(dates), dates.length, dayCountFmt));
+    }
+    return cards;
+  }
+
+  async function renderChallenges(){
+    const view=document.getElementById('view');
+    const needsLoad = !state.challengeCache;
+    if(needsLoad) view.innerHTML = '<div class="loading">Crunching your challenges…</div>';
+
+    if(needsLoad){
+      const allDays = await loadAllLedgerDays();
+      const dayMap = {};
+      allDays.forEach(d=>{ dayMap[d.date]=d.blocks; });
+      state.challengeCache = {allDays, dayMap};
+    }
+    const {allDays, dayMap} = state.challengeCache;
+    const usedCats = categoriesEverUsed(allDays);
+    const hasSleepData = Object.keys(state.sleep.records).length>0;
+
+    const weekOptions = buildWeekOptions(allDays);
+    const monthOptions = buildMonthOptions(allDays);
+    const currentMonday = mondayOf(todayStr());
+    const currentYm = todayStr().slice(0,7);
+    if(!state.challengeWeek || weekOptions.indexOf(state.challengeWeek)===-1) state.challengeWeek = currentMonday;
+    if(!state.challengeMonth || monthOptions.indexOf(state.challengeMonth)===-1) state.challengeMonth = currentYm;
+
+    const weekDates = weekDatesFrom(state.challengeWeek);
+    const monthDates = monthDatesFor(state.challengeMonth);
+    const isCurrentWeek = state.challengeWeek === currentMonday;
+    const isCurrentMonth = state.challengeMonth === currentYm;
+    const todayIdx = weekDates.indexOf(todayStr());
+    const weekMeta = isCurrentWeek ? ('Day '+(todayIdx+1)+' of 7 · resets Monday') : 'Completed week';
+    const monthMeta = isCurrentMonth ? 'In progress · resets on the 1st' : 'Completed month';
+
+    const weeklyCards = challengeCardsHTML(WEEKLY_CATEGORY_CHALLENGES, dayMap, weekDates, usedCats, hasSleepData);
+    const monthlyCards = challengeCardsHTML(MONTHLY_CATEGORY_CHALLENGES, dayMap, monthDates, usedCats, hasSleepData);
+    const bestsHTML = personalBestsHTML(allDays);
+
+    const weekSelectHTML = '<div class="period-select-row">'+
+      '<select id="weekSelect" class="period-select">'+
+        weekOptions.map(m=>'<option value="'+m+'" '+(m===state.challengeWeek?'selected':'')+'>'+weekLabel(m)+'</option>').join('')+
+      '</select>'+
+      (!isCurrentWeek?'<button type="button" id="weekToCurrent" class="text-btn">This week</button>':'')+
+    '</div>';
+    const monthSelectHTML = '<div class="period-select-row">'+
+      '<select id="monthSelect" class="period-select">'+
+        monthOptions.map(ym=>'<option value="'+ym+'" '+(ym===state.challengeMonth?'selected':'')+'>'+humanMonth(ym)+'</option>').join('')+
+      '</select>'+
+      (!isCurrentMonth?'<button type="button" id="monthToCurrent" class="text-btn">This month</button>':'')+
+    '</div>';
+
+    view.innerHTML =
+      '<section class="panel">'+
+        '<h2>Personal Bests</h2>'+
+        '<p class="section-intro">Records pulled from your full tracked history — try to beat your own best.</p>'+
+        bestsHTML+
+      '</section>'+
+      '<section class="panel">'+
+        '<h2>Weekly Challenges</h2>'+
+        weekSelectHTML+
+        '<p class="section-meta mono">'+weekMeta+'</p>'+
+        (weeklyCards.length? weeklyCards.join('') : '<p class="empty">No activity logged that week.</p>')+
+      '</section>'+
+      '<section class="panel">'+
+        '<h2>Monthly Challenges</h2>'+
+        monthSelectHTML+
+        '<p class="section-meta mono">'+monthMeta+'</p>'+
+        (monthlyCards.length? monthlyCards.join('') : '<p class="empty">No activity logged that month.</p>')+
+      '</section>';
+
+    document.getElementById('weekSelect').onchange = (e)=>{ state.challengeWeek = e.target.value; renderChallenges(); };
+    document.getElementById('monthSelect').onchange = (e)=>{ state.challengeMonth = e.target.value; renderChallenges(); };
+    const weekBtn = document.getElementById('weekToCurrent');
+    if(weekBtn) weekBtn.onclick = ()=>{ state.challengeWeek = currentMonday; renderChallenges(); };
+    const monthBtn = document.getElementById('monthToCurrent');
+    if(monthBtn) monthBtn.onclick = ()=>{ state.challengeMonth = currentYm; renderChallenges(); };
+  }
+
+  const renderers = {today:renderToday, goals:renderGoals, weight:renderWeight, dashboard:renderDashboard, challenges:renderChallenges};
+  function renderView(){ renderers[state.activeTab](); }
+  function bindTabs(){
+    document.getElementById('tabs').addEventListener('click',(e)=>{
+      const t=e.target.closest('.tab'); if(!t) return;
+      document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x===t));
+      state.activeTab=t.dataset.tab;
+      if(state.activeTab==='challenges') state.challengeCache = null;
+      renderView();
+    });
+  }
+
+  document.getElementById('resetBtn').onclick=async ()=>{
+    if(!confirm('This clears all time blocks logged for '+humanDate(state.date)+'. Continue?')) return;
+    state.ledgerCache[state.date] = [];
+    await saveLedger(state.date);
+    if(state.activeTab==='today') renderToday();
+    toast('Day reset');
+  };
+
+  document.getElementById('saveAllBtn').onclick = saveAllNow;
+
+  document.getElementById('todayLabel').textContent = humanDate(todayStr());
+
+  window.addEventListener('beforeunload', (e)=>{
+    if(pendingKeys.size>0){ e.preventDefault(); e.returnValue=''; }
+  });
+
+  (async function init(){
+    await loadFromCloud();
+    await loadAll();
+    bindTabs();
+    renderView();
+  })();
+})();
+</script>
+</body>
+</html>
