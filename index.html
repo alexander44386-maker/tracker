@@ -296,6 +296,43 @@
   .trend-arrow.flat{color:var(--fog);}
   .spark{width:62px;height:20px;display:block;flex-shrink:0;}
   .review-suggestion{background:rgba(232,163,61,0.12);border:1px solid rgba(232,163,61,0.35);border-radius:8px;padding:13px 15px;font-size:13.5px;line-height:1.5;color:var(--bone);}
+  .insights-panel{display:flex;align-items:center;justify-content:center;min-height:320px;}
+  .insights-empty{text-align:center;max-width:360px;margin:0 auto;}
+  .insights-icon{font-size:32px;margin-bottom:10px;}
+  .insights-empty h2{margin:0 0 8px;}
+  .insights-empty .section-intro{margin-bottom:10px;}
+  .insights-empty .empty{padding:0;}
+
+  /* Insights = Coach */
+  .insights-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
+  .insights-head h2{font-size:19px;}
+  .insights-meta{color:var(--fog);font-size:12px;margin-top:4px;}
+  .insights-meta .src-tag{font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;padding:1px 6px;border-radius:4px;background:var(--panel-3);margin-left:6px;font-size:10px;}
+  .insights-actions{display:flex;gap:8px;flex-shrink:0;}
+  .icon-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:7px 13px;border-radius:7px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .icon-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .icon-btn:disabled{opacity:0.5;cursor:default;}
+  .icon-btn.spin .gear{display:inline-block;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .ai-settings{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:18px;}
+  .ai-settings h3{font-size:13.5px;margin-bottom:4px;}
+  .ai-settings p{color:var(--fog);font-size:12px;line-height:1.5;margin:0 0 12px;}
+  .ai-settings-row{display:flex;gap:10px;margin-bottom:9px;flex-wrap:wrap;}
+  .ai-settings-row label{width:100%;font-size:12px;color:var(--fog);margin-bottom:3px;display:block;}
+  .ai-settings-row input{flex:1;min-width:180px;background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:6px;font-size:12.5px;font-family:'IBM Plex Mono',monospace;}
+  .ai-settings-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;}
+
+  .insight-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+  .insight-card{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:15px 17px;}
+  .insight-card.tone-win{border-left-color:var(--sage);}
+  .insight-card.tone-opportunity{border-left-color:var(--coral);}
+  .insight-card.tone-neutral{border-left-color:var(--amber);}
+  .insight-card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .insight-card-icon{font-size:17px;}
+  .insight-card-title{font-family:'Fraunces',serif;font-weight:600;font-size:14.5px;}
+  .insight-card-body{font-size:13.5px;line-height:1.55;color:var(--bone);margin:0;}
+  .insight-empty-state{grid-column:1/-1;}
   .review-suggestion strong{color:var(--amber);}
   .stat-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line);}
   .stat-row:last-child{border-bottom:none;}
@@ -323,6 +360,31 @@
   .mini-progress .fill{height:100%;background:var(--sage);}
 
   .loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--fog);font-style:italic;}
+
+  /* Ask Ledger */
+  .ask-wrap{display:flex;flex-direction:column;gap:14px;}
+  .ask-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .ask-chip{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:8px 13px;border-radius:20px;font-size:12.5px;text-align:left;}
+  .ask-chip:hover{border-color:var(--amber);color:var(--amber);}
+  .ask-thread{display:flex;flex-direction:column;gap:14px;max-height:520px;overflow-y:auto;padding-right:2px;}
+  .ask-empty{color:var(--fog);font-size:13px;font-style:italic;padding:6px 0 2px;}
+  .ask-msg{display:flex;flex-direction:column;gap:4px;max-width:88%;}
+  .ask-msg.user{align-self:flex-end;align-items:flex-end;}
+  .ask-msg.assistant{align-self:flex-start;align-items:flex-start;}
+  .ask-bubble{padding:11px 14px;border-radius:12px;font-size:13.5px;line-height:1.55;}
+  .ask-msg.user .ask-bubble{background:var(--amber);color:#1c1406;font-weight:500;border-bottom-right-radius:3px;}
+  .ask-msg.assistant .ask-bubble{background:var(--panel-2);border:1px solid var(--line);border-bottom-left-radius:3px;white-space:pre-line;}
+  .ask-msg-meta{font-size:10.5px;color:var(--fog);font-family:'IBM Plex Mono',monospace;padding:0 3px;}
+  .ask-thinking .ask-bubble{color:var(--fog);font-style:italic;}
+  .ask-input-row{display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--line);padding-top:14px;}
+  .ask-input-row textarea{
+    flex:1;resize:none;background:var(--panel-2);border:1px solid var(--line);color:var(--bone);
+    padding:10px 12px;border-radius:9px;font-size:13.5px;font-family:'Inter',sans-serif;min-height:42px;max-height:120px;
+  }
+  .ask-send-btn{background:var(--amber);border:none;color:#1c1406;font-weight:700;padding:10px 18px;border-radius:9px;font-size:13px;flex-shrink:0;}
+  .ask-send-btn:disabled{opacity:0.5;cursor:default;}
+  .ask-clear-btn{align-self:flex-start;background:none;border:1px solid var(--line);color:var(--fog);padding:5px 11px;border-radius:7px;font-size:11.5px;}
+  .ask-clear-btn:hover{color:var(--coral);border-color:var(--coral);}
 
   /* Challenges */
   .section-intro{color:var(--fog);font-size:13px;line-height:1.5;margin:0 0 16px;}
@@ -453,7 +515,8 @@
       <button class="tab" data-tab="goals">Goals</button>
       <button class="tab" data-tab="weight">Weight</button>
       <button class="tab" data-tab="dashboard">Dashboard</button>
-      <button class="tab" data-tab="challenges">Challenges</button>
+      <button class="tab" data-tab="insights">Insights</button>
+      <button class="tab" data-tab="ask">Ask Ledger</button>
     </nav>
   </header>
   <main id="view"><div class="loading">Loading your ledger…</div></main>
@@ -474,7 +537,11 @@
       </div>
       <div class="howto-card">
         <h3>Dashboard</h3>
-        <p>A weekly and monthly overview: time by category, sleep averages, goal progress, and a weight trend — all in one place.</p>
+        <p>A weekly and monthly overview of what happened: time by category, sleep averages, goal progress, and a weight trend — all objective, no advice.</p>
+      </div>
+      <div class="howto-card">
+        <h3>Insights</h3>
+        <p>Your coach — turns this week's logged data into plain-language cards (biggest win, an opportunity, a hidden pattern, and more). Works offline with a built-in local coach; add a Gemini or Mistral API key under "Providers" to have an AI write the phrasing instead. Hit Refresh any time to regenerate.</p>
       </div>
       <div class="howto-card">
         <h3>Saving</h3>
@@ -493,6 +560,9 @@
   "use strict";
 
   // ---------- Firebase Auth (gates access to the cloud database) ----------
+  // Guarded: if the Firebase SDK failed to load (slow connection, ad
+  // blocker, corporate network, offline) or init throws for any reason,
+  // fall back to local-only mode instead of taking down the whole app.
   const firebaseConfig = {
     apiKey: "AIzaSyAuQSzSJgPG4k1-JDlH76vvWo0ZjNIuFJU",
     authDomain: "dailytracker-2adb7.firebaseapp.com",
@@ -502,8 +572,22 @@
     messagingSenderId: "587080746748",
     appId: "1:587080746748:web:efb29ddef45f0862f83979"
   };
-  firebase.initializeApp(firebaseConfig);
-  const fbAuth = firebase.auth();
+
+  let fbAuth = null;
+  let firebaseAvailable = false;
+  try{
+    if(typeof firebase !== 'undefined'){
+      firebase.initializeApp(firebaseConfig);
+      fbAuth = firebase.auth();
+      firebaseAvailable = true;
+    }else{
+      console.warn('Firebase SDK did not load — continuing in local-only mode.');
+    }
+  }catch(err){
+    console.warn('Firebase init failed — continuing in local-only mode.', err);
+    fbAuth = null;
+    firebaseAvailable = false;
+  }
 
   const loginGateEl = document.getElementById('loginGate');
   const appEl = document.getElementById('app');
@@ -511,34 +595,45 @@
   const loginError = document.getElementById('loginError');
   const loginBtn = document.getElementById('loginBtn');
 
-  loginForm.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    loginError.textContent = '';
-    loginBtn.disabled = true; loginBtn.textContent = 'Signing in…';
-    try{
-      await fbAuth.signInWithEmailAndPassword(
-        document.getElementById('loginEmail').value.trim(),
-        document.getElementById('loginPassword').value
-      );
-    }catch(err){
-      loginError.textContent = 'Sign-in failed — check your email and password.';
-    }finally{
-      loginBtn.disabled = false; loginBtn.textContent = 'Sign In';
-    }
-  });
+  if(!firebaseAvailable){
+    // No auth, no cloud sync — just boot straight into the app so the
+    // person always has a working local-only ledger.
+    loginGateEl.style.display = 'none';
+    appEl.style.display = '';
+    const signOutBtnEl = document.getElementById('signOutBtn');
+    if(signOutBtnEl) signOutBtnEl.style.display = 'none';
+    startApp();
+    toast('Cloud sync unavailable — working in local-only mode');
+  } else {
+    loginForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      loginError.textContent = '';
+      loginBtn.disabled = true; loginBtn.textContent = 'Signing in…';
+      try{
+        await fbAuth.signInWithEmailAndPassword(
+          document.getElementById('loginEmail').value.trim(),
+          document.getElementById('loginPassword').value
+        );
+      }catch(err){
+        loginError.textContent = 'Sign-in failed — check your email and password.';
+      }finally{
+        loginBtn.disabled = false; loginBtn.textContent = 'Sign In';
+      }
+    });
 
-  let appStarted = false;
-  fbAuth.onAuthStateChanged((user)=>{
-    if(user){
-      loginGateEl.style.display = 'none';
-      appEl.style.display = '';
-      document.getElementById('signOutBtn').onclick = ()=> fbAuth.signOut();
-      if(!appStarted){ appStarted = true; startApp(); }
-    } else {
-      appEl.style.display = 'none';
-      loginGateEl.style.display = '';
-    }
-  });
+    let appStarted = false;
+    fbAuth.onAuthStateChanged((user)=>{
+      if(user){
+        loginGateEl.style.display = 'none';
+        appEl.style.display = '';
+        document.getElementById('signOutBtn').onclick = ()=> fbAuth.signOut();
+        if(!appStarted){ appStarted = true; startApp(); }
+      } else {
+        appEl.style.display = 'none';
+        loginGateEl.style.display = '';
+      }
+    });
+  }
 
   // Grouped by family so related categories read as shades of one hue:
   // Blue = Productive, Green = Health, Orange = Life, Purple = Leisure, Gray = Other
@@ -578,13 +673,14 @@
     goals: {goals:[]},
     weight: {records:{}},
     customCategories: [],
-    challengeCache: null,
-    challengeWeek: null,
-    challengeMonth: null,
     activeTab: 'today',
     quality: 3,
     weekCache: null,
-    monthDate: todayStr().slice(0,7)
+    monthDate: todayStr().slice(0,7),
+    insightsCache: null,
+    insightsLoading: false,
+    askHistory: [],
+    askLoading: false
   };
 
   // ---------- utils ----------
@@ -641,6 +737,7 @@
 
   async function pushToCloud(){
     try{
+      if(!fbAuth) throw new Error('firebase unavailable');
       const user = fbAuth.currentUser;
       if(!user) throw new Error('not signed in');
       const token = await user.getIdToken();
@@ -663,6 +760,7 @@
     // device picks up changes made elsewhere. Falls back silently to
     // whatever is already in localStorage if the cloud isn't reachable.
     try{
+      if(!fbAuth) throw new Error('firebase unavailable');
       const user = fbAuth.currentUser;
       if(!user) throw new Error('not signed in');
       const token = await user.getIdToken();
@@ -710,6 +808,19 @@
   }
   const pendingKeys = new Set();
 
+  // AI provider keys live in a separate, non-prefixed localStorage bucket so
+  // they never get swept into buildLocalSnapshot() and pushed to the shared
+  // Firebase document — they stay on this device only.
+  const AI_KEYS_LS = 'theLedgerAI:keys';
+  function getAIKeys(){
+    try{ return JSON.parse(localStorage.getItem(AI_KEYS_LS)) || {gemini:'', mistral:''}; }
+    catch(e){ return {gemini:'', mistral:''}; }
+  }
+  function setAIKeys(keys){
+    try{ localStorage.setItem(AI_KEYS_LS, JSON.stringify(keys)); return true; }
+    catch(e){ return false; }
+  }
+
   async function loadLedger(date){
     if(state.ledgerCache[date]) return state.ledgerCache[date];
     const blocks = await sGet('ledger:'+date, []);
@@ -746,12 +857,14 @@
   }
 
   async function loadAll(){
-    const [sleep, goals, weight, customCategories, todayBlocks] = await Promise.all([
+    const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, askHistory] = await Promise.all([
       sGet('sleep-data', {records:{}}),
       sGet('goals-data', {goals:[]}),
       sGet('weight-data', {records:{}}),
       sGet('custom-categories-data', []),
-      sGet('ledger:'+state.date, [])
+      sGet('ledger:'+state.date, []),
+      sGet('insights-cache:'+todayStr(), null),
+      sGet('ask-ledger-history', [])
     ]);
     state.sleep = sleep;
     state.goals = goals;
@@ -759,6 +872,8 @@
     state.customCategories = customCategories;
     customCategories.forEach(c=>{ if(!CATEGORIES.some(x=>x.id===c.id)) CATEGORIES.push(c); });
     state.ledgerCache[state.date] = todayBlocks;
+    state.insightsCache = insightsCache;
+    state.askHistory = askHistory || [];
   }
 
   // ---------- SVG day wheel ----------
@@ -1460,14 +1575,6 @@
     }
     const catPrevTotal = (catId)=>prevWeek.reduce((s,w)=>s+w.blocks.filter(b=>b.category===catId).reduce((s2,b)=>s2+b.duration,0),0);
     const catDaily = (catId)=>week.map(w=>w.blocks.filter(b=>b.category===catId).reduce((s,b)=>s+b.duration,0));
-    let reviewSuggestion;
-    if(loggedCatsWeek.length>=2 && leastCatWeek && mostCatWeek && leastCatWeek.id!==mostCatWeek.id){
-      reviewSuggestion = `Spend 2 more hours on <strong>${escapeHtml(leastCatWeek.label)}</strong> next week.`;
-    } else if(loggedCatsWeek.length===0){
-      reviewSuggestion = `Nothing logged this week yet — start tracking to unlock your review.`;
-    } else {
-      reviewSuggestion = `You're keeping a good balance across categories this week.`;
-    }
     const isSundayToday = new Date(todayStr()+'T00:00:00').getDay()===0;
 
     const sleepDates = Object.keys(state.sleep.records).sort().reverse().slice(0,7);
@@ -1498,7 +1605,7 @@
     <section class="panel review-panel">
       <div class="review-head">
         <h2>Weekly Review${isSundayToday? '<span class="review-badge">Today is Sunday</span>' : ''}</h2>
-        <span class="review-sub">Best checked every Sunday · last 7 days</span>
+        <span class="review-sub">Last 7 days</span>
       </div>
       <div class="review-grid">
         ${trendStatHTML('Worked', minutesToHM(workedMinutesWeek), workDaily, workedMinutesWeek, workedMinutesPrevWeek, false)}
@@ -1516,7 +1623,6 @@
           ${leastCatWeek? `<div class="extreme-trend">${sparklineSVG(catDaily(leastCatWeek.id), 'var(--coral)')}${trendArrowHTML(catTotalsWeek[leastCatWeek.id], catPrevTotal(leastCatWeek.id), false)}</div>` : ''}
         </div>
       </div>
-      <div class="review-suggestion"><strong>Suggestion —</strong> ${reviewSuggestion}</div>
     </section>
 
     <div class="dash-grid">
@@ -1815,88 +1921,641 @@
     return cards;
   }
 
-  async function renderChallenges(){
-    const view=document.getElementById('view');
-    const needsLoad = !state.challengeCache;
-    if(needsLoad) view.innerHTML = '<div class="loading">Crunching your challenges…</div>';
+  // ==================================================================
+  // Insights = Coach
+  // "What does my data mean?" — turns logged numbers into plain-language
+  // cards. A local rule-based generator always works offline; if a
+  // Gemini or Mistral API key is set, that provider's phrasing is used
+  // instead (Gemini first, falling back to Mistral, falling back to
+  // local). Every path returns the exact same card shape:
+  //   { type, icon, title, text, tone }
+  // so swapping the generator never touches the render layer.
+  // ------------------------------------------------------------------
 
-    if(needsLoad){
-      const allDays = await loadAllLedgerDays();
-      const dayMap = {};
-      allDays.forEach(d=>{ dayMap[d.date]=d.blocks; });
-      state.challengeCache = {allDays, dayMap};
-    }
-    const {allDays, dayMap} = state.challengeCache;
-    const usedCats = categoriesEverUsed(allDays);
-    const hasSleepData = Object.keys(state.sleep.records).length>0;
+  const GOOD_UP_CATS = ['work','learning','reading','exercise','family_time','self_care','wellness','giann','teaching_kids'];
+  const GOOD_DOWN_CATS = ['social_media','entertainment','online_shopping'];
 
-    const weekOptions = buildWeekOptions(allDays);
-    const monthOptions = buildMonthOptions(allDays);
-    const currentMonday = mondayOf(todayStr());
-    const currentYm = todayStr().slice(0,7);
-    if(!state.challengeWeek || weekOptions.indexOf(state.challengeWeek)===-1) state.challengeWeek = currentMonday;
-    if(!state.challengeMonth || monthOptions.indexOf(state.challengeMonth)===-1) state.challengeMonth = currentYm;
-
-    const weekDates = weekDatesFrom(state.challengeWeek);
-    const monthDates = monthDatesFor(state.challengeMonth);
-    const isCurrentWeek = state.challengeWeek === currentMonday;
-    const isCurrentMonth = state.challengeMonth === currentYm;
-    const todayIdx = weekDates.indexOf(todayStr());
-    const weekMeta = isCurrentWeek ? ('Day '+(todayIdx+1)+' of 7 · resets Monday') : 'Completed week';
-    const monthMeta = isCurrentMonth ? 'In progress · resets on the 1st' : 'Completed month';
-
-    const weeklyCards = challengeCardsHTML(WEEKLY_CATEGORY_CHALLENGES, dayMap, weekDates, usedCats, hasSleepData);
-    const monthlyCards = challengeCardsHTML(MONTHLY_CATEGORY_CHALLENGES, dayMap, monthDates, usedCats, hasSleepData);
-    const bestsHTML = personalBestsHTML(allDays);
-
-    const weekSelectHTML = '<div class="period-select-row">'+
-      '<select id="weekSelect" class="period-select">'+
-        weekOptions.map(m=>'<option value="'+m+'" '+(m===state.challengeWeek?'selected':'')+'>'+weekLabel(m)+'</option>').join('')+
-      '</select>'+
-      (!isCurrentWeek?'<button type="button" id="weekToCurrent" class="text-btn">This week</button>':'')+
-    '</div>';
-    const monthSelectHTML = '<div class="period-select-row">'+
-      '<select id="monthSelect" class="period-select">'+
-        monthOptions.map(ym=>'<option value="'+ym+'" '+(ym===state.challengeMonth?'selected':'')+'>'+humanMonth(ym)+'</option>').join('')+
-      '</select>'+
-      (!isCurrentMonth?'<button type="button" id="monthToCurrent" class="text-btn">This month</button>':'')+
-    '</div>';
-
-    view.innerHTML =
-      '<section class="panel">'+
-        '<h2>Personal Bests</h2>'+
-        '<p class="section-intro">Records pulled from your full tracked history — try to beat your own best.</p>'+
-        bestsHTML+
-      '</section>'+
-      '<section class="panel">'+
-        '<h2>Weekly Challenges</h2>'+
-        weekSelectHTML+
-        '<p class="section-meta mono">'+weekMeta+'</p>'+
-        (weeklyCards.length? weeklyCards.join('') : '<p class="empty">No activity logged that week.</p>')+
-      '</section>'+
-      '<section class="panel">'+
-        '<h2>Monthly Challenges</h2>'+
-        monthSelectHTML+
-        '<p class="section-meta mono">'+monthMeta+'</p>'+
-        (monthlyCards.length? monthlyCards.join('') : '<p class="empty">No activity logged that month.</p>')+
-      '</section>';
-
-    document.getElementById('weekSelect').onchange = (e)=>{ state.challengeWeek = e.target.value; renderChallenges(); };
-    document.getElementById('monthSelect').onchange = (e)=>{ state.challengeMonth = e.target.value; renderChallenges(); };
-    const weekBtn = document.getElementById('weekToCurrent');
-    if(weekBtn) weekBtn.onclick = ()=>{ state.challengeWeek = currentMonday; renderChallenges(); };
-    const monthBtn = document.getElementById('monthToCurrent');
-    if(monthBtn) monthBtn.onclick = ()=>{ state.challengeMonth = currentYm; renderChallenges(); };
+  function pct(n){ return Math.round(n); }
+  function pctDelta(cur,prev){
+    if(!prev) return cur>0 ? 100 : 0;
+    return Math.round(((cur-prev)/prev)*100);
+  }
+  // Pearson correlation between two equal-length numeric arrays.
+  function correlation(a,b){
+    const n=a.length; if(n<3) return 0;
+    const ma=a.reduce((s,v)=>s+v,0)/n, mb=b.reduce((s,v)=>s+v,0)/n;
+    let num=0, da=0, db=0;
+    for(let i=0;i<n;i++){ const xa=a[i]-ma, xb=b[i]-mb; num+=xa*xb; da+=xa*xa; db+=xb*xb; }
+    if(da===0||db===0) return 0;
+    return num/Math.sqrt(da*db);
   }
 
-  const renderers = {today:renderToday, goals:renderGoals, weight:renderWeight, dashboard:renderDashboard, challenges:renderChallenges};
+  // ---------- gather this week's data into a compact, LLM-friendly facts object ----------
+  async function computeInsightFacts(){
+    const week = await loadWeek();
+    const prevWeek = await loadPrevWeek();
+    const dates = week.map(w=>w.date);
+
+    const catDaily = (catId)=>week.map(w=>w.blocks.filter(b=>b.category===catId).reduce((s,b)=>s+b.duration,0));
+    const catTotal = (catId)=>catDaily(catId).reduce((s,v)=>s+v,0);
+    const catPrevTotal = (catId)=>prevWeek.reduce((s,w)=>s+w.blocks.filter(b=>b.category===catId).reduce((s2,b)=>s2+b.duration,0),0);
+
+    const usedCats = new Set(); week.forEach(w=>w.blocks.forEach(b=>usedCats.add(b.category)));
+    const categories = CATEGORIES.filter(c=>usedCats.has(c.id) || catPrevTotal(c.id)>0).map(c=>{
+      const weekMin=catTotal(c.id), prevMin=catPrevTotal(c.id);
+      return {id:c.id, label:c.label, weekMinutes:weekMin, prevWeekMinutes:prevMin, deltaPct:pctDelta(weekMin,prevMin), daily:catDaily(c.id)};
+    });
+
+    // sleep
+    const sleepDates = dates.filter(d=>state.sleep.records[d]);
+    const sleepPrevDates = prevWeek.map(w=>w.date).filter(d=>state.sleep.records[d]);
+    const avgSleep = sleepDates.length? Math.round(sleepDates.reduce((s,d)=>s+state.sleep.records[d].duration,0)/sleepDates.length) : null;
+    const avgSleepPrev = sleepPrevDates.length? Math.round(sleepPrevDates.reduce((s,d)=>s+state.sleep.records[d].duration,0)/sleepPrevDates.length) : null;
+    // consecutive-day decrease/increase streak looking backward from most recent logged night
+    let sleepStreak=0, sleepStreakDir=null;
+    const sortedSleepDates = sleepDates.slice().sort();
+    for(let i=sortedSleepDates.length-1;i>0;i--){
+      const cur=state.sleep.records[sortedSleepDates[i]].duration, prev=state.sleep.records[sortedSleepDates[i-1]].duration;
+      const dir = cur<prev? 'down' : cur>prev? 'up' : null;
+      if(sleepStreakDir===null){ if(dir===null) break; sleepStreakDir=dir; sleepStreak=2; }
+      else if(dir===sleepStreakDir){ sleepStreak++; }
+      else break;
+    }
+
+    // goals
+    const goals = state.goals.goals.map(g=>({title:g.title, pct: goalPct(g)}));
+
+    // weight
+    const weightEntries = Object.keys(state.weight.records).sort().map(d=>({date:d, weight:state.weight.records[d].weight}));
+    let weightTrend = null;
+    if(weightEntries.length>=2){
+      const recent = weightEntries.slice(-7);
+      const delta = recent[recent.length-1].weight - recent[0].weight;
+      weightTrend = {deltaKg: Math.round(delta*10)/10, entries: recent.length, latest: recent[recent.length-1].weight};
+    }
+
+    // logging streak (any category logged every day this week)
+    const loggingStreak = dates.filter(d=>(state.ledgerCache[d]||[]).length>0).length;
+
+    // hidden pattern: strongest correlation between two distinct categories' daily minutes
+    let hiddenPattern = null;
+    for(let i=0;i<categories.length;i++){
+      for(let j=i+1;j<categories.length;j++){
+        const r = correlation(categories[i].daily, categories[j].daily);
+        if(Math.abs(r) >= 0.55 && (categories[i].weekMinutes>0 && categories[j].weekMinutes>0)){
+          if(!hiddenPattern || Math.abs(r)>Math.abs(hiddenPattern.r)){
+            hiddenPattern = {a:categories[i], b:categories[j], r};
+          }
+        }
+      }
+    }
+
+    return {
+      weekLabel: humanDate(dates[0])+' – '+humanDate(dates[dates.length-1]),
+      categories, avgSleep, avgSleepPrev, sleepNightsLogged: sleepDates.length,
+      sleepStreak, sleepStreakDir, goals, weightTrend, loggingStreak, totalDays: dates.length,
+      hiddenPattern
+    };
+  }
+
+  // ---------- local rule-based generator (default / offline fallback) ----------
+  function generateLocalInsights(f){
+    const cards = [];
+    const withData = f.categories.filter(c=>c.weekMinutes>0 || c.prevWeekMinutes>0);
+
+    // 🏆 Biggest Win — best positive movement in a "good" direction, or best goal progress
+    (function(){
+      let best=null;
+      withData.forEach(c=>{
+        const isGoodUp = GOOD_UP_CATS.includes(c.id);
+        const isGoodDown = GOOD_DOWN_CATS.includes(c.id);
+        if(isGoodUp && c.deltaPct>=10 && c.prevWeekMinutes>0){
+          const score=c.deltaPct;
+          if(!best||score>best.score) best={score, text:`You spent ${c.deltaPct}% more time on ${c.label.toLowerCase()} than last week (${minutesToHM(c.weekMinutes)} vs ${minutesToHM(c.prevWeekMinutes)}).`};
+        }
+        if(isGoodDown && c.deltaPct<=-10 && c.prevWeekMinutes>0){
+          const score=-c.deltaPct;
+          if(!best||score>best.score) best={score, text:`You cut ${c.label.toLowerCase()} by ${Math.abs(c.deltaPct)}% compared to last week — nice pullback.`};
+        }
+      });
+      if(!best){
+        const goalWin = f.goals.filter(g=>g.pct>=100)[0] || f.goals.slice().sort((a,b)=>b.pct-a.pct)[0];
+        if(goalWin) best={text:goalWin.pct>=100? `You completed your "${goalWin.title}" goal — fully done.` : `Your "${goalWin.title}" goal is your strongest right now, at ${goalWin.pct}%.`};
+      }
+      if(best) cards.push({type:'win', icon:'🏆', title:'Biggest Win', text:best.text, tone:'win'});
+    })();
+
+    // ⚠ Biggest Opportunity — worst movement in the "good" direction, mirrored
+    (function(){
+      let worst=null;
+      withData.forEach(c=>{
+        const isGoodUp = GOOD_UP_CATS.includes(c.id);
+        const isGoodDown = GOOD_DOWN_CATS.includes(c.id);
+        if(isGoodUp && c.deltaPct<=-15 && c.prevWeekMinutes>0){
+          const score=-c.deltaPct;
+          if(!worst||score>worst.score) worst={score, text:`${c.label} time dropped ${Math.abs(c.deltaPct)}% versus last week (${minutesToHM(c.weekMinutes)} vs ${minutesToHM(c.prevWeekMinutes)}).`};
+        }
+        if(isGoodDown && c.deltaPct>=20 && c.prevWeekMinutes>0){
+          const score=c.deltaPct;
+          if(!worst||score>worst.score) worst={score, text:`${c.label} crept up ${c.deltaPct}% from last week — worth keeping an eye on.`};
+        }
+      });
+      if(!worst){
+        const goalLow = f.goals.filter(g=>g.pct<100).slice().sort((a,b)=>a.pct-b.pct)[0];
+        if(goalLow) worst={text:`Your "${goalLow.title}" goal is your slowest mover, sitting at ${goalLow.pct}%.`};
+      }
+      if(worst) cards.push({type:'opportunity', icon:'⚠️', title:'Biggest Opportunity', text:worst.text, tone:'opportunity'});
+    })();
+
+    // 💡 Hidden Pattern — correlation between two categories
+    if(f.hiddenPattern){
+      const {a,b,r} = f.hiddenPattern;
+      const rel = r>0 ? 'more' : 'less';
+      cards.push({type:'pattern', icon:'💡', title:'Hidden Pattern', tone:'neutral',
+        text:`On days you log more ${a.label.toLowerCase()}, you tend to log ${rel} ${b.label.toLowerCase()} too.`});
+    }
+
+    // 📈 Trend — sleep streak takes priority since it's health-relevant, else biggest category swing
+    (function(){
+      if(f.sleepStreak>=3 && f.sleepStreakDir){
+        cards.push({type:'trend', icon:'📈', title:'Trend', tone: f.sleepStreakDir==='down'?'opportunity':'win',
+          text:`Your sleep has ${f.sleepStreakDir==='down'?'decreased':'increased'} for ${f.sleepStreak} consecutive nights.`});
+        return;
+      }
+      const biggest = withData.filter(c=>c.prevWeekMinutes>0).slice().sort((a,b)=>Math.abs(b.deltaPct)-Math.abs(a.deltaPct))[0];
+      if(biggest){
+        cards.push({type:'trend', icon:'📈', title:'Trend', tone:'neutral',
+          text:`${biggest.label} is ${biggest.deltaPct>=0?'up':'down'} ${Math.abs(biggest.deltaPct)}% compared to last week.`});
+      }
+    })();
+
+    // 🤩 Almost on goal — highest goal pct that's not yet complete
+    (function(){
+      const near = f.goals.filter(g=>g.pct>=70 && g.pct<100).slice().sort((a,b)=>b.pct-a.pct)[0];
+      if(near) cards.push({type:'near-goal', icon:'🤩', title:"You're Almost There", tone:'win',
+        text:`You're ${100-near.pct}% away from hitting your "${near.title}" goal — keep going.`});
+    })();
+
+    // 🎯 Recommended Focus — lowest-logged "good" category, or lowest goal
+    (function(){
+      const trackedGood = GOOD_UP_CATS.map(id=>withData.find(c=>c.id===id)).filter(Boolean);
+      const lowest = trackedGood.slice().sort((a,b)=>a.weekMinutes-b.weekMinutes)[0];
+      if(lowest && lowest.weekMinutes < 180){
+        cards.push({type:'focus', icon:'🎯', title:'Recommended Focus', tone:'neutral',
+          text:`${lowest.label} only got ${minutesToHM(lowest.weekMinutes)} this week — a good place to put extra attention next.`});
+      } else {
+        const goalLow = f.goals.filter(g=>g.pct<100).slice().sort((a,b)=>a.pct-b.pct)[0];
+        if(goalLow) cards.push({type:'focus', icon:'🎯', title:'Recommended Focus', tone:'neutral',
+          text:`Put your energy toward "${goalLow.title}" next — it's currently your least-progressed goal at ${goalLow.pct}%.`});
+      }
+    })();
+
+    // 🧠 Weekly Reflection — a rounded-up summary sentence
+    (function(){
+      const totalLogged = f.categories.reduce((s,c)=>s+c.weekMinutes,0);
+      const sleepPart = f.avgSleep!==null ? ` and averaged ${(f.avgSleep/60).toFixed(1)}h of sleep a night` : '';
+      const streakPart = f.loggingStreak>=f.totalDays ? ` You logged something every single day — solid consistency.` : '';
+      cards.push({type:'reflection', icon:'🧠', title:'Weekly Reflection', tone:'neutral',
+        text:`You logged ${minutesToHM(totalLogged)} of tracked time this week${sleepPart}.${streakPart}`});
+    })();
+
+    return cards;
+  }
+
+  // ---------- prompt shared by both AI providers ----------
+  function buildInsightPrompt(f){
+    return `You are a concise, encouraging personal-analytics coach reading one user's self-tracked weekly data. `+
+      `Turn the JSON facts below into short natural-language insight cards. Never mention raw numbers unless they make the sentence clearer (e.g. "35% more", "3 nights in a row") — write like a coach talking to a friend, not a spreadsheet.\n\n`+
+      `Return ONLY a JSON array (no markdown, no prose) of up to 7 objects, each shaped exactly like:\n`+
+      `{"type":"win|opportunity|pattern|trend|near-goal|focus|reflection","icon":"<one emoji>","title":"<short title>","text":"<one or two natural-language sentences>","tone":"win|opportunity|neutral"}\n\n`+
+      `Card meanings: win=biggest positive movement, opportunity=biggest area needing attention, pattern=a non-obvious correlation between two habits, trend=a notable multi-day direction, near-goal=a goal close to completion, focus=one concrete recommended next step, reflection=a short rounded-up weekly summary.\n`+
+      `Only include a card type if the facts actually support it — do not invent numbers or goals that aren't present.\n\n`+
+      `FACTS:\n${JSON.stringify(f)}`;
+  }
+
+  function parseInsightJSON(text){
+    if(!text) return null;
+    const cleaned = text.replace(/```json|```/g,'').trim();
+    const start = cleaned.indexOf('['), end = cleaned.lastIndexOf(']');
+    if(start===-1||end===-1) return null;
+    try{
+      const arr = JSON.parse(cleaned.slice(start,end+1));
+      if(!Array.isArray(arr)) return null;
+      return arr.filter(c=>c && c.title && c.text).map(c=>({
+        type:c.type||'reflection', icon:c.icon||'✨', title:c.title, text:c.text, tone:c.tone||'neutral'
+      }));
+    }catch(e){ return null; }
+  }
+
+  async function callGemini(prompt, apiKey){
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{responseMimeType:'application/json'} })
+    });
+    if(!res.ok) throw new Error('Gemini HTTP '+res.status);
+    const data = await res.json();
+    const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts.map(p=>p.text).join('');
+    const parsed = parseInsightJSON(text);
+    if(!parsed || !parsed.length) throw new Error('Gemini returned no usable cards');
+    return parsed;
+  }
+
+  async function callMistral(prompt, apiKey){
+    const res = await fetch('https://api.mistral.ai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body: JSON.stringify({ model:'mistral-small-latest', response_format:{type:'json_object'},
+        messages:[
+          {role:'system', content:'Respond with only a JSON object of the shape {"cards": [...]}. No prose.'},
+          {role:'user', content: prompt+'\n\nWrap the array in {"cards": [...]}.'}
+        ] })
+    });
+    if(!res.ok) throw new Error('Mistral HTTP '+res.status);
+    const data = await res.json();
+    const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    let parsed = null;
+    try{ const obj = JSON.parse((text||'').replace(/```json|```/g,'').trim()); parsed = parseInsightJSON(JSON.stringify(obj.cards||obj)); }catch(e){}
+    if(!parsed || !parsed.length) throw new Error('Mistral returned no usable cards');
+    return parsed;
+  }
+
+  // ---------- Ask Ledger: free-form Q&A over the same underlying facts ----------
+  async function computeAskFacts(){
+    const base = await computeInsightFacts();
+
+    // month-over-month, so "what improved this month" has something to compare against
+    const thisYm = todayStr().slice(0,7);
+    const prevYm = shiftMonth(thisYm,-1);
+    const [thisMonthDays, prevMonthDays] = await Promise.all([loadMonth(thisYm), loadMonth(prevYm)]);
+    const monthCatTotal = (days,catId)=>days.reduce((s,d)=>s+d.blocks.filter(b=>b.category===catId).reduce((s2,b)=>s2+b.duration,0),0);
+    const usedCatsMonth = new Set(); thisMonthDays.concat(prevMonthDays).forEach(d=>d.blocks.forEach(b=>usedCatsMonth.add(b.category)));
+    const monthCategories = CATEGORIES.filter(c=>usedCatsMonth.has(c.id)).map(c=>{
+      const cur=monthCatTotal(thisMonthDays,c.id), prev=monthCatTotal(prevMonthDays,c.id);
+      return {id:c.id, label:c.label, thisMonthMinutes:cur, prevMonthMinutes:prev, deltaPct:pctDelta(cur,prev)};
+    });
+    const sleepDatesThisMonth = Object.keys(state.sleep.records).filter(d=>d.slice(0,7)===thisYm);
+    const sleepDatesPrevMonth = Object.keys(state.sleep.records).filter(d=>d.slice(0,7)===prevYm);
+    const avgSleepThisMonth = sleepDatesThisMonth.length? Math.round(sleepDatesThisMonth.reduce((s,d)=>s+state.sleep.records[d].duration,0)/sleepDatesThisMonth.length) : null;
+    const avgSleepPrevMonth = sleepDatesPrevMonth.length? Math.round(sleepDatesPrevMonth.reduce((s,d)=>s+state.sleep.records[d].duration,0)/sleepDatesPrevMonth.length) : null;
+
+    // last 7 logged nights, oldest to newest, so the model can reason about recent direction/quality dips
+    const recentSleepNights = Object.keys(state.sleep.records).sort().slice(-7).map(d=>({
+      date:d, minutes: state.sleep.records[d].duration, quality: state.sleep.records[d].quality
+    }));
+
+    const weightAll = Object.keys(state.weight.records).sort().map(d=>({date:d, weight:state.weight.records[d].weight}));
+
+    return Object.assign({}, base, {
+      today: todayStr(),
+      monthLabel: humanMonth(thisYm),
+      prevMonthLabel: humanMonth(prevYm),
+      monthCategories,
+      avgSleepThisMonth, avgSleepPrevMonth,
+      recentSleepNights,
+      weightHistory: weightAll.slice(-14),
+      goalsFull: state.goals.goals.map(g=>({title:g.title, pct:goalPct(g), progress:goalSummaryLabel(g)}))
+    });
+  }
+
+  function buildAskPrompt(f, question, history){
+    const historyText = (history||[]).slice(-4).map(h=>`Q: ${h.q}\nA: ${h.a}`).join('\n\n');
+    return `You are "Ask Ledger", a personal-analytics assistant embedded in a time/health tracking app called The Ledger. `+
+      `Answer the user's question using ONLY the JSON facts below — never invent numbers, categories, or goals that aren't present. `+
+      `If the facts don't contain enough information to answer well, say so plainly and note what would need to be logged instead. `+
+      `Be direct and specific (cite real numbers/percentages from the facts), keep it conversational, 2-5 sentences unless the question calls for a short list. `+
+      `Do not use markdown headers or bullet-heavy formatting — write like a knowledgeable friend texting back.\n\n`+
+      (historyText ? `RECENT CONVERSATION:\n${historyText}\n\n` : '')+
+      `FACTS:\n${JSON.stringify(f)}\n\n`+
+      `QUESTION: ${question}`;
+  }
+
+  async function callGeminiChat(prompt, apiKey){
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{parts:[{text:prompt}]}] })
+    });
+    if(!res.ok) throw new Error('Gemini HTTP '+res.status);
+    const data = await res.json();
+    const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts.map(p=>p.text).join('');
+    if(!text || !text.trim()) throw new Error('Gemini returned no text');
+    return text.trim();
+  }
+
+  async function callMistralChat(prompt, apiKey){
+    const res = await fetch('https://api.mistral.ai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body: JSON.stringify({ model:'mistral-small-latest',
+        messages:[
+          {role:'system', content:'You are a concise personal-analytics assistant. Answer in plain conversational prose, no markdown.'},
+          {role:'user', content: prompt}
+        ] })
+    });
+    if(!res.ok) throw new Error('Mistral HTTP '+res.status);
+    const data = await res.json();
+    const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if(!text || !text.trim()) throw new Error('Mistral returned no text');
+    return text.trim();
+  }
+
+  // ---------- local rule-based Q&A (offline fallback, no API key required) ----------
+  function answerLocally(question, f){
+    const q = question.toLowerCase();
+    const withData = f.categories.filter(c=>c.weekMinutes>0 || c.prevWeekMinutes>0);
+
+    function biggestWaster(){
+      const badUp = withData.filter(c=>GOOD_DOWN_CATS.includes(c.id)).sort((a,b)=>b.weekMinutes-a.weekMinutes)[0];
+      if(badUp && badUp.weekMinutes>0) return badUp;
+      return withData.slice().sort((a,b)=>b.weekMinutes-a.weekMinutes).filter(c=>!GOOD_UP_CATS.includes(c.id))[0] || null;
+    }
+    function slowestGoal(){ return f.goalsFull.filter(g=>g.pct<100).sort((a,b)=>a.pct-b.pct)[0] || null; }
+    function bestMoverThisMonth(){ return f.monthCategories.filter(c=>c.prevMonthMinutes>0).sort((a,b)=>b.deltaPct-a.deltaPct)[0] || null; }
+    function leastAttendedGood(){ return GOOD_UP_CATS.map(id=>withData.find(c=>c.id===id)).filter(Boolean).sort((a,b)=>a.weekMinutes-b.weekMinutes)[0] || null; }
+
+    if(/tired|exhaust|fatigue|sleepy|low energy/.test(q)){
+      if(f.avgSleep===null) return `You haven't logged any sleep this week, so there's nothing here to point to yet — log a few nights and ask again.`;
+      const parts=[`Your average sleep this week is ${(f.avgSleep/60).toFixed(1)}h across ${f.sleepNightsLogged} logged night(s)`];
+      if(f.avgSleepPrev!==null){
+        const diff = f.avgSleep - f.avgSleepPrev;
+        parts.push(diff<-15 ? `that's down from ${(f.avgSleepPrev/60).toFixed(1)}h last week` : diff>15 ? `that's actually up from ${(f.avgSleepPrev/60).toFixed(1)}h last week` : `about the same as last week's ${(f.avgSleepPrev/60).toFixed(1)}h`);
+      }
+      if(f.sleepStreak>=3 && f.sleepStreakDir==='down') parts.push(`and it's been trending down for ${f.sleepStreak} nights in a row`);
+      return parts.join(', ')+'.';
+    }
+
+    if(/waste|wasting|too much time|distract/.test(q)){
+      const w = biggestWaster();
+      if(!w) return `Nothing in your logged categories stands out as a big time sink this week.`;
+      const prevTxt = w.prevWeekMinutes>0 ? ` (${w.deltaPct>=0?'up':'down'} ${Math.abs(w.deltaPct)}% from last week)` : '';
+      return `${w.label} took the most time relative to what you'd probably want to trim — ${minutesToHM(w.weekMinutes)} this week${prevTxt}.`;
+    }
+
+    if(/goal/.test(q) && /faster|quicker|reach|hit|complete|progress/.test(q)){
+      const low = slowestGoal();
+      if(!low) return f.goalsFull.length ? `All your goals are complete — nothing left to speed up.` : `You don't have any goals set yet, so there's nothing to measure progress against.`;
+      const attended = leastAttendedGood();
+      const extra = attended ? ` You logged only ${minutesToHM(attended.weekMinutes)} of ${attended.label.toLowerCase()} this week, which is likely the easiest lever.` : '';
+      return `"${low.title}" is your least-progressed goal at ${low.pct}% (${low.progress}).${extra}`;
+    }
+
+    if(/improve|better|progress|this month/.test(q)){
+      const best = bestMoverThisMonth();
+      const sleepPart = (f.avgSleepThisMonth!==null && f.avgSleepPrevMonth!==null && f.avgSleepThisMonth>f.avgSleepPrevMonth+10)
+        ? ` Sleep also improved, averaging ${(f.avgSleepThisMonth/60).toFixed(1)}h vs ${(f.avgSleepPrevMonth/60).toFixed(1)}h last month.` : '';
+      if(!best && !sleepPart) return `There isn't enough month-over-month data yet to compare — keep logging and this will fill in.`;
+      const catPart = best ? `${best.label} moved the most this month, ${best.deltaPct>=0?'up':'down'} ${Math.abs(best.deltaPct)}% versus ${f.prevMonthLabel} (${minutesToHM(best.thisMonthMinutes)} vs ${minutesToHM(best.prevMonthMinutes)}).` : '';
+      return (catPart+sleepPart).trim();
+    }
+
+    if(/focus|tomorrow|next|prioriti/.test(q)){
+      const attended = leastAttendedGood();
+      const low = slowestGoal();
+      if(attended && attended.weekMinutes<180) return `${attended.label} only got ${minutesToHM(attended.weekMinutes)} this week — that's the clearest place to put tomorrow's attention.`;
+      if(low) return `"${low.title}" is your least-progressed goal (${low.pct}%) — that's the natural focus for tomorrow.`;
+      return `Everything's fairly balanced right now — nothing in your data points to one clear priority.`;
+    }
+
+    // generic fallback: rounded-up summary of the week
+    const totalLogged = f.categories.reduce((s,c)=>s+c.weekMinutes,0);
+    const sleepPart = f.avgSleep!==null ? ` and averaged ${(f.avgSleep/60).toFixed(1)}h of sleep a night` : '';
+    return `I can't match that question to a specific pattern yet, but here's what's in your data: you logged ${minutesToHM(totalLogged)} this week${sleepPart}. Try asking about being tired, time-wasters, goals, or what improved this month.`;
+  }
+
+  // ---------- Ask Ledger pipeline: Gemini -> Mistral -> local ----------
+  async function askLedger(question){
+    const f = await computeAskFacts();
+    const keys = getAIKeys();
+    const prompt = buildAskPrompt(f, question, state.askHistory);
+    let answer=null, source='local';
+    if(keys.gemini){
+      try{ answer = await callGeminiChat(prompt, keys.gemini); source='gemini'; }
+      catch(e){ console.warn('Gemini ask failed, trying Mistral:', e.message); }
+    }
+    if(!answer && keys.mistral){
+      try{ answer = await callMistralChat(prompt, keys.mistral); source='mistral'; }
+      catch(e){ console.warn('Mistral ask failed, using local coach:', e.message); }
+    }
+    if(!answer){ answer = answerLocally(question, f); source='local'; }
+    return {answer, source};
+  }
+
+  const ASK_SUGGESTIONS = [
+    'Why am I tired lately?',
+    'What habit wastes the most time?',
+    'How can I reach my goals faster?',
+    'What improved this month?',
+    'What should I focus on tomorrow?'
+  ];
+
+  function askMsgHTML(m){
+    if(m.role==='user'){
+      return `<div class="ask-msg user"><div class="ask-bubble">${escapeHtml(m.text)}</div></div>`;
+    }
+    return `<div class="ask-msg assistant"><div class="ask-bubble">${escapeHtml(m.text)}</div>`+
+      `<div class="ask-msg-meta">${escapeHtml(SOURCE_LABEL[m.source]||'Local coach')}</div></div>`;
+  }
+
+  function renderAskLedger(){
+    const view=document.getElementById('view');
+    const history = state.askHistory||[];
+    const thread = history.length
+      ? history.flatMap(h=>[{role:'user',text:h.q},{role:'assistant',text:h.a,source:h.source}]).map(askMsgHTML).join('')
+      : '<div class="ask-empty">Ask a question about your logged time, sleep, goals, or weight — Ask Ledger reads your data and answers directly.</div>';
+
+    view.innerHTML = `<section class="panel">
+      <div class="insights-head">
+        <div><h2>Ask Ledger</h2><div class="insights-meta">Answers pulled straight from your data<span class="src-tag">${escapeHtml(SOURCE_LABEL[getAIKeys().gemini? 'gemini' : getAIKeys().mistral? 'mistral' : 'local']||'Local coach')}</span></div></div>
+        <div class="insights-actions">
+          <button class="icon-btn" id="toggleAISettingsBtn"><span class="gear">⚙</span> Providers</button>
+          ${history.length ? '<button class="icon-btn ask-clear-btn" id="askClearBtn">Clear</button>' : ''}
+        </div>
+      </div>
+      ${aiSettingsHTML()}
+      <div class="ask-wrap">
+        <div class="ask-chips" id="askChips">${ASK_SUGGESTIONS.map(s=>`<button class="ask-chip" data-q="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}</div>
+        <div class="ask-thread" id="askThread">${thread}</div>
+        <div class="ask-input-row">
+          <textarea id="askInput" rows="1" placeholder="Ask about your time, sleep, goals, or weight…"></textarea>
+          <button class="ask-send-btn" id="askSendBtn">Ask</button>
+        </div>
+      </div>
+    </section>`;
+
+    document.getElementById('toggleAISettingsBtn').onclick=()=>{
+      const panel=document.getElementById('aiSettingsPanel');
+      panel.style.display = panel.style.display==='none' ? '' : 'none';
+    };
+    document.getElementById('saveAIKeysBtn').onclick=()=>{
+      setAIKeys({
+        gemini: document.getElementById('geminiKeyInput').value.trim(),
+        mistral: document.getElementById('mistralKeyInput').value.trim()
+      });
+      toast('Provider keys saved on this device');
+      renderAskLedger();
+    };
+    const clearBtn = document.getElementById('askClearBtn');
+    if(clearBtn) clearBtn.onclick=async ()=>{
+      if(!confirm('Clear the Ask Ledger conversation?')) return;
+      state.askHistory=[];
+      await sSet('ask-ledger-history', []);
+      renderAskLedger();
+    };
+
+    const thread_el = document.getElementById('askThread');
+    thread_el.scrollTop = thread_el.scrollHeight;
+
+    const input = document.getElementById('askInput');
+    const sendBtn = document.getElementById('askSendBtn');
+
+    async function send(q){
+      const question = (q||input.value).trim();
+      if(!question || state.askLoading) return;
+      state.askLoading = true;
+      input.value='';
+      thread_el.insertAdjacentHTML('beforeend', `<div class="ask-msg user"><div class="ask-bubble">${escapeHtml(question)}</div></div>`+
+        `<div class="ask-msg assistant ask-thinking" id="askThinking"><div class="ask-bubble">Reading your data…</div></div>`);
+      thread_el.scrollTop = thread_el.scrollHeight;
+      sendBtn.disabled = true;
+      try{
+        const {answer, source} = await askLedger(question);
+        const thinkingEl = document.getElementById('askThinking');
+        if(thinkingEl) thinkingEl.remove();
+        thread_el.insertAdjacentHTML('beforeend', askMsgHTML({role:'assistant', text:answer, source}));
+        state.askHistory = (state.askHistory||[]).concat([{q:question, a:answer, source, ts:new Date().toISOString()}]).slice(-30);
+        await sSet('ask-ledger-history', state.askHistory);
+        const chips = document.getElementById('askChips'); if(chips) chips.remove();
+      }catch(e){
+        const thinkingEl = document.getElementById('askThinking');
+        if(thinkingEl) thinkingEl.remove();
+        thread_el.insertAdjacentHTML('beforeend', `<div class="ask-msg assistant"><div class="ask-bubble">Something went wrong answering that — try again.</div></div>`);
+      }
+      thread_el.scrollTop = thread_el.scrollHeight;
+      sendBtn.disabled = false;
+      state.askLoading = false;
+    }
+
+    sendBtn.onclick=()=>send();
+    input.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+    });
+    document.getElementById('askChips').addEventListener('click',(e)=>{
+      const chip=e.target.closest('.ask-chip'); if(!chip) return;
+      send(chip.dataset.q);
+    });
+  }
+
+  // ---------- pipeline: Gemini -> Mistral -> local ----------
+  async function generateInsights(){
+    const f = await computeInsightFacts();
+    const keys = getAIKeys();
+    const prompt = buildInsightPrompt(f);
+    let cards=null, source='local';
+    if(keys.gemini){
+      try{ cards = await callGemini(prompt, keys.gemini); source='gemini'; }
+      catch(e){ console.warn('Gemini insight generation failed, trying Mistral:', e.message); }
+    }
+    if(!cards && keys.mistral){
+      try{ cards = await callMistral(prompt, keys.mistral); source='mistral'; }
+      catch(e){ console.warn('Mistral insight generation failed, using local coach:', e.message); }
+    }
+    if(!cards){ cards = generateLocalInsights(f); source='local'; }
+    const result = {cards, source, generatedAt: new Date().toISOString(), weekLabel: f.weekLabel};
+    state.insightsCache = result;
+    await sSet('insights-cache:'+todayStr(), result);
+    return result;
+  }
+
+  const SOURCE_LABEL = {gemini:'Gemini', mistral:'Mistral', local:'Local coach'};
+
+  function insightCardHTML(c){
+    return '<div class="insight-card tone-'+escapeHtml(c.tone||'neutral')+'">'+
+      '<div class="insight-card-head"><span class="insight-card-icon">'+escapeHtml(c.icon||'✨')+'</span>'+
+        '<span class="insight-card-title">'+escapeHtml(c.title)+'</span></div>'+
+      '<p class="insight-card-body">'+escapeHtml(c.text)+'</p>'+
+    '</div>';
+  }
+
+  function aiSettingsHTML(){
+    const keys = getAIKeys();
+    return '<div class="ai-settings" id="aiSettingsPanel" style="display:none;">'+
+      '<h3>AI providers (optional)</h3>'+
+      '<p>Add a Gemini or Mistral API key to have your insights written by that model instead of the built-in local coach. Gemini is tried first, then Mistral, then the local coach. Keys are stored only in this browser — never synced or sent anywhere except directly to that provider.</p>'+
+      '<div class="ai-settings-row"><label for="geminiKeyInput">Gemini API key</label><input type="password" id="geminiKeyInput" placeholder="AIza…" value="'+escapeHtml(keys.gemini||'')+'"></div>'+
+      '<div class="ai-settings-row"><label for="mistralKeyInput">Mistral API key</label><input type="password" id="mistralKeyInput" placeholder="…" value="'+escapeHtml(keys.mistral||'')+'"></div>'+
+      '<div class="ai-settings-foot"><button class="icon-btn" id="saveAIKeysBtn">Save keys</button></div>'+
+    '</div>';
+  }
+
+  function insightsShellHTML(bodyHTML, metaHTML){
+    return '<section class="panel">'+
+      '<div class="insights-head">'+
+        '<div><h2>Insights</h2><div class="insights-meta">What your data means'+(metaHTML||'')+'</div></div>'+
+        '<div class="insights-actions">'+
+          '<button class="icon-btn" id="toggleAISettingsBtn"><span class="gear">⚙</span> Providers</button>'+
+          '<button class="icon-btn" id="refreshInsightsBtn">↻ Refresh</button>'+
+        '</div>'+
+      '</div>'+
+      aiSettingsHTML()+
+      bodyHTML+
+    '</section>';
+  }
+
+  function bindInsightsControls(onRefresh){
+    document.getElementById('toggleAISettingsBtn').onclick=()=>{
+      const panel=document.getElementById('aiSettingsPanel');
+      panel.style.display = panel.style.display==='none' ? '' : 'none';
+    };
+    document.getElementById('saveAIKeysBtn').onclick=()=>{
+      setAIKeys({
+        gemini: document.getElementById('geminiKeyInput').value.trim(),
+        mistral: document.getElementById('mistralKeyInput').value.trim()
+      });
+      toast('Provider keys saved on this device');
+    };
+    document.getElementById('refreshInsightsBtn').onclick=onRefresh;
+  }
+
+  async function renderInsights(){
+    const view=document.getElementById('view');
+    const cached = state.insightsCache;
+
+    if(!cached){
+      view.innerHTML = insightsShellHTML('<div class="loading">Reading your week…</div>');
+      bindInsightsControls(()=>renderInsights());
+      document.getElementById('refreshInsightsBtn').disabled=true;
+      try{
+        await generateInsights();
+      }catch(e){
+        console.warn('Insight generation failed entirely:', e.message);
+      }
+      return renderInsights();
+    }
+
+    const hasEnoughData = cached.cards && cached.cards.length>0;
+    const meta = ' for '+escapeHtml(cached.weekLabel||'')+
+      '<span class="src-tag">'+escapeHtml(SOURCE_LABEL[cached.source]||'Local coach')+'</span>';
+
+    const body = hasEnoughData
+      ? '<div class="insight-grid">'+cached.cards.map(insightCardHTML).join('')+'</div>'
+      : '<div class="insights-empty insight-empty-state"><div class="insights-icon">✨</div><p class="section-intro">Log a bit more this week — time blocks, sleep, or goal progress — and your coach will have something to say.</p></div>';
+
+    view.innerHTML = insightsShellHTML(body, meta);
+    bindInsightsControls(async ()=>{
+      const btn=document.getElementById('refreshInsightsBtn');
+      btn.disabled=true; btn.classList.add('spin'); btn.innerHTML='<span class="gear">↻</span> Thinking…';
+      try{ await generateInsights(); }
+      catch(e){ toast('Could not refresh insights — try again'); }
+      renderInsights();
+    });
+  }
+
+  const renderers = {today:renderToday, goals:renderGoals, weight:renderWeight, dashboard:renderDashboard, insights:renderInsights, ask:renderAskLedger};
   function renderView(){ renderers[state.activeTab](); }
   function bindTabs(){
     document.getElementById('tabs').addEventListener('click',(e)=>{
       const t=e.target.closest('.tab'); if(!t) return;
       document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x===t));
       state.activeTab=t.dataset.tab;
-      if(state.activeTab==='challenges') state.challengeCache = null;
       renderView();
     });
   }
