@@ -55,9 +55,12 @@
   .reset-btn{background:none;border:1px solid var(--line);color:var(--fog);font-weight:600;padding:6px 14px;border-radius:7px;font-size:12.5px;}
   .reset-btn:hover{color:var(--coral);border-color:var(--coral);}
 
-  .tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);padding-bottom:0;}
+  .tabs{
+    display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);padding-bottom:0;
+    -webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:thin;
+  }
   .tab{
-    background:none;border:none;color:var(--fog);
+    background:none;border:none;color:var(--fog);flex-shrink:0;
     padding:10px 14px;font-size:13.5px;font-weight:600;
     letter-spacing:0.2px;white-space:nowrap;
     border-bottom:2px solid transparent;
@@ -723,6 +726,16 @@
   const CUSTOM_PALETTE = ['#c2185b','#0097a7','#7cb342','#f57c00','#5e35b1','#00838f','#8d6e63','#3949ab'];
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function catOf(id){return CATEGORIES.find(c=>c.id===id)||CATEGORIES[CATEGORIES.length-1];}
+  // ---------- render race guard ----------
+  // Dashboard/Insights are async and do several `await`s before writing to
+  // #view. If the user switches tabs while one of those is still in flight,
+  // the old render finishes late and overwrites whatever tab the user
+  // navigated to (looks like "clicking a tab does nothing" / stuck loading).
+  // Every render call gets a ticket; a render only paints if its ticket is
+  // still the newest one by the time it's ready to write.
+  let renderTicket = 0;
+  function startRender(){ return ++renderTicket; }
+  function isStaleRender(id){ return id !== renderTicket; }
   function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 
   // ---------- storage (browser localStorage + Firebase cloud sync) ----------
@@ -1611,11 +1624,13 @@
       </div>`;
     }).join('');
   }
-  async function renderDashboard(){
+  async function renderDashboard(ticket){
+    const myTicket = ticket || startRender();
     const view=document.getElementById('view');
     view.innerHTML = '<div class="loading">Crunching your stats…</div>';
     const week = await loadWeek();
     const prevWeek = await loadPrevWeek();
+    if(isStaleRender(myTicket)) return;
 
     // ---- weekly review ----
     const catTotalsWeek = {};
@@ -1659,6 +1674,7 @@
     const avgPerDay = Math.round(totalLoggedMin/monthDays.length);
     const isCurrentMonth = ym===todayStr().slice(0,7);
 
+    if(isStaleRender(myTicket)) return;
     view.innerHTML = `
     <section class="panel review-panel">
       <div class="review-head">
@@ -1744,9 +1760,9 @@
       </section>
     </div>`;
 
-    document.getElementById('prevMonth').onclick=()=>{ state.monthDate=shiftMonth(state.monthDate,-1); renderDashboard(); };
+    document.getElementById('prevMonth').onclick=()=>{ state.monthDate=shiftMonth(state.monthDate,-1); renderDashboard(startRender()); };
     const nextBtn=document.getElementById('nextMonth');
-    if(nextBtn) nextBtn.onclick=()=>{ if(!isCurrentMonth){ state.monthDate=shiftMonth(state.monthDate,1); renderDashboard(); } };
+    if(nextBtn) nextBtn.onclick=()=>{ if(!isCurrentMonth){ state.monthDate=shiftMonth(state.monthDate,1); renderDashboard(startRender()); } };
   }
 
   // ---------- monthly data helpers ----------
@@ -2684,21 +2700,25 @@
     '</div>';
   }
 
-  async function renderInsights(){
+  async function renderInsights(ticket){
+    const myTicket = ticket || startRender();
     const view=document.getElementById('view');
     const cached = state.insightsCache;
 
     if(!cached){
       view.innerHTML = insightsShellHTML('<div class="loading">Reading your week…</div>');
-      bindInsightsControls(()=>renderInsights());
+      bindInsightsControls(()=>renderInsights(startRender()));
       document.getElementById('refreshInsightsBtn').disabled=true;
       try{
         await generateInsights();
       }catch(e){
         console.warn('Insight generation failed entirely:', e.message);
       }
-      return renderInsights();
+      if(isStaleRender(myTicket)) return;
+      return renderInsights(myTicket);
     }
+
+    if(isStaleRender(myTicket)) return;
 
     const hasEnoughData = cached.cards && cached.cards.length>0;
     const meta = ' for '+escapeHtml(cached.weekLabel||'')+
@@ -2715,12 +2735,22 @@
       btn.disabled=true; btn.classList.add('spin'); btn.innerHTML='<span class="gear">↻</span> Thinking…';
       try{ await generateInsights(); }
       catch(e){ toast('Could not refresh insights — try again'); }
-      renderInsights();
+      if(isStaleRender(myTicket)) return;
+      renderInsights(startRender());
     });
   }
 
   const renderers = {today:renderToday, goals:renderGoals, weight:renderWeight, dashboard:renderDashboard, insights:renderInsights, ask:renderAskLedger};
-  function renderView(){ renderers[state.activeTab](); }
+  function renderView(){
+    const ticket = startRender();
+    try{
+      renderers[state.activeTab](ticket);
+    }catch(err){
+      console.error('Render failed for tab "'+state.activeTab+'":', err);
+      const view=document.getElementById('view');
+      if(view) view.innerHTML = '<section class="panel"><p class="empty">Something went wrong loading this tab. Try switching tabs again, or reload the page.</p></section>';
+    }
+  }
   function bindTabs(){
     document.getElementById('tabs').addEventListener('click',(e)=>{
       const t=e.target.closest('.tab'); if(!t) return;
