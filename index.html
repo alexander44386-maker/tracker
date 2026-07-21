@@ -423,13 +423,6 @@
     font-weight:600;padding:10px 12px;font-size:0.95rem;margin-top:4px;
   }
   .login-error{color:var(--coral);font-size:0.85rem;min-height:1.1em;margin:0;}
-  .login-divider{display:flex;align-items:center;gap:10px;color:var(--fog);font-size:0.8rem;margin:2px 0;}
-  .login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--line);}
-  .google-btn{
-    display:flex;align-items:center;justify-content:center;gap:10px;
-    background:var(--bone);color:#1c1c1c;border:none;border-radius:8px;
-    padding:10px 12px;font-size:0.95rem;font-weight:600;
-  }
 </style>
 </head>
 <body>
@@ -440,11 +433,6 @@
     <input type="email" id="loginEmail" placeholder="Email" autocomplete="username" required>
     <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
     <button type="submit" id="loginBtn">Sign In</button>
-    <div class="login-divider"><span>or</span></div>
-    <button type="button" id="googleSignInBtn" class="google-btn">
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.97l3.05 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
-      Sign in with Google
-    </button>
     <p class="login-error" id="loginError"></p>
   </form>
 </div>
@@ -536,20 +524,6 @@
       loginError.textContent = 'Sign-in failed — check your email and password.';
     }finally{
       loginBtn.disabled = false; loginBtn.textContent = 'Sign In';
-    }
-  });
-
-  const googleSignInBtn = document.getElementById('googleSignInBtn');
-  googleSignInBtn.addEventListener('click', async ()=>{
-    loginError.textContent = '';
-    googleSignInBtn.disabled = true;
-    try{
-      await fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    }catch(err){
-      loginError.textContent = 'Google sign-in error: ' + (err.code || '') + ' ' + (err.message || '');
-      console.error('Google sign-in error:', err);
-    }finally{
-      googleSignInBtn.disabled = false;
     }
   });
 
