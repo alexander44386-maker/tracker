@@ -903,11 +903,22 @@
       sGet('coach-thread', []),
       sGet('ask-ledger-history', [])
     ]);
-    state.sleep = sleep;
-    state.goals = goals;
-    state.weight = weight;
-    state.customCategories = customCategories;
-    customCategories.forEach(c=>{ if(!CATEGORIES.some(x=>x.id===c.id)) CATEGORIES.push(c); });
+    // Normalize shapes defensively: cloud data (shared across devices/browsers)
+    // or an older version of this app can hand back something that's missing
+    // fields the renderers assume exist (e.g. weight.records). Without this,
+    // a single malformed record crashes the Weight tab and hangs Dashboard/
+    // Insights instead of just showing "no data yet".
+    state.sleep = (sleep && typeof sleep==='object') ? sleep : {records:{}};
+    if(!state.sleep.records || typeof state.sleep.records!=='object') state.sleep.records = {};
+
+    state.goals = (goals && typeof goals==='object') ? goals : {goals:[]};
+    if(!Array.isArray(state.goals.goals)) state.goals.goals = [];
+
+    state.weight = (weight && typeof weight==='object') ? weight : {records:{}};
+    if(!state.weight.records || typeof state.weight.records!=='object') state.weight.records = {};
+
+    state.customCategories = Array.isArray(customCategories) ? customCategories : [];
+    state.customCategories.forEach(c=>{ if(!CATEGORIES.some(x=>x.id===c.id)) CATEGORIES.push(c); });
     state.ledgerCache[state.date] = todayBlocks;
     state.insightsCache = insightsCache;
     state.coachThread = coachThread || [];
@@ -2715,6 +2726,14 @@
         console.warn('Insight generation failed entirely:', e.message);
       }
       if(isStaleRender(myTicket)) return;
+      if(!state.insightsCache){
+        // generateInsights() failed and never populated the cache — show an
+        // error instead of recursing back into this branch forever (which
+        // used to hang the tab and freeze the whole page).
+        view.innerHTML = insightsShellHTML('<p class="empty">Could not generate insights right now. Try the Refresh button, or check the Weight/Sleep/Goals tabs for anything that looks off.</p>');
+        bindInsightsControls(()=>renderInsights(startRender()));
+        return;
+      }
       return renderInsights(myTicket);
     }
 
