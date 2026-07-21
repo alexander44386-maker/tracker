@@ -67,8 +67,8 @@
   .tab.active{color:var(--amber);border-bottom-color:var(--amber);}
 
   main{padding-top:22px;}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px;}
-  .panel h2{font-size:19px;margin-bottom:16px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:30px;margin-bottom:22px;}
+  .panel h2{font-size:19px;margin-bottom:20px;}
   .empty{color:var(--fog);font-size:13.5px;font-style:italic;padding:14px 0;}
 
   /* Today tab */
@@ -270,8 +270,23 @@
   .progress-select{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:7px;margin-bottom:10px;}
 
   /* Dashboard */
-  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
   @media (max-width:760px){.dash-grid{grid-template-columns:1fr;}}
+
+  /* Big-number metric cards — the modern, scannable stat unit used across
+     the dashboard. `.hero` bumps the number size further for the top-line
+     weekly metrics; the plain (non-hero) size is used for secondary panels. */
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;}
+  .metric-grid.hero{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:20px;}
+  .metric-card{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:26px 22px;display:flex;flex-direction:column;gap:10px;}
+  .metric-value{font-family:'Fraunces',serif;font-weight:600;font-size:34px;line-height:1;color:var(--bone);}
+  .metric-grid.hero .metric-value{font-size:46px;}
+  .metric-value .metric-unit{font-size:0.5em;color:var(--fog);font-family:'Inter',sans-serif;font-weight:500;margin-left:2px;}
+  .metric-label{font-size:13px;color:var(--fog);letter-spacing:0.01em;}
+  .metric-trend{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;}
+  .metric-trend.up{color:var(--sage);}
+  .metric-trend.down{color:var(--coral);}
+  .metric-trend.flat{color:var(--fog);}
 
   /* Weekly Review */
   .review-panel{margin-bottom:18px;}
@@ -283,8 +298,8 @@
   .review-stat-top{display:flex;align-items:baseline;justify-content:center;gap:6px;}
   .review-stat .num{font-family:'Fraunces',serif;font-size:21px;color:var(--amber);}
   .review-stat .lbl{font-size:10.5px;color:var(--fog);text-transform:uppercase;letter-spacing:0.5px;}
-  .review-extremes{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
-  .review-extreme{flex:1;min-width:140px;background:var(--panel-2);border-radius:8px;padding:12px 14px;}
+  .review-extremes{display:flex;gap:16px;margin-top:22px;margin-bottom:0;flex-wrap:wrap;}
+  .review-extreme{flex:1;min-width:160px;background:var(--panel-2);border-radius:12px;padding:18px 20px;}
   .review-extreme .lbl{font-size:10.5px;color:var(--fog);text-transform:uppercase;letter-spacing:0.5px;}
   .review-extreme .val{font-family:'Fraunces',serif;font-size:17px;margin-top:4px;}
   .review-extreme.most .val{color:var(--sage);}
@@ -333,6 +348,13 @@
   .insight-card-title{font-family:'Fraunces',serif;font-weight:600;font-size:14.5px;}
   .insight-card-body{font-size:13.5px;line-height:1.55;color:var(--bone);margin:0;}
   .insight-empty-state{grid-column:1/-1;}
+
+  .coach-thread{margin-top:22px;padding-top:18px;border-top:1px solid var(--line);}
+  .coach-thread h3{font-size:13px;color:var(--fog);letter-spacing:0.03em;text-transform:uppercase;margin-bottom:10px;}
+  .coach-thread-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .coach-thread-item:last-child{border-bottom:none;}
+  .coach-thread-date{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11.5px;white-space:nowrap;min-width:92px;padding-top:1px;}
+  .coach-thread-note{font-size:13px;line-height:1.5;color:var(--bone);}
   .review-suggestion strong{color:var(--amber);}
   .stat-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line);}
   .stat-row:last-child{border-bottom:none;}
@@ -541,7 +563,7 @@
       </div>
       <div class="howto-card">
         <h3>Insights</h3>
-        <p>Your coach — turns this week's logged data into plain-language cards (biggest win, an opportunity, a hidden pattern, and more). Works offline with a built-in local coach; add a Gemini or Mistral API key under "Providers" to have an AI write the phrasing instead. Hit Refresh any time to regenerate.</p>
+        <p>Your coach — turns this week's logged data into plain-language cards (biggest win, an opportunity, a hidden pattern, and more). It remembers what it told you last time and follows up ("Since Last Time" cards, plus a running Coaching Thread below your cards) instead of starting fresh every refresh. Works offline with a built-in local coach; add a Gemini or Mistral API key under "Providers" to have an AI write the phrasing instead.</p>
       </div>
       <div class="howto-card">
         <h3>Saving</h3>
@@ -679,6 +701,7 @@
     monthDate: todayStr().slice(0,7),
     insightsCache: null,
     insightsLoading: false,
+    coachThread: [],
     askHistory: [],
     askLoading: false
   };
@@ -857,13 +880,14 @@
   }
 
   async function loadAll(){
-    const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, askHistory] = await Promise.all([
+    const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, coachThread, askHistory] = await Promise.all([
       sGet('sleep-data', {records:{}}),
       sGet('goals-data', {goals:[]}),
       sGet('weight-data', {records:{}}),
       sGet('custom-categories-data', []),
       sGet('ledger:'+state.date, []),
       sGet('insights-cache:'+todayStr(), null),
+      sGet('coach-thread', []),
       sGet('ask-ledger-history', [])
     ]);
     state.sleep = sleep;
@@ -873,6 +897,7 @@
     customCategories.forEach(c=>{ if(!CATEGORIES.some(x=>x.id===c.id)) CATEGORIES.push(c); });
     state.ledgerCache[state.date] = todayBlocks;
     state.insightsCache = insightsCache;
+    state.coachThread = coachThread || [];
     state.askHistory = askHistory || [];
   }
 
@@ -1546,6 +1571,35 @@
       <div class="lbl">${label}</div>
     </div>`;
   }
+
+  // ---------- big-number metric cards (modernized dashboard) ----------
+  // A metric card is: a large headline number + unit, a short label, and an
+  // optional trend line underneath. `trendHTML` is pre-built so the same
+  // card shell works whether the trend is a minutes delta, a percent-point
+  // delta, or a plain sub-label with no comparison at all.
+  function metricCardHTML(value, unit, label, trendHTML){
+    return `<div class="metric-card">
+      <div class="metric-value">${value}${unit? `<span class="metric-unit">${unit}</span>`:''}</div>
+      <div class="metric-label">${label}</div>
+      ${trendHTML || ''}
+    </div>`;
+  }
+  // Duration-based trend, e.g. "↑ +35 mins" — used for time metrics (sleep, worked, exercise)
+  // where an absolute minutes difference reads more naturally than a percentage.
+  function metricDurationTrendHTML(curr, prev, invert){
+    if(curr===null || curr===undefined || prev===null || prev===undefined) return '<span class="metric-trend flat">—</span>';
+    const diff = curr - prev;
+    if(Math.abs(diff) < 1) return '<span class="metric-trend flat">→ steady</span>';
+    const good = invert ? diff<0 : diff>0;
+    return `<span class="metric-trend ${good?'up':'down'}">${diff>0?'↑ +':'↓ -'}${minutesToHM(Math.abs(diff))}</span>`;
+  }
+  // Percentage-point trend, e.g. "↑ +8pts" — used for metrics already expressed as a percent (goals).
+  function metricPointTrendHTML(curr, prev){
+    if(curr===null || curr===undefined || prev===null || prev===undefined) return '<span class="metric-trend flat">—</span>';
+    const diff = Math.round(curr - prev);
+    if(diff===0) return '<span class="metric-trend flat">→ steady</span>';
+    return `<span class="metric-trend ${diff>0?'up':'down'}">${diff>0?'↑ +':'↓ -'}${Math.abs(diff)}pts</span>`;
+  }
   function weekBarsHTML(week){
     return week.map(w=>{
       const total=w.blocks.reduce((s,b)=>s+b.duration,0);
@@ -1588,6 +1642,10 @@
 
     const goals = state.goals.goals;
     const overallGoalPct = goals.length ? Math.round(goals.reduce((s,g)=>s+goalPct(g),0) / goals.length) : null;
+    const goalsCompleted = goals.filter(g=>goalPct(g)>=100).length;
+
+    const exerciseMinutesWeek = catTotalsWeek['exercise'] || 0;
+    const exerciseMinutesPrevWeek = catPrevTotal('exercise');
 
     const weightEntries = Object.keys(state.weight.records).sort().map(d=>({date:d, weight:state.weight.records[d].weight}));
 
@@ -1607,9 +1665,11 @@
         <h2>Weekly Review${isSundayToday? '<span class="review-badge">Today is Sunday</span>' : ''}</h2>
         <span class="review-sub">Last 7 days</span>
       </div>
-      <div class="review-grid">
-        ${trendStatHTML('Worked', minutesToHM(workedMinutesWeek), workDaily, workedMinutesWeek, workedMinutesPrevWeek, false)}
-        ${trendStatHTML('Sleep avg', avgSleep!==null? (avgSleep/60).toFixed(1)+'h':'—', sleepDaily, avgSleep, avgSleepPrev, false)}
+      <div class="metric-grid hero">
+        ${metricCardHTML((workedMinutesWeek/60).toFixed(1), 'h', 'Worked', metricDurationTrendHTML(workedMinutesWeek, workedMinutesPrevWeek, false))}
+        ${metricCardHTML(avgSleep!==null? (avgSleep/60).toFixed(1):'—', 'h', 'Average Sleep', metricDurationTrendHTML(avgSleep, avgSleepPrev, false))}
+        ${metricCardHTML((exerciseMinutesWeek/60).toFixed(1), 'h', 'Exercise', metricDurationTrendHTML(exerciseMinutesWeek, exerciseMinutesPrevWeek, false))}
+        ${metricCardHTML(overallGoalPct!==null? overallGoalPct : '—', overallGoalPct!==null?'%':'', 'Goals', goals.length? `<span class="metric-trend flat">${goalsCompleted} of ${goals.length} complete</span>` : '<span class="metric-trend flat">No goals yet</span>')}
       </div>
       <div class="review-extremes">
         <div class="review-extreme most">
@@ -1632,16 +1692,20 @@
       </section>
       <section class="panel">
         <h2>Sleep</h2>
-        <div class="stat-row"><span>Avg duration (7 nights)</span><span class="val">${avgSleep!==null? minutesToHM(avgSleep):'—'}</span></div>
-        <div class="stat-row"><span>Avg quality</span><span class="val">${avgQuality!==null? avgQuality+' / 5':'—'}</span></div>
-        <div class="stat-row"><span>Nights logged</span><span class="val">${sleepDates.length}</span></div>
+        <div class="metric-grid">
+          ${metricCardHTML(avgSleep!==null? (avgSleep/60).toFixed(1):'—', avgSleep!==null?'h':'', 'Avg duration')}
+          ${metricCardHTML(avgQuality!==null? avgQuality:'—', avgQuality!==null?'/5':'', 'Avg quality')}
+          ${metricCardHTML(sleepDates.length, '', 'Nights logged')}
+        </div>
       </section>
       <section class="panel">
         <h2>Goals</h2>
-        ${goals.length? `<div class="stat-row"><span>Overall progress</span><span class="val">${overallGoalPct}%</span></div>
+        ${goals.length? `<div class="metric-grid" style="margin-bottom:22px;">
+            ${metricCardHTML(overallGoalPct, '%', 'Overall progress')}
+          </div>
           ${goals.slice(0,5).map(g=>{
             const pct=goalPct(g);
-            return `<div style="margin-top:8px;font-size:12.5px;">${escapeHtml(g.title)} <span style="color:var(--fog);">(${escapeHtml(goalSummaryLabel(g))})</span><div class="mini-progress"><div class="fill" style="width:${pct}%"></div></div></div>`;
+            return `<div style="margin-top:14px;font-size:13px;">${escapeHtml(g.title)} <span style="color:var(--fog);">(${escapeHtml(goalSummaryLabel(g))})</span><div class="mini-progress"><div class="fill" style="width:${pct}%"></div></div></div>`;
           }).join('')}` : '<p class="empty">No goals yet.</p>'}
       </section>
       <section class="panel" style="grid-column:1 / -1;">
@@ -1656,8 +1720,10 @@
         <h2 style="flex:1;text-align:center;">${humanMonth(ym)}</h2>
         <button class="nav-btn" id="nextMonth" aria-label="Next month" ${isCurrentMonth?'disabled':''}>›</button>
       </div>
-      <div class="stat-row"><span>Total time logged</span><span class="val">${minutesToHM(totalLoggedMin)}</span></div>
-      <div class="stat-row"><span>Avg per day</span><span class="val">${minutesToHM(avgPerDay)}</span></div>
+      <div class="metric-grid">
+        ${metricCardHTML(minutesToHM(totalLoggedMin), '', 'Total time logged')}
+        ${metricCardHTML(minutesToHM(avgPerDay), '', 'Avg per day')}
+      </div>
     </section>
     <div class="dash-grid">
       <section class="panel">
@@ -1670,9 +1736,11 @@
       </section>
       <section class="panel">
         <h2>Sleep</h2>
-        <div class="stat-row"><span>Avg duration</span><span class="val">${avgSleepM!==null? minutesToHM(avgSleepM):'—'}</span></div>
-        <div class="stat-row"><span>Avg quality</span><span class="val">${avgQualityM!==null? avgQualityM+' / 5':'—'}</span></div>
-        <div class="stat-row"><span>Nights logged</span><span class="val">${sleepDatesInMonth.length}</span></div>
+        <div class="metric-grid">
+          ${metricCardHTML(avgSleepM!==null? (avgSleepM/60).toFixed(1):'—', avgSleepM!==null?'h':'', 'Avg duration')}
+          ${metricCardHTML(avgQualityM!==null? avgQualityM:'—', avgQualityM!==null?'/5':'', 'Avg quality')}
+          ${metricCardHTML(sleepDatesInMonth.length, '', 'Nights logged')}
+        </div>
       </section>
     </div>`;
 
@@ -2122,13 +2190,78 @@
     return cards;
   }
 
+  // ---------- coaching continuity: figure out what to "check in" on next time ----------
+  // Rather than every refresh being a stateless one-off, we track a single
+  // "flag" (the one thing the coach most recently told the user to work on)
+  // and, next time insights are generated, compare fresh facts against it so
+  // the coach can follow up like a real weekly thread (Mon: raise it, Wed:
+  // acknowledge progress, Fri: gently repeat if it's still lagging).
+  function deriveFlag(f){
+    if(f.sleepStreak>=3 && f.sleepStreakDir==='down'){
+      return {type:'sleep', avgSleep:f.avgSleep};
+    }
+    const withData = f.categories.filter(c=>c.weekMinutes>0 || c.prevWeekMinutes>0);
+    let worst=null;
+    withData.forEach(c=>{
+      const isGoodUp = GOOD_UP_CATS.includes(c.id), isGoodDown = GOOD_DOWN_CATS.includes(c.id);
+      if(isGoodUp && c.deltaPct<=-15 && c.prevWeekMinutes>0){ const score=-c.deltaPct; if(!worst||score>worst.score) worst={score,cat:c}; }
+      if(isGoodDown && c.deltaPct>=20 && c.prevWeekMinutes>0){ const score=c.deltaPct; if(!worst||score>worst.score) worst={score,cat:c}; }
+    });
+    if(worst) return {type:'category', id:worst.cat.id, label:worst.cat.label, weekMinutes:worst.cat.weekMinutes};
+    const trackedGood = GOOD_UP_CATS.map(id=>withData.find(c=>c.id===id)).filter(Boolean);
+    const lowest = trackedGood.slice().sort((a,b)=>a.weekMinutes-b.weekMinutes)[0];
+    if(lowest && lowest.weekMinutes<180) return {type:'category', id:lowest.id, label:lowest.label, weekMinutes:lowest.weekMinutes};
+    return null;
+  }
+
+  // Builds a "Since Last Time" card comparing today's facts against whatever
+  // the coach flagged in the previous thread entry. Returns null if there's
+  // nothing to follow up on (no prior entry, or the prior flag no longer applies).
+  function buildCheckinCard(f, prevEntry){
+    if(!prevEntry || !prevEntry.flag) return null;
+    const flag = prevEntry.flag;
+    if(flag.type==='sleep'){
+      if(f.avgSleep==null || flag.avgSleep==null) return null;
+      const diff = f.avgSleep - flag.avgSleep;
+      if(diff>=15) return {type:'checkin', icon:'📌', title:'Since Last Time', tone:'win',
+        text:`Last time we talked about your sleep — great news, you're now averaging ${minutesToHM(Math.abs(diff))} more per night.`};
+      if(diff<=-15) return {type:'checkin', icon:'📌', title:'Since Last Time', tone:'opportunity',
+        text:`Last time we flagged your sleep — it's actually slipped a bit further, averaging ${minutesToHM(Math.abs(diff))} less per night.`};
+      return {type:'checkin', icon:'📌', title:'Since Last Time', tone:'neutral',
+        text:`Last time we talked about your sleep — it's holding fairly steady since then, still worth watching.`};
+    }
+    if(flag.type==='category'){
+      const cat = f.categories.find(c=>c.id===flag.id);
+      if(!cat) return null;
+      const isGoodUp = GOOD_UP_CATS.includes(cat.id);
+      const diffMin = cat.weekMinutes - (flag.weekMinutes||0);
+      const improved = isGoodUp ? diffMin>=15 : diffMin<=-15;
+      if(improved) return {type:'checkin', icon:'📌', title:'Since Last Time', tone:'win',
+        text:`Last time I flagged ${cat.label.toLowerCase()} — nice movement there, it's shifted by about ${minutesToHM(Math.abs(diffMin))} since then.`};
+      return {type:'checkin', icon:'📌', title:'Since Last Time', tone:'opportunity',
+        text:`Still keeping an eye on ${cat.label.toLowerCase()} — it hasn't moved much since we last talked about it.`};
+    }
+    return null;
+  }
+
+  // A short, plain-language line summarizing today's headline advice, stored
+  // in the thread so future prompts (and the Coaching Thread UI) can reference it.
+  function threadNoteFromCards(cards){
+    const pick = cards.find(c=>c.type==='opportunity') || cards.find(c=>c.type==='focus') || cards.find(c=>c.type==='checkin') || cards[0];
+    return pick ? pick.text : 'Logged a check-in, but nothing stood out yet.';
+  }
+
   // ---------- prompt shared by both AI providers ----------
-  function buildInsightPrompt(f){
+  function buildInsightPrompt(f, thread){
+    const threadText = (thread||[]).slice(-4).map(t=>`${t.weekday} (${t.date}): ${t.note}`).join('\n');
     return `You are a concise, encouraging personal-analytics coach reading one user's self-tracked weekly data. `+
+      `You have an ongoing coaching relationship with this user — you are NOT seeing them for the first time each refresh. `+
       `Turn the JSON facts below into short natural-language insight cards. Never mention raw numbers unless they make the sentence clearer (e.g. "35% more", "3 nights in a row") — write like a coach talking to a friend, not a spreadsheet.\n\n`+
+      (threadText ? `YOUR OWN PAST NOTES TO THIS USER (most recent last — reference these naturally where relevant, e.g. acknowledging progress or gently repeating something still unresolved, instead of ignoring the history):\n${threadText}\n\n` : '')+
       `Return ONLY a JSON array (no markdown, no prose) of up to 7 objects, each shaped exactly like:\n`+
-      `{"type":"win|opportunity|pattern|trend|near-goal|focus|reflection","icon":"<one emoji>","title":"<short title>","text":"<one or two natural-language sentences>","tone":"win|opportunity|neutral"}\n\n`+
-      `Card meanings: win=biggest positive movement, opportunity=biggest area needing attention, pattern=a non-obvious correlation between two habits, trend=a notable multi-day direction, near-goal=a goal close to completion, focus=one concrete recommended next step, reflection=a short rounded-up weekly summary.\n`+
+      `{"type":"win|opportunity|pattern|trend|near-goal|focus|reflection|checkin","icon":"<one emoji>","title":"<short title>","text":"<one or two natural-language sentences>","tone":"win|opportunity|neutral"}\n\n`+
+      `Card meanings: win=biggest positive movement, opportunity=biggest area needing attention, pattern=a non-obvious correlation between two habits, trend=a notable multi-day direction, near-goal=a goal close to completion, focus=one concrete recommended next step, reflection=a short rounded-up weekly summary, checkin=an explicit follow-up on something from your past notes above.\n`+
+      `If your past notes mention something that connects to today's facts, include one "checkin" card following up on it — otherwise omit that type.\n`+
       `Only include a card type if the facts actually support it — do not invent numbers or goals that aren't present.\n\n`+
       `FACTS:\n${JSON.stringify(f)}`;
   }
@@ -2448,7 +2581,9 @@
   async function generateInsights(){
     const f = await computeInsightFacts();
     const keys = getAIKeys();
-    const prompt = buildInsightPrompt(f);
+    const thread = state.coachThread||[];
+    const prevEntry = thread.length ? thread[thread.length-1] : null;
+    const prompt = buildInsightPrompt(f, thread);
     let cards=null, source='local';
     if(keys.gemini){
       try{ cards = await callGemini(prompt, keys.gemini); source='gemini'; }
@@ -2459,9 +2594,34 @@
       catch(e){ console.warn('Mistral insight generation failed, using local coach:', e.message); }
     }
     if(!cards){ cards = generateLocalInsights(f); source='local'; }
+
+    // If the model didn't already weave in a follow-up, and we have something
+    // to follow up on, prepend a locally-computed "Since Last Time" card so
+    // continuity never depends on the AI remembering to do it.
+    if(!cards.some(c=>c.type==='checkin')){
+      const checkin = buildCheckinCard(f, prevEntry);
+      if(checkin) cards = [checkin, ...cards];
+    }
+
     const result = {cards, source, generatedAt: new Date().toISOString(), weekLabel: f.weekLabel};
     state.insightsCache = result;
     await sSet('insights-cache:'+todayStr(), result);
+
+    // Append (or, if refreshed again today, replace) today's entry in the
+    // running coaching thread so tomorrow's — or Wednesday's, or Friday's —
+    // insights can reference what was said here.
+    const today = todayStr();
+    const entry = {
+      date: today,
+      weekday: humanDate(today),
+      note: threadNoteFromCards(cards),
+      flag: deriveFlag(f),
+      source
+    };
+    const nextThread = thread.filter(t=>t.date!==today).concat([entry]).slice(-14);
+    state.coachThread = nextThread;
+    await sSet('coach-thread', nextThread);
+
     return result;
   }
 
@@ -2515,6 +2675,15 @@
     document.getElementById('refreshInsightsBtn').onclick=onRefresh;
   }
 
+  function coachThreadHTML(){
+    const entries = (state.coachThread||[]).slice(-6);
+    if(entries.length<2) return '';
+    return '<div class="coach-thread"><h3>Coaching Thread</h3>'+
+      entries.map(t=>'<div class="coach-thread-item"><div class="coach-thread-date">'+escapeHtml(t.weekday||t.date)+'</div>'+
+        '<div class="coach-thread-note">'+escapeHtml(t.note)+'</div></div>').join('')+
+    '</div>';
+  }
+
   async function renderInsights(){
     const view=document.getElementById('view');
     const cached = state.insightsCache;
@@ -2535,9 +2704,10 @@
     const meta = ' for '+escapeHtml(cached.weekLabel||'')+
       '<span class="src-tag">'+escapeHtml(SOURCE_LABEL[cached.source]||'Local coach')+'</span>';
 
-    const body = hasEnoughData
+    const body = (hasEnoughData
       ? '<div class="insight-grid">'+cached.cards.map(insightCardHTML).join('')+'</div>'
-      : '<div class="insights-empty insight-empty-state"><div class="insights-icon">✨</div><p class="section-intro">Log a bit more this week — time blocks, sleep, or goal progress — and your coach will have something to say.</p></div>';
+      : '<div class="insights-empty insight-empty-state"><div class="insights-icon">✨</div><p class="section-intro">Log a bit more this week — time blocks, sleep, or goal progress — and your coach will have something to say.</p></div>')
+      + coachThreadHTML();
 
     view.innerHTML = insightsShellHTML(body, meta);
     bindInsightsControls(async ()=>{
