@@ -341,6 +341,33 @@
   .ai-settings-row input{flex:1;min-width:180px;background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:6px;font-size:12.5px;font-family:'IBM Plex Mono',monospace;}
   .ai-settings-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;}
 
+  /* ---------- Coach Profile / Coach Memory ---------- */
+  .coach-back-row{margin-bottom:14px;}
+  .coach-section{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:18px;}  .coach-section h3{font-size:14px;margin-bottom:3px;}
+  .coach-section .coach-section-sub{color:var(--fog);font-size:12px;line-height:1.5;margin:0 0 12px;}
+  .coach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+  .coach-field{display:flex;flex-direction:column;gap:4px;}
+  .coach-field label{font-size:11.5px;color:var(--fog);text-transform:uppercase;letter-spacing:0.03em;}
+  .coach-field input,.coach-field textarea{background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:6px;font-size:12.5px;font-family:'Inter',sans-serif;resize:vertical;}
+  .coach-field textarea{min-height:56px;}
+  .coach-field.wide{grid-column:1/-1;}
+  .coach-save-row{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+  .memory-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .memory-toolbar .memory-count{color:var(--fog);font-size:12px;}
+  .memory-list{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;}
+  .memory-item{background:var(--panel-3);border:1px solid var(--line);border-radius:7px;padding:10px 12px;}
+  .memory-item-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;}
+  .memory-type-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:4px;background:var(--panel-2);color:var(--amber);}
+  .memory-confidence{font-size:10.5px;color:var(--fog);font-family:'IBM Plex Mono',monospace;}
+  .memory-summary{font-size:12.5px;line-height:1.5;margin:0 0 3px;}
+  .memory-evidence{font-size:11px;color:var(--fog);margin:0;}
+  .memory-meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+  .memory-date{font-size:10.5px;color:var(--fog);}
+  .del-memory{background:none;border:none;color:var(--fog);font-size:12px;cursor:pointer;padding:2px 5px;}
+  .del-memory:hover{color:#e0685a;}
+  .coach-note-form{display:flex;gap:8px;margin-top:4px;}
+  .coach-note-form textarea{flex:1;}
+
   .insight-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
   .insight-card{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:15px 17px;}
   .insight-card.tone-win{border-left-color:var(--sage);}
@@ -526,6 +553,7 @@
 <div id="app" style="display:none;">
   <header class="topbar">
     <div class="topbar-actions">
+      <button id="coachProfileBtn" class="reset-btn">Coach Profile</button>
       <button id="saveAllBtn" class="save-btn">Save</button>
       <button id="resetBtn" class="reset-btn">Reset Day</button>
       <button id="signOutBtn" class="reset-btn">Sign Out</button>
@@ -567,6 +595,10 @@
       <div class="howto-card">
         <h3>Insights</h3>
         <p>Your coach — turns this week's logged data into plain-language cards (biggest win, an opportunity, a hidden pattern, and more). It remembers what it told you last time and follows up ("Since Last Time" cards, plus a running Coaching Thread below your cards) instead of starting fresh every refresh. Works offline with a built-in local coach; add a Gemini or Mistral API key under "Providers" to have an AI write the phrasing instead.</p>
+      </div>
+      <div class="howto-card">
+        <h3>Coach Profile</h3>
+        <p>Click "Coach Profile" in the top bar to tell Ask Ledger who you are — identity, goals, routine, and things to avoid — so it stops treating every question like a cold start. It also keeps a running Coach Memory of stable patterns it notices over time (e.g. "mornings are your best focus window"), which you can review or delete there. Only the most relevant memories are sent with each question, not the whole list. Use "← Back" to return to whatever tab you were on.</p>
       </div>
       <div class="howto-card">
         <h3>Saving</h3>
@@ -706,7 +738,18 @@
     insightsLoading: false,
     coachThread: [],
     askHistory: [],
-    askLoading: false
+    askLoading: false,
+    coachProfile: {
+      name:'', age:'', occupation:'',
+      primaryGoals:'', topPriorities:'',
+      wakeTime:'', bedTime:'', workingHours:'', exerciseSchedule:'',
+      distractions:'', badHabits:'', triggers:'',
+      longTermVision:''
+    },
+    coachMemory: {
+      observations:[], patterns:[], strategies:[],
+      milestones:[], weeklyReflections:[], coachNotes:[]
+    }
   };
 
   // ---------- utils ----------
@@ -870,10 +913,11 @@
   async function saveAllNow(){
     const btn = document.getElementById('saveAllBtn');
     if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
-    const keys = ['sleep-data','goals-data','weight-data','custom-categories-data', ...Object.keys(state.ledgerCache).map(d=>'ledger:'+d)];
+    const keys = ['sleep-data','goals-data','weight-data','custom-categories-data','coach-profile-data','coach-memory-data', ...Object.keys(state.ledgerCache).map(d=>'ledger:'+d)];
     const values = {
       'sleep-data': state.sleep, 'goals-data': state.goals,
-      'weight-data': state.weight, 'custom-categories-data': state.customCategories
+      'weight-data': state.weight, 'custom-categories-data': state.customCategories,
+      'coach-profile-data': state.coachProfile, 'coach-memory-data': state.coachMemory
     };
     Object.keys(state.ledgerCache).forEach(d=>{ values['ledger:'+d] = state.ledgerCache[d]; });
     // Write everything to localStorage first so nothing is lost even if the network is down.
@@ -893,7 +937,7 @@
   }
 
   async function loadAll(){
-    const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, coachThread, askHistory] = await Promise.all([
+    const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, coachThread, askHistory, coachProfile, coachMemory] = await Promise.all([
       sGet('sleep-data', {records:{}}),
       sGet('goals-data', {goals:[]}),
       sGet('weight-data', {records:{}}),
@@ -901,7 +945,9 @@
       sGet('ledger:'+state.date, []),
       sGet('insights-cache:'+todayStr(), null),
       sGet('coach-thread', []),
-      sGet('ask-ledger-history', [])
+      sGet('ask-ledger-history', []),
+      sGet('coach-profile-data', null),
+      sGet('coach-memory-data', null)
     ]);
     // Normalize shapes defensively: cloud data (shared across devices/browsers)
     // or an older version of this app can hand back something that's missing
@@ -923,6 +969,19 @@
     state.insightsCache = insightsCache;
     state.coachThread = coachThread || [];
     state.askHistory = askHistory || [];
+
+    // Coach Profile — merge over defaults so older saves missing newer
+    // fields (or a fresh install with nothing saved yet) still render fine.
+    if(coachProfile && typeof coachProfile==='object'){
+      state.coachProfile = Object.assign({}, state.coachProfile, coachProfile);
+    }
+    // Coach Memory — same defensive merge, and make sure every bucket is an array.
+    if(coachMemory && typeof coachMemory==='object'){
+      state.coachMemory = Object.assign({}, state.coachMemory, coachMemory);
+    }
+    Object.keys(state.coachMemory).forEach(k=>{
+      if(!Array.isArray(state.coachMemory[k])) state.coachMemory[k]=[];
+    });
   }
 
   // ---------- SVG day wheel ----------
@@ -2377,16 +2436,252 @@
     });
   }
 
-  function buildAskPrompt(f, question, history){
+  function buildAskPrompt(f, question, history, memories){
     const historyText = (history||[]).slice(-4).map(h=>`Q: ${h.q}\nA: ${h.a}`).join('\n\n');
-    return `You are "Ask Ledger", a personal-analytics assistant embedded in a time/health tracking app called The Ledger. `+
-      `Answer the user's question using ONLY the JSON facts below — never invent numbers, categories, or goals that aren't present. `+
+    const profileText = coachProfileText();
+    const memoryText = (memories||[]).length
+      ? memories.map(m=>`- [${m.type}, confidence ${Math.round(m.confidence*100)}%] ${m.summary}`).join('\n')
+      : '';
+    const weeklyReflection = getLatestWeeklyReflectionText();
+    const monthlyReview = getLatestMonthlyReviewText(f);
+    return `You are "Ask Ledger", a long-term personal AI coach embedded in a time/health tracking app called The Ledger. `+
+      `You have been coaching this user for months — you are NOT meeting them for the first time. Behave accordingly: `+
+      `reference relevant history naturally instead of ignoring it, recognize recurring habits when the data supports it, celebrate milestones when one shows up in your notes, and avoid repeating advice you can see you've already given below. `+
+      `Answer the user's question using ONLY the facts, profile, and memories provided below — never invent numbers, categories, or goals that aren't present. `+
       `If the facts don't contain enough information to answer well, say so plainly and note what would need to be logged instead. `+
       `Be direct and specific (cite real numbers/percentages from the facts), keep it conversational, 2-5 sentences unless the question calls for a short list. `+
-      `Do not use markdown headers or bullet-heavy formatting — write like a knowledgeable friend texting back.\n\n`+
+      `Do not use markdown headers or bullet-heavy formatting — write like a coach who knows this person, not a generic assistant.\n\n`+
+      (profileText ? `COACH PROFILE (who this person is, their goals, routine, and what to avoid):\n${profileText}\n\n` : '')+
+      (memoryText ? `RELEVANT LONG-TERM MEMORIES (stable patterns you've learned about this user over time — weave in naturally, don't just list them back verbatim):\n${memoryText}\n\n` : '')+
+      (weeklyReflection ? `LATEST WEEKLY REFLECTION:\n${weeklyReflection}\n\n` : '')+
+      (monthlyReview ? `LATEST MONTHLY REVIEW:\n${monthlyReview}\n\n` : '')+
       (historyText ? `RECENT CONVERSATION:\n${historyText}\n\n` : '')+
-      `FACTS:\n${JSON.stringify(f)}\n\n`+
+      `CURRENT STATISTICS, ACTIVITIES, AND GOALS (JSON):\n${JSON.stringify(f)}\n\n`+
       `QUESTION: ${question}`;
+  }
+
+  // ---------- Coach Profile ----------
+  // Renders the saved profile into a compact text block for the AI prompt.
+  // Empty fields are omitted so the prompt doesn't fill up with "N/A".
+  function coachProfileText(){
+    const p = state.coachProfile||{};
+    const lines=[];
+    const identity=[p.name&&`Name: ${p.name}`, p.age&&`Age: ${p.age}`, p.occupation&&`Occupation: ${p.occupation}`].filter(Boolean);
+    if(identity.length) lines.push('Identity — '+identity.join(', '));
+    const goals=[p.primaryGoals&&`Primary goals: ${p.primaryGoals}`, p.topPriorities&&`Top priorities: ${p.topPriorities}`].filter(Boolean);
+    if(goals.length) lines.push('Goals — '+goals.join('; '));
+    const routine=[p.wakeTime&&`wakes at ${p.wakeTime}`, p.bedTime&&`sleeps at ${p.bedTime}`, p.workingHours&&`works ${p.workingHours}`, p.exerciseSchedule&&`exercises ${p.exerciseSchedule}`].filter(Boolean);
+    if(routine.length) lines.push('Routine — '+routine.join(', '));
+    const avoid=[p.distractions&&`distractions: ${p.distractions}`, p.badHabits&&`bad habits: ${p.badHabits}`, p.triggers&&`triggers: ${p.triggers}`].filter(Boolean);
+    if(avoid.length) lines.push('Things to avoid — '+avoid.join('; '));
+    if(p.longTermVision) lines.push('Long-term vision — '+p.longTermVision);
+    return lines.join('\n');
+  }
+
+  // ---------- Coach Memory engine ----------
+  // coachMemory buckets: observations, patterns, strategies, milestones,
+  // weeklyReflections, coachNotes. Every memory: {id, date, type, confidence, summary, evidence, source}
+  const MEMORY_TYPES = ['observations','patterns','strategies','milestones','weeklyReflections','coachNotes'];
+  const MAX_PER_TYPE = 25;         // cap per bucket so the prompt never bloats
+  const STALE_DAYS = 120;          // memories this old get swept out unless confidence is high
+  const STALE_CONFIDENCE = 0.35;   // below this confidence, staleness applies sooner
+
+  function normalizeMemoryType(t){
+    return MEMORY_TYPES.includes(t) ? t : 'observations';
+  }
+  function daysSince(dateStr){
+    const t = new Date(dateStr+'T00:00:00').getTime();
+    if(isNaN(t)) return 0;
+    return Math.max(0, Math.round((Date.now()-t)/86400000));
+  }
+  function clamp01(n){ return Math.max(0, Math.min(1, n)); }
+
+  // Loose duplicate check: normalizes to lowercase word sets and measures
+  // overlap, so "exercise improves sleep" and "exercising helps you sleep
+  // better" merge into one memory instead of piling up near-duplicates.
+  function memoryWordSet(s){
+    return new Set(String(s||'').toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2));
+  }
+  function summarySimilarity(a,b){
+    const wa=memoryWordSet(a), wb=memoryWordSet(b);
+    if(!wa.size || !wb.size) return 0;
+    let shared=0; wa.forEach(w=>{ if(wb.has(w)) shared++; });
+    return shared / Math.max(wa.size, wb.size);
+  }
+  function findSimilarMemory(list, summary){
+    let best=null, bestScore=0;
+    list.forEach(m=>{
+      const score = summarySimilarity(m.summary, summary);
+      if(score>bestScore){ bestScore=score; best=m; }
+    });
+    return bestScore>=0.55 ? best : null;
+  }
+
+  function newMemoryRecord(type, summary, evidence, confidence, source){
+    return {
+      id: uid(), date: todayStr(), type: normalizeMemoryType(type),
+      confidence: clamp01(typeof confidence==='number' ? confidence : 0.4),
+      summary: String(summary||'').trim(),
+      evidence: String(evidence||'').trim(),
+      source: source || 'ai'
+    };
+  }
+
+  // Add a memory, or — if a near-duplicate already exists in that bucket —
+  // merge into it: bump confidence (repeated observations become more
+  // trustworthy), refresh the date, and fold in any new evidence.
+  function addOrMergeMemory(candidate){
+    if(!candidate || !candidate.summary || !candidate.summary.trim()) return null;
+    const type = normalizeMemoryType(candidate.type);
+    if(!Array.isArray(state.coachMemory[type])) state.coachMemory[type]=[];
+    const list = state.coachMemory[type];
+    const existing = findSimilarMemory(list, candidate.summary);
+    if(existing){
+      existing.confidence = clamp01(existing.confidence + 0.15);
+      existing.date = todayStr();
+      if(candidate.evidence && !existing.evidence.includes(candidate.evidence)){
+        existing.evidence = existing.evidence ? existing.evidence+'; '+candidate.evidence : candidate.evidence;
+      }
+      pruneMemoryType(type);
+      saveCoachMemory();
+      return existing;
+    }
+    const rec = newMemoryRecord(type, candidate.summary, candidate.evidence, candidate.confidence, candidate.source);
+    list.push(rec);
+    pruneMemoryType(type);
+    saveCoachMemory();
+    return rec;
+  }
+
+  function removeMemory(type, id){
+    type = normalizeMemoryType(type);
+    state.coachMemory[type] = (state.coachMemory[type]||[]).filter(m=>m.id!==id);
+    saveCoachMemory();
+  }
+
+  // Drops memories that are both old and low-confidence (never got
+  // reinforced by a repeat observation), then caps the bucket size by
+  // keeping the highest-confidence, most-recent entries — so prompts never
+  // bloat no matter how long the app has been used.
+  function pruneMemoryType(type){
+    type = normalizeMemoryType(type);
+    let list = state.coachMemory[type]||[];
+    list = list.filter(m=>{
+      const stale = daysSince(m.date) > STALE_DAYS && m.confidence < STALE_CONFIDENCE;
+      return !stale;
+    });
+    list.sort((a,b)=> (b.confidence - a.confidence) || (new Date(b.date)-new Date(a.date)) );
+    if(list.length > MAX_PER_TYPE) list = list.slice(0, MAX_PER_TYPE);
+    state.coachMemory[type] = list;
+  }
+  function pruneAllMemories(){ MEMORY_TYPES.forEach(pruneMemoryType); }
+
+  async function saveCoachMemory(){ return sSet('coach-memory-data', state.coachMemory); }
+  async function saveCoachProfile(){ return sSet('coach-profile-data', state.coachProfile); }
+
+  function allMemoriesFlat(){
+    const out=[];
+    MEMORY_TYPES.forEach(type=>{ (state.coachMemory[type]||[]).forEach(m=>out.push(m)); });
+    return out;
+  }
+  function memoryCount(){ return allMemoriesFlat().length; }
+
+  // Picks the memories most worth sending with THIS question — scored by
+  // confidence, keyword overlap with the question, and recency — instead of
+  // dumping the entire memory store into every prompt.
+  function selectRelevantMemories(question, limit){
+    limit = limit || 6;
+    const qWords = memoryWordSet(question);
+    const scored = allMemoriesFlat().map(m=>{
+      let score = m.confidence * 2;
+      const mWords = memoryWordSet(m.summary);
+      let overlap=0; mWords.forEach(w=>{ if(qWords.has(w)) overlap++; });
+      score += overlap * 1.5;
+      score += Math.max(0, 1 - daysSince(m.date)/90); // recency bonus, fades over ~3 months
+      if(m.type==='milestones') score += 0.4; // milestones are worth surfacing even if not keyword-matched
+      return {m, score};
+    });
+    scored.sort((a,b)=>b.score-a.score);
+    return scored.slice(0, limit).map(s=>s.m);
+  }
+
+  function getLatestWeeklyReflectionText(){
+    const stored = (state.coachMemory.weeklyReflections||[]);
+    if(stored.length) return stored[stored.length-1].summary;
+    const cached = state.insightsCache && state.insightsCache.cards;
+    const card = cached && cached.find(c=>c.type==='reflection');
+    return card ? card.text : '';
+  }
+
+  // No persistent "monthly review" object exists yet, so this is computed
+  // fresh from the same month-over-month facts Ask Ledger already builds —
+  // cheap, and always in sync with the latest data.
+  function getLatestMonthlyReviewText(f){
+    if(!f || !f.monthCategories) return '';
+    const best = f.monthCategories.filter(c=>c.prevMonthMinutes>0).sort((a,b)=>b.deltaPct-a.deltaPct)[0];
+    const sleepPart = (f.avgSleepThisMonth!=null && f.avgSleepPrevMonth!=null)
+      ? `Sleep is averaging ${(f.avgSleepThisMonth/60).toFixed(1)}h/night this month vs ${(f.avgSleepPrevMonth/60).toFixed(1)}h last month.` : '';
+    const catPart = best ? `${best.label} moved the most this month, ${best.deltaPct>=0?'up':'down'} ${Math.abs(best.deltaPct)}% vs ${f.prevMonthLabel}.` : '';
+    const text = [catPart, sleepPart].filter(Boolean).join(' ');
+    return text || '';
+  }
+
+  // ---------- Coach Memory extraction (runs after a real AI answer) ----------
+  function buildMemoryExtractionPrompt(question, answer, f){
+    return `You just answered a question inside a long-term personal coaching app. Decide whether anything from this exchange is worth remembering permanently about the user. `+
+      `Only propose memories that describe STABLE, repeating patterns, preferences, or facts likely to still be true weeks from now — e.g. "the user performs best before 10am", "exercise improves the user's sleep quality", "weekend productivity is consistently lower". `+
+      `Do NOT propose a memory for a one-off fact, the literal question just asked, or anything trivial/obvious. If nothing meets that bar, return an empty array.\n\n`+
+      `CONVERSATION:\nQ: ${question}\nA: ${answer}\n\n`+
+      `SUPPORTING DATA:\n${JSON.stringify({categories:(f.categories||[]).map(c=>({label:c.label, weekMinutes:c.weekMinutes, deltaPct:c.deltaPct})), avgSleep:f.avgSleep, goals:f.goalsFull})}\n\n`+
+      `Return ONLY a JSON array (no markdown, no prose), 0 to 3 items, each shaped exactly like:\n`+
+      `{"type":"observations|patterns|strategies|milestones|coachNotes","summary":"<one plain-language sentence>","evidence":"<short phrase citing what supports it>","confidence":<number between 0.3 and 0.8>}`;
+  }
+
+  function parseMemoryJSON(text){
+    if(!text) return [];
+    const cleaned = text.replace(/```json|```/g,'').trim();
+    const start = cleaned.indexOf('['), end = cleaned.lastIndexOf(']');
+    if(start===-1||end===-1) return [];
+    try{
+      const arr = JSON.parse(cleaned.slice(start,end+1));
+      if(!Array.isArray(arr)) return [];
+      return arr.filter(c=>c && c.summary).map(c=>({
+        type: normalizeMemoryType(c.type),
+        summary: String(c.summary).trim(),
+        evidence: String(c.evidence||'').trim(),
+        confidence: typeof c.confidence==='number' ? clamp01(c.confidence) : 0.4
+      }));
+    }catch(e){ return []; }
+  }
+
+  async function callGeminiMemoryExtract(prompt, apiKey){
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{responseMimeType:'application/json'} })
+    });
+    if(!res.ok) throw new Error('Gemini HTTP '+res.status);
+    const data = await res.json();
+    const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts.map(p=>p.text).join('');
+    return text;
+  }
+
+  // Fire-and-forget: reads the conversation that just happened and proposes
+  // 0-3 candidate long-term memories, which get merged into coachMemory.
+  // Only called when a real AI (not the offline local coach) produced the
+  // answer, since the local coach doesn't reason about stable patterns.
+  async function extractCandidateMemories(question, answer, f){
+    const keys = getAIKeys();
+    const prompt = buildMemoryExtractionPrompt(question, answer, f);
+    let raw=null;
+    if(keys.gemini){
+      try{ raw = await callGeminiMemoryExtract(prompt, keys.gemini); }
+      catch(e){ console.warn('Memory extraction (Gemini) failed:', e.message); }
+    }
+    if(!raw && keys.mistral){
+      try{ raw = await callMistralChat(prompt, keys.mistral); }
+      catch(e){ console.warn('Memory extraction (Mistral) failed:', e.message); }
+    }
+    return parseMemoryJSON(raw);
   }
 
   async function callGeminiChat(prompt, apiKey){
@@ -2485,7 +2780,8 @@
   async function askLedger(question){
     const f = await computeAskFacts();
     const keys = getAIKeys();
-    const prompt = buildAskPrompt(f, question, state.askHistory);
+    const memories = selectRelevantMemories(question, 6);
+    const prompt = buildAskPrompt(f, question, state.askHistory, memories);
     let answer=null, source='local';
     if(keys.gemini){
       try{ answer = await callGeminiChat(prompt, keys.gemini); source='gemini'; }
@@ -2496,6 +2792,15 @@
       catch(e){ console.warn('Mistral ask failed, using local coach:', e.message); }
     }
     if(!answer){ answer = answerLocally(question, f); source='local'; }
+
+    // Fire-and-forget: only a real AI answer is worth mining for stable,
+    // long-term patterns — the offline local coach is rule-based, not reasoning.
+    if(source==='gemini' || source==='mistral'){
+      extractCandidateMemories(question, answer, f)
+        .then(candidates => candidates.forEach(c => addOrMergeMemory(Object.assign({}, c, {source}))))
+        .catch(e => console.warn('Memory extraction skipped:', e.message));
+    }
+
     return {answer, source};
   }
 
@@ -2604,6 +2909,142 @@
     });
   }
 
+  // ---------- render: Coach Profile & Coach Memory ----------
+  const COACH_PROFILE_FIELDS = [
+    {section:'Identity', fields:[
+      {key:'name', label:'Name', type:'text', placeholder:'e.g. Alex'},
+      {key:'age', label:'Age', type:'text', placeholder:'e.g. 32'},
+      {key:'occupation', label:'Occupation', type:'text', placeholder:'e.g. Product designer'}
+    ]},
+    {section:'Goals', fields:[
+      {key:'primaryGoals', label:'Primary goals', type:'textarea', placeholder:'e.g. Run a half-marathon, ship the app redesign', wide:true},
+      {key:'topPriorities', label:'Top priorities', type:'textarea', placeholder:'e.g. Health first, then career, then side projects', wide:true}
+    ]},
+    {section:'Routine', fields:[
+      {key:'wakeTime', label:'Wake time', type:'text', placeholder:'e.g. 6:30 AM'},
+      {key:'bedTime', label:'Bed time', type:'text', placeholder:'e.g. 10:30 PM'},
+      {key:'workingHours', label:'Working hours', type:'text', placeholder:'e.g. 9 AM – 5 PM'},
+      {key:'exerciseSchedule', label:'Preferred exercise schedule', type:'text', placeholder:'e.g. Runs M/W/F mornings'}
+    ]},
+    {section:'Things to Avoid', fields:[
+      {key:'distractions', label:'Distractions', type:'textarea', placeholder:'e.g. Phone notifications, YouTube rabbit holes'},
+      {key:'badHabits', label:'Bad habits', type:'textarea', placeholder:'e.g. Skipping breakfast, late-night snacking'},
+      {key:'triggers', label:'Triggers', type:'textarea', placeholder:'e.g. Stressful meetings lead to junk food'}
+    ]},
+    {section:'Long-term Vision', fields:[
+      {key:'longTermVision', label:'Long-term vision', type:'textarea', placeholder:'Where do you want to be in a year or five?', wide:true}
+    ]}
+  ];
+
+  function memoryTypeLabel(type){
+    return {observations:'Observation', patterns:'Pattern', strategies:'Strategy', milestones:'Milestone', weeklyReflections:'Weekly Reflection', coachNotes:'Coach Note'}[type] || type;
+  }
+
+  function memoryItemHTML(m){
+    return `<div class="memory-item" data-id="${escapeHtml(m.id)}" data-type="${escapeHtml(m.type)}">
+      <div class="memory-item-head">
+        <span class="memory-type-badge">${escapeHtml(memoryTypeLabel(m.type))}</span>
+        <span class="memory-confidence">confidence ${Math.round((m.confidence||0)*100)}%</span>
+      </div>
+      <p class="memory-summary">${escapeHtml(m.summary)}</p>
+      ${m.evidence ? `<p class="memory-evidence">Evidence: ${escapeHtml(m.evidence)}</p>` : ''}
+      <div class="memory-meta-row">
+        <span class="memory-date">${escapeHtml(m.date)} · ${escapeHtml(m.source||'ai')}</span>
+        <button class="del-memory" data-id="${escapeHtml(m.id)}" data-type="${escapeHtml(m.type)}" title="Forget this">✕ Forget</button>
+      </div>
+    </div>`;
+  }
+
+  function renderCoachProfile(){
+    const view=document.getElementById('view');
+    const p = state.coachProfile||{};
+    const fieldHTML = (f)=>{
+      const val = escapeHtml(p[f.key]||'');
+      const wideClass = f.wide ? ' wide' : '';
+      const input = f.type==='textarea'
+        ? `<textarea id="cf_${f.key}" placeholder="${escapeHtml(f.placeholder||'')}">${val}</textarea>`
+        : `<input type="text" id="cf_${f.key}" placeholder="${escapeHtml(f.placeholder||'')}" value="${val}">`;
+      return `<div class="coach-field${wideClass}"><label for="cf_${f.key}">${escapeHtml(f.label)}</label>${input}</div>`;
+    };
+    const profileSectionsHTML = COACH_PROFILE_FIELDS.map(sec=>`
+      <div class="coach-section">
+        <h3>${escapeHtml(sec.section)}</h3>
+        <div class="coach-grid">${sec.fields.map(fieldHTML).join('')}</div>
+      </div>`).join('');
+
+    const memories = allMemoriesFlat().slice().sort((a,b)=> (b.confidence-a.confidence) || (new Date(b.date)-new Date(a.date)) );
+    const memoryListHTML = memories.length
+      ? `<div class="memory-list">${memories.map(memoryItemHTML).join('')}</div>`
+      : '<p class="empty">No long-term memories yet — they build up automatically as you use Ask Ledger with a Gemini or Mistral key connected.</p>';
+
+    view.innerHTML = `
+      <section class="panel">
+        <div class="coach-back-row">
+          <button class="icon-btn" id="coachBackBtn">← Back</button>
+        </div>
+        <h2>Coach Profile</h2>
+        <p class="section-intro" style="color:var(--fog);font-size:12.5px;margin:-12px 0 20px;">Tell Ask Ledger who you are so it can coach you like it's known you for months, not seconds. Saved with the rest of your ledger.</p>
+        ${profileSectionsHTML}
+        <div class="coach-save-row">
+          <button class="icon-btn" id="saveCoachProfileBtn">Save Coach Profile</button>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="insights-head">
+          <div><h2>Coach Memory</h2><div class="insights-meta">Long-term patterns Ask Ledger has learned about you<span class="src-tag">${memoryCount()} stored</span></div></div>
+          <div class="insights-actions">
+            ${memories.length ? '<button class="icon-btn" id="clearMemoryBtn">Clear All</button>' : ''}
+          </div>
+        </div>
+        <form class="coach-note-form" id="coachNoteForm">
+          <textarea id="coachNoteInput" rows="1" placeholder="Add your own note for the coach to remember (e.g. 'I'm training for a marathon in October')…"></textarea>
+          <button type="submit" class="icon-btn">Add Note</button>
+        </form>
+        <div class="memory-toolbar" style="margin-top:14px;"><span class="memory-count">Only the most relevant memories are sent with each question — not the full list.</span></div>
+        ${memoryListHTML}
+      </section>`;
+
+    document.getElementById('coachBackBtn').onclick = closeCoachProfile;
+
+    document.getElementById('saveCoachProfileBtn').onclick = async ()=>{
+      const next = {};
+      COACH_PROFILE_FIELDS.forEach(sec=>sec.fields.forEach(f=>{
+        const el = document.getElementById('cf_'+f.key);
+        next[f.key] = el ? el.value.trim() : (p[f.key]||'');
+      }));
+      state.coachProfile = Object.assign({}, state.coachProfile, next);
+      await saveCoachProfile();
+      toast('Coach Profile saved');
+    };
+
+    document.getElementById('coachNoteForm').onsubmit = async (e)=>{
+      e.preventDefault();
+      const input = document.getElementById('coachNoteInput');
+      const text = input.value.trim();
+      if(!text) return;
+      addOrMergeMemory({type:'coachNotes', summary:text, evidence:'Added manually by the user', confidence:0.7, source:'user'});
+      renderCoachProfile();
+    };
+
+    const clearBtn = document.getElementById('clearMemoryBtn');
+    if(clearBtn) clearBtn.onclick = async ()=>{
+      if(!confirm('Clear all long-term coach memories? This cannot be undone.')) return;
+      state.coachMemory = {observations:[], patterns:[], strategies:[], milestones:[], weeklyReflections:[], coachNotes:[]};
+      await saveCoachMemory();
+      renderCoachProfile();
+    };
+
+    // Bind to the memory list itself (freshly created every render) rather
+    // than the persistent #view container, so listeners don't pile up across renders.
+    const memListEl = view.querySelector('.memory-list');
+    if(memListEl) memListEl.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.del-memory');
+      if(!btn) return;
+      removeMemory(btn.dataset.type, btn.dataset.id);
+      renderCoachProfile();
+    });
+  }
+
   // ---------- pipeline: Mistral -> Gemini -> local ----------
   async function generateInsights(){
     const f = await computeInsightFacts();
@@ -2648,6 +3089,14 @@
     const nextThread = thread.filter(t=>t.date!==today).concat([entry]).slice(-14);
     state.coachThread = nextThread;
     await sSet('coach-thread', nextThread);
+
+    // Also feed this week's reflection card into long-term coach memory so
+    // Ask Ledger can reference it weeks/months later even after the
+    // Insights cache itself has moved on to a newer week.
+    const reflectionCard = cards.find(c=>c.type==='reflection');
+    if(reflectionCard){
+      addOrMergeMemory({type:'weeklyReflections', summary:reflectionCard.text, evidence:'Insights refresh for '+(f.weekLabel||today), confidence:0.5, source});
+    }
 
     return result;
   }
@@ -2759,7 +3208,7 @@
     });
   }
 
-  const renderers = {today:renderToday, goals:renderGoals, weight:renderWeight, dashboard:renderDashboard, insights:renderInsights, ask:renderAskLedger};
+  const renderers = {today:renderToday, goals:renderGoals, weight:renderWeight, dashboard:renderDashboard, insights:renderInsights, ask:renderAskLedger, coach:renderCoachProfile};
   function renderView(){
     const ticket = startRender();
     try{
@@ -2779,6 +3228,21 @@
     });
   }
 
+  // Coach Profile lives outside the tab bar — it opens as its own page over
+  // whatever tab was showing, and "← Back" returns to that same tab, so it
+  // doesn't add another permanent tab to an already-busy nav.
+  function openCoachProfile(){
+    state.prevTab = state.activeTab;
+    state.activeTab = 'coach';
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    renderView();
+  }
+  function closeCoachProfile(){
+    state.activeTab = state.prevTab || 'today';
+    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===state.activeTab));
+    renderView();
+  }
+
   function startApp(){
     document.getElementById('resetBtn').onclick=async ()=>{
       if(!confirm('This clears all time blocks logged for '+humanDate(state.date)+'. Continue?')) return;
@@ -2789,6 +3253,7 @@
     };
 
     document.getElementById('saveAllBtn').onclick = saveAllNow;
+    document.getElementById('coachProfileBtn').onclick = openCoachProfile;
 
     document.getElementById('todayLabel').textContent = humanDate(todayStr());
 
