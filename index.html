@@ -367,6 +367,12 @@
   .del-memory:hover{color:#e0685a;}
   .coach-note-form{display:flex;gap:8px;margin-top:4px;}
   .coach-note-form textarea{flex:1;}
+  .user-model-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px;}
+  .user-model-item{padding:11px 13px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;}
+  .user-model-item h4{font-size:11px;letter-spacing:0.03em;text-transform:uppercase;color:var(--amber);margin:0 0 4px;}
+  .user-model-item p{font-size:13px;line-height:1.5;color:var(--bone);margin:0;}
+  .user-model-item p.empty-field{color:var(--fog);font-style:italic;}
+  .user-model-meta{font-size:11px;color:var(--fog);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
 
   .insight-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
   .insight-card{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:15px 17px;}
@@ -385,6 +391,16 @@
   .coach-thread-item:last-child{border-bottom:none;}
   .coach-thread-date{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11.5px;white-space:nowrap;min-width:92px;padding-top:1px;}
   .coach-thread-note{font-size:13px;line-height:1.5;color:var(--bone);}
+  .weekly-reflection{margin-top:22px;padding:16px 17px;background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;}
+  .weekly-reflection-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .weekly-reflection-head h3{font-size:13px;color:var(--fog);letter-spacing:0.03em;text-transform:uppercase;margin:0;}
+  .weekly-reflection-text{font-size:13.5px;line-height:1.6;color:var(--bone);margin:0 0 8px;}
+  .weekly-reflection-meta{font-size:11px;color:var(--fog);font-family:'IBM Plex Mono',monospace;}
+  .weekly-reflection-history{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
+  .weekly-reflection-history summary{cursor:pointer;font-size:12px;color:var(--fog);font-weight:600;}
+  .weekly-reflection-past-item{padding:9px 0;border-bottom:1px solid var(--line);}
+  .weekly-reflection-past-item:last-child{border-bottom:none;}
+  .weekly-reflection-past-item p{font-size:12.5px;line-height:1.5;color:var(--bone);margin:4px 0 0;}
   .review-suggestion strong{color:var(--amber);}
   .stat-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line);}
   .stat-row:last-child{border-bottom:none;}
@@ -749,6 +765,12 @@
     coachMemory: {
       observations:[], patterns:[], strategies:[],
       milestones:[], weeklyReflections:[], coachNotes:[]
+    },
+    userModel: {
+      strengths:'', weaknesses:'', productivityPatterns:'', energyPatterns:'',
+      commonExcuses:'', motivationStyle:'', coachingStyle:'', learningStyle:'',
+      decisionMakingStyle:'', recurringObstacle:'', effectiveStrategies:'',
+      currentFocus:'', longTermMission:'', updatedAt:null, source:null
     }
   };
 
@@ -913,11 +935,12 @@
   async function saveAllNow(){
     const btn = document.getElementById('saveAllBtn');
     if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
-    const keys = ['sleep-data','goals-data','weight-data','custom-categories-data','coach-profile-data','coach-memory-data', ...Object.keys(state.ledgerCache).map(d=>'ledger:'+d)];
+    const keys = ['sleep-data','goals-data','weight-data','custom-categories-data','coach-profile-data','coach-memory-data','user-model-data', ...Object.keys(state.ledgerCache).map(d=>'ledger:'+d)];
     const values = {
       'sleep-data': state.sleep, 'goals-data': state.goals,
       'weight-data': state.weight, 'custom-categories-data': state.customCategories,
-      'coach-profile-data': state.coachProfile, 'coach-memory-data': state.coachMemory
+      'coach-profile-data': state.coachProfile, 'coach-memory-data': state.coachMemory,
+      'user-model-data': state.userModel
     };
     Object.keys(state.ledgerCache).forEach(d=>{ values['ledger:'+d] = state.ledgerCache[d]; });
     // Write everything to localStorage first so nothing is lost even if the network is down.
@@ -937,7 +960,7 @@
   }
 
   async function loadAll(){
-    const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, coachThread, askHistory, coachProfile, coachMemory] = await Promise.all([
+    const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, coachThread, askHistory, coachProfile, coachMemory, userModel] = await Promise.all([
       sGet('sleep-data', {records:{}}),
       sGet('goals-data', {goals:[]}),
       sGet('weight-data', {records:{}}),
@@ -947,7 +970,8 @@
       sGet('coach-thread', []),
       sGet('ask-ledger-history', []),
       sGet('coach-profile-data', null),
-      sGet('coach-memory-data', null)
+      sGet('coach-memory-data', null),
+      sGet('user-model-data', null)
     ]);
     // Normalize shapes defensively: cloud data (shared across devices/browsers)
     // or an older version of this app can hand back something that's missing
@@ -982,6 +1006,12 @@
     Object.keys(state.coachMemory).forEach(k=>{
       if(!Array.isArray(state.coachMemory[k])) state.coachMemory[k]=[];
     });
+
+    // User Model — same defensive merge so new fields added later still
+    // show up for people with an older saved model.
+    if(userModel && typeof userModel==='object'){
+      state.userModel = Object.assign({}, state.userModel, userModel);
+    }
   }
 
   // ---------- SVG day wheel ----------
@@ -2338,10 +2368,17 @@
   }
 
   // ---------- prompt shared by both AI providers ----------
+  // ---------- Coach Identity ----------
+  // One shared persona used everywhere the AI generates user-facing text
+  // (Insights, Weekly Reflection, Ask Ledger) so it reads as the same coach
+  // across every surface, not a different voice per feature.
+  const COACH_IDENTITY = `You are "Ask Ledger" — not a generic assistant, but an elite executive performance coach who has worked with this specific user for years. `+
+    `You combine behavioral psychology, productivity science, habit formation, and accountability into how you talk. `+
+    `You notice patterns before the user names them, challenge excuses directly but respectfully instead of just validating them, celebrate genuine progress without empty praise, and always relate today's advice back to previous conversations and long-term history rather than treating each moment in isolation.`;
+
   function buildInsightPrompt(f, thread){
     const threadText = (thread||[]).slice(-4).map(t=>`${t.weekday} (${t.date}): ${t.note}`).join('\n');
-    return `You are a concise, encouraging personal-analytics coach reading one user's self-tracked weekly data. `+
-      `You have an ongoing coaching relationship with this user — you are NOT seeing them for the first time each refresh. `+
+    return `${COACH_IDENTITY} Right now you're reading one user's self-tracked weekly data and turning it into short insight cards — you are NOT seeing them for the first time each refresh. `+
       `Turn the JSON facts below into short natural-language insight cards. Never mention raw numbers unless they make the sentence clearer (e.g. "35% more", "3 nights in a row") — write like a coach talking to a friend, not a spreadsheet.\n\n`+
       (threadText ? `YOUR OWN PAST NOTES TO THIS USER (most recent last — reference these naturally where relevant, e.g. acknowledging progress or gently repeating something still unresolved, instead of ignoring the history):\n${threadText}\n\n` : '')+
       `Return ONLY a JSON array (no markdown, no prose) of up to 7 objects, each shaped exactly like:\n`+
@@ -2436,28 +2473,67 @@
     });
   }
 
+  // Prompt pipeline, in strict order (mirrors how a real ongoing coaching
+  // relationship layers context — broad/stable facts first, then narrows
+  // down to "right now" before the actual question):
+  //   System Prompt -> User Profile -> Long-term Coach Memory ->
+  //   Recent Weekly Patterns -> Today's Data -> Previous AI Advice ->
+  //   Current User Question
+  function userModelText(){
+    const um = state.userModel||{};
+    const lines = USER_MODEL_FIELDS.map(f=> um[f.key] ? `${f.label}: ${um[f.key]}` : null).filter(Boolean);
+    return lines.join('\n');
+  }
+
   function buildAskPrompt(f, question, history, memories){
     const historyText = (history||[]).slice(-4).map(h=>`Q: ${h.q}\nA: ${h.a}`).join('\n\n');
     const profileText = coachProfileText();
+    const userModelStr = userModelText();
     const memoryText = (memories||[]).length
       ? memories.map(m=>`- [${m.type}, confidence ${Math.round(m.confidence*100)}%] ${m.summary}`).join('\n')
       : '';
     const weeklyReflection = getLatestWeeklyReflectionText();
     const monthlyReview = getLatestMonthlyReviewText(f);
-    return `You are "Ask Ledger", a long-term personal AI coach embedded in a time/health tracking app called The Ledger. `+
+    const weeklyPatternsText = [weeklyReflection, monthlyReview].filter(Boolean).join('\n');
+
+    // 1. System prompt — persona + rules of engagement
+    const systemPrompt = `${COACH_IDENTITY} `+
       `You have been coaching this user for months — you are NOT meeting them for the first time. Behave accordingly: `+
       `reference relevant history naturally instead of ignoring it, recognize recurring habits when the data supports it, celebrate milestones when one shows up in your notes, and avoid repeating advice you can see you've already given below. `+
       `Answer the user's question using ONLY the facts, profile, and memories provided below — never invent numbers, categories, or goals that aren't present. `+
       `If the facts don't contain enough information to answer well, say so plainly and note what would need to be logged instead. `+
       `Be direct and specific (cite real numbers/percentages from the facts), keep it conversational, 2-5 sentences unless the question calls for a short list. `+
-      `Do not use markdown headers or bullet-heavy formatting — write like a coach who knows this person, not a generic assistant.\n\n`+
-      (profileText ? `COACH PROFILE (who this person is, their goals, routine, and what to avoid):\n${profileText}\n\n` : '')+
-      (memoryText ? `RELEVANT LONG-TERM MEMORIES (stable patterns you've learned about this user over time — weave in naturally, don't just list them back verbatim):\n${memoryText}\n\n` : '')+
-      (weeklyReflection ? `LATEST WEEKLY REFLECTION:\n${weeklyReflection}\n\n` : '')+
-      (monthlyReview ? `LATEST MONTHLY REVIEW:\n${monthlyReview}\n\n` : '')+
-      (historyText ? `RECENT CONVERSATION:\n${historyText}\n\n` : '')+
-      `CURRENT STATISTICS, ACTIVITIES, AND GOALS (JSON):\n${JSON.stringify(f)}\n\n`+
-      `QUESTION: ${question}`;
+      `Do not use markdown headers or bullet-heavy formatting — write like a coach who knows this person, not a generic assistant.`;
+
+    // 2. User Profile
+    const profileBlock = profileText ? `USER PROFILE:\n${profileText}` : '';
+
+    // 3. User Model — your own standing read on how this person operates,
+    // synthesized across every past conversation (not the same as the
+    // profile they typed in themselves). Coach tone/approach should adapt
+    // to coachingStyle/motivationStyle/learningStyle here.
+    const userModelBlock = userModelStr ? `USER MODEL (your evolving read on this person — adapt your tone and approach to it, don't just repeat it back):\n${userModelStr}` : '';
+
+    // 4. Long-term Coach Memory
+    const memoryBlock = memoryText
+      ? `LONG-TERM COACH MEMORY (stable patterns you've learned about this user over time — weave in naturally, don't just list them back verbatim):\n${memoryText}`
+      : '';
+
+    // 5. Recent Weekly Patterns (weekly reflection + monthly review)
+    const weeklyPatternsBlock = weeklyPatternsText ? `RECENT WEEKLY PATTERNS:\n${weeklyPatternsText}` : '';
+
+    // 6. Today's Data — the current stats/activities/goals snapshot
+    const todaysDataBlock = `TODAY'S DATA (current statistics, activities, and goals, JSON):\n${JSON.stringify(f)}`;
+
+    // 7. Previous AI Advice — recent turns of this same conversation
+    const previousAdviceBlock = historyText ? `PREVIOUS AI ADVICE (recent conversation):\n${historyText}` : '';
+
+    // 8. Current User Question
+    const questionBlock = `CURRENT USER QUESTION: ${question}`;
+
+    return [systemPrompt, profileBlock, userModelBlock, memoryBlock, weeklyPatternsBlock, todaysDataBlock, previousAdviceBlock, questionBlock]
+      .filter(Boolean)
+      .join('\n\n');
   }
 
   // ---------- Coach Profile ----------
@@ -2624,6 +2700,113 @@
     const catPart = best ? `${best.label} moved the most this month, ${best.deltaPct>=0?'up':'down'} ${Math.abs(best.deltaPct)}% vs ${f.prevMonthLabel}.` : '';
     const text = [catPart, sleepPart].filter(Boolean).join(' ');
     return text || '';
+  }
+
+  // ---------- User Model (continuously evolving behavioral profile) ----------
+  // Distinct from coachProfile (facts the user typed in themselves) and
+  // coachMemory (discrete, evidence-tagged memories). This is the coach's
+  // own standing read on HOW the user operates — synthesized fresh after
+  // every conversation, not just appended to.
+  const USER_MODEL_FIELDS = [
+    {key:'strengths', label:'Biggest Strengths'},
+    {key:'weaknesses', label:'Biggest Weaknesses'},
+    {key:'productivityPatterns', label:'Productivity Patterns'},
+    {key:'energyPatterns', label:'Energy Patterns'},
+    {key:'commonExcuses', label:'Common Excuses'},
+    {key:'motivationStyle', label:'Motivation Style'},
+    {key:'coachingStyle', label:'Preferred Coaching Style'},
+    {key:'learningStyle', label:'Learning Style'},
+    {key:'decisionMakingStyle', label:'Decision-Making Style'},
+    {key:'recurringObstacle', label:'Biggest Recurring Obstacle'},
+    {key:'effectiveStrategies', label:'Most Effective Strategies'},
+    {key:'currentFocus', label:'Current Focus'},
+    {key:'longTermMission', label:'Long-Term Mission'}
+  ];
+
+  function buildUserModelPrompt(existingModel, memoryText, recentExchange, weeklyReflectionText){
+    const existingText = USER_MODEL_FIELDS.map(f=>`${f.key}: ${(existingModel&&existingModel[f.key]) || '(unknown — no evidence yet)'}`).join('\n');
+    return `${COACH_IDENTITY} As that coach, you also maintain a private, continuously evolving behavioral profile of this user — your own standing read on how they operate, separate from any facts they've typed in themselves. `+
+      `Update it using the new conversation, memories, and weekly pattern below. `+
+      `Keep continuity: only change a field if new evidence actually supports a change or refinement — don't discard something true just because it wasn't mentioned again, and don't overwrite real evidence with a generic guess. `+
+      `Each field must be ONE short, specific sentence (max ~20 words) grounded in real evidence — never generic self-help language like "stay motivated" or "be consistent".\n\n`+
+      `CURRENT MODEL:\n${existingText}\n\n`+
+      (memoryText ? `LONG-TERM MEMORIES:\n${memoryText}\n\n` : '')+
+      (weeklyReflectionText ? `LATEST WEEKLY REFLECTION:\n${weeklyReflectionText}\n\n` : '')+
+      (recentExchange ? `MOST RECENT CONVERSATION TURN:\nQ: ${recentExchange.q}\nA: ${recentExchange.a}\n\n` : '')+
+      `Respond with ONLY a raw JSON object (no markdown fences, no commentary, no keys other than these) with exactly these keys: ${USER_MODEL_FIELDS.map(f=>f.key).join(', ')}. Every value must be a plain string — use an empty string "" for any field with no real evidence yet, rather than guessing.`;
+  }
+
+  function parseJSONObjectLoose(text){
+    if(!text) return null;
+    try{
+      const cleaned = String(text).replace(/```json|```/g,'').trim();
+      const start = cleaned.indexOf('{'), end = cleaned.lastIndexOf('}');
+      if(start===-1||end===-1) return null;
+      const obj = JSON.parse(cleaned.slice(start,end+1));
+      return (obj && typeof obj==='object' && !Array.isArray(obj)) ? obj : null;
+    }catch(e){ return null; }
+  }
+
+  // Offline fallback: a lighter heuristic pass so the model still evolves
+  // (using whatever's already in memory/goals/profile) even with no AI key.
+  function updateUserModelLocally(){
+    const next = Object.assign({}, state.userModel);
+    const patterns = (state.coachMemory.patterns||[]).slice().sort((a,b)=>b.confidence-a.confidence);
+    const strategies = (state.coachMemory.strategies||[]).slice().sort((a,b)=>b.confidence-a.confidence);
+    const observations = (state.coachMemory.observations||[]).slice().sort((a,b)=>b.confidence-a.confidence);
+    if(patterns[0]) next.productivityPatterns = patterns[0].summary;
+    if(patterns[1]) next.energyPatterns = patterns[1].summary;
+    if(strategies[0]) next.effectiveStrategies = strategies[0].summary;
+    if(observations[0]) next.recurringObstacle = observations[0].summary;
+    if(state.coachProfile && state.coachProfile.longTermVision) next.longTermMission = state.coachProfile.longTermVision;
+    if(state.goals && Array.isArray(state.goals.goals) && state.goals.goals.length){
+      const active = state.goals.goals.map(g=>({title:g.title, pct:goalPct(g)})).filter(g=>g.pct<100).sort((a,b)=>b.pct-a.pct)[0];
+      if(active) next.currentFocus = active.title;
+    }
+    next.updatedAt = new Date().toISOString();
+    next.source = 'local';
+    state.userModel = next;
+    return sSet('user-model-data', next);
+  }
+
+  // Fire-and-forget: called after every Ask Ledger conversation turn so the
+  // model keeps evolving continuously rather than being a one-time form.
+  // Never throws into the caller — a failed update just leaves the model
+  // as it was, it doesn't block or break the chat.
+  async function updateUserModel(recentExchange){
+    try{
+      const keys = getAIKeys();
+      if(!keys.gemini && !keys.mistral){ await updateUserModelLocally(); return; }
+
+      const memoryText = allMemoriesFlat().slice().sort((a,b)=>b.confidence-a.confidence).slice(0,12)
+        .map(m=>`- [${m.type}] ${m.summary}`).join('\n');
+      const weeklyReflectionText = getLatestWeeklyReflectionText();
+      const prompt = buildUserModelPrompt(state.userModel, memoryText, recentExchange, weeklyReflectionText);
+
+      let raw=null, source='local';
+      if(keys.gemini){
+        try{ raw = await callGeminiChat(prompt, keys.gemini); source='gemini'; }
+        catch(e){ console.warn('User model update (Gemini) failed, trying Mistral:', e.message); }
+      }
+      if(!raw && keys.mistral){
+        try{ raw = await callMistralChat(prompt, keys.mistral); source='mistral'; }
+        catch(e){ console.warn('User model update (Mistral) failed:', e.message); }
+      }
+      const parsed = raw ? parseJSONObjectLoose(raw) : null;
+      if(!parsed){ await updateUserModelLocally(); return; }
+
+      const next = Object.assign({}, state.userModel);
+      USER_MODEL_FIELDS.forEach(f=>{
+        const v = parsed[f.key];
+        if(typeof v==='string' && v.trim()) next[f.key] = v.trim();
+      });
+      next.updatedAt = new Date().toISOString();
+      next.source = source;
+      state.userModel = next;
+      await sSet('user-model-data', next);
+    }catch(e){
+      console.warn('User model update skipped:', e.message);
+    }
   }
 
   // ---------- Coach Memory extraction (runs after a real AI answer) ----------
@@ -2801,6 +2984,11 @@
         .catch(e => console.warn('Memory extraction skipped:', e.message));
     }
 
+    // Fire-and-forget: the User Model evolves after every conversation turn
+    // regardless of source (it has its own offline heuristic fallback), so
+    // it never blocks or slows down the answer the user is waiting on.
+    updateUserModel({q:question, a:answer}).catch(e => console.warn('User model update skipped:', e.message));
+
     return {answer, source};
   }
 
@@ -2977,6 +3165,17 @@
       ? `<div class="memory-list">${memories.map(memoryItemHTML).join('')}</div>`
       : '<p class="empty">No long-term memories yet — they build up automatically as you use Ask Ledger with a Gemini or Mistral key connected.</p>';
 
+    const um = state.userModel||{};
+    const hasUserModel = USER_MODEL_FIELDS.some(f=>um[f.key]);
+    const userModelGridHTML = USER_MODEL_FIELDS.map(f=>`
+      <div class="user-model-item">
+        <h4>${escapeHtml(f.label)}</h4>
+        ${um[f.key] ? `<p>${escapeHtml(um[f.key])}</p>` : `<p class="empty-field">Not enough evidence yet</p>`}
+      </div>`).join('');
+    const userModelMetaHTML = um.updatedAt
+      ? `Last updated ${new Date(um.updatedAt).toLocaleString()}<span class="src-tag">${escapeHtml(SOURCE_LABEL[um.source]||'Local coach')}</span>`
+      : 'Not generated yet';
+
     view.innerHTML = `
       <section class="panel">
         <div class="coach-back-row">
@@ -2988,6 +3187,15 @@
         <div class="coach-save-row">
           <button class="icon-btn" id="saveCoachProfileBtn">Save Coach Profile</button>
         </div>
+      </section>
+      <section class="panel">
+        <div class="insights-head">
+          <div><h2>User Model</h2><div class="insights-meta">How Ask Ledger reads the way you operate — evolves after every conversation<span class="user-model-meta">${userModelMetaHTML}</span></div></div>
+          <div class="insights-actions">
+            <button class="icon-btn" id="refreshUserModelBtn">${hasUserModel ? '↻ Refresh Now' : '✎ Generate Now'}</button>
+          </div>
+        </div>
+        <div class="user-model-grid">${userModelGridHTML}</div>
       </section>
       <section class="panel">
         <div class="insights-head">
@@ -3005,6 +3213,21 @@
       </section>`;
 
     document.getElementById('coachBackBtn').onclick = closeCoachProfile;
+
+    document.getElementById('refreshUserModelBtn').onclick = async ()=>{
+      const btn = document.getElementById('refreshUserModelBtn');
+      const original = btn.textContent;
+      btn.disabled=true; btn.textContent='Thinking…';
+      // Use the most recent Ask Ledger exchange as fresh evidence, if any exists.
+      const last = (state.askHistory||[]).length ? state.askHistory[state.askHistory.length-1] : null;
+      try{
+        await updateUserModel(last ? {q:last.q, a:last.a} : null);
+        renderCoachProfile();
+      }catch(e){
+        toast('Could not update the User Model — try again');
+        btn.disabled=false; btn.textContent=original;
+      }
+    };
 
     document.getElementById('saveCoachProfileBtn').onclick = async ()=>{
       const next = {};
@@ -3090,15 +3313,135 @@
     state.coachThread = nextThread;
     await sSet('coach-thread', nextThread);
 
-    // Also feed this week's reflection card into long-term coach memory so
-    // Ask Ledger can reference it weeks/months later even after the
-    // Insights cache itself has moved on to a newer week.
-    const reflectionCard = cards.find(c=>c.type==='reflection');
-    if(reflectionCard){
-      addOrMergeMemory({type:'weeklyReflections', summary:reflectionCard.text, evidence:'Insights refresh for '+(f.weekLabel||today), confidence:0.5, source});
-    }
-
     return result;
+  }
+
+  // ---------- Weekly Reflection (deliberate, once-per-week coach entry) ----------
+  // Unlike the daily insight cards above (which refresh on every visit and
+  // are single sentences), a Weekly Reflection is a real journal-style entry
+  // the user asks for on purpose, keyed to a specific ISO week so it doesn't
+  // get silently overwritten by the next day's refresh.
+  function weekKeyForDate(dateStr){
+    const d = new Date(dateStr+'T00:00:00');
+    const target = new Date(d.valueOf());
+    const dayNr = (d.getDay()+6)%7; // Mon=0 .. Sun=6
+    target.setDate(target.getDate()-dayNr+3); // nearest Thursday defines the ISO week/year
+    const firstThursday = new Date(target.getFullYear(),0,4);
+    const diff = target - firstThursday;
+    const week = 1 + Math.round(diff/(7*86400000));
+    return target.getFullYear()+'-W'+String(week).padStart(2,'0');
+  }
+
+  function buildWeeklyReflectionPrompt(f, priorReflections){
+    const priorText = (priorReflections||[]).map(r=>`${r.weekLabel||r.weekKey}: ${r.summary}`).join('\n');
+    return `${COACH_IDENTITY} Write this week's reflection — a short, honest wrap-up of the user's week, the way you'd write in a running coaching journal.\n\n`+
+      (priorText ? `PAST WEEKLY REFLECTIONS (most recent last — build on these naturally, e.g. acknowledge progress or note something still unresolved, instead of repeating yourself):\n${priorText}\n\n` : '')+
+      `Write 3-5 sentences covering, in your own words: the single biggest win this week, the single biggest struggle or area still needing work, and one clear, concrete focus for next week. `+
+      `Cite real numbers from the facts below where it strengthens a point — never invent anything not present in the facts. `+
+      `No markdown, no headers, no bullet points — just a flowing paragraph, like a coach talking to a friend.\n\n`+
+      `THIS WEEK'S FACTS (JSON):\n${JSON.stringify(f)}`;
+  }
+
+  // Rule-based fallback so the feature still works with no AI key configured.
+  function localWeeklyReflection(f){
+    const parts=[];
+    const withData = f.categories.filter(c=>c.weekMinutes>0 || c.prevWeekMinutes>0);
+    const scored = withData.map(c=>({c, score:(GOOD_UP_CATS.includes(c.id)?c.deltaPct:GOOD_DOWN_CATS.includes(c.id)?-c.deltaPct:0)}))
+      .filter(s=>s.c.prevWeekMinutes>0).sort((a,b)=>b.score-a.score);
+    const best = scored[0];
+    if(best && best.score>0) parts.push(`${best.c.label} was your biggest win this week, ${best.c.deltaPct>=0?'up':'down'} ${Math.abs(best.c.deltaPct)}% versus last week.`);
+    const worst = scored[scored.length-1];
+    if(worst && worst.score<0) parts.push(`${worst.c.label} slipped the most, ${worst.c.deltaPct>=0?'up':'down'} ${Math.abs(worst.c.deltaPct)}% versus last week — worth a look.`);
+    if(f.avgSleep!=null) parts.push(`Sleep averaged ${minutesToHM(f.avgSleep)} across ${f.sleepNightsLogged} logged night${f.sleepNightsLogged===1?'':'s'}.`);
+    if(f.goals && f.goals.length){
+      const closest = f.goals.slice().sort((a,b)=>b.pct-a.pct)[0];
+      if(closest) parts.push(`${closest.title} is closest to done at ${Math.round(closest.pct)}%.`);
+    }
+    if(!parts.length) return 'Not enough logged this week to write a real reflection yet — log a few more days and check back.';
+    parts.push('Focus for next week: keep logging consistently so these patterns keep getting clearer.');
+    return parts.join(' ');
+  }
+
+  // Generates (or, if force=true, regenerates) the reflection for the
+  // current ISO week. Stores it in coachMemory.weeklyReflections keyed by
+  // weekKey so it survives independently of the daily insights cache, and
+  // is what Ask Ledger's "RECENT WEEKLY PATTERNS" block actually reads.
+  async function generateWeeklyReflection(force){
+    if(!Array.isArray(state.coachMemory.weeklyReflections)) state.coachMemory.weeklyReflections=[];
+    const list = state.coachMemory.weeklyReflections;
+    const wk = weekKeyForDate(todayStr());
+    const existingIdx = list.findIndex(m=>m.weekKey===wk);
+    if(existingIdx!==-1 && !force) return list[existingIdx];
+
+    const f = await computeAskFacts();
+    const priorReflections = list.filter(m=>m.weekKey!==wk).slice(-3);
+    const prompt = buildWeeklyReflectionPrompt(f, priorReflections);
+    const keys = getAIKeys();
+    let text=null, source='local';
+    if(keys.gemini){
+      try{ text = await callGeminiChat(prompt, keys.gemini); source='gemini'; }
+      catch(e){ console.warn('Gemini weekly reflection failed, trying Mistral:', e.message); }
+    }
+    if(!text && keys.mistral){
+      try{ text = await callMistralChat(prompt, keys.mistral); source='mistral'; }
+      catch(e){ console.warn('Mistral weekly reflection failed, using local coach:', e.message); }
+    }
+    if(!text){ text = localWeeklyReflection(f); source='local'; }
+
+    const record = {
+      id: existingIdx!==-1 ? list[existingIdx].id : uid(),
+      date: todayStr(),
+      type: 'weeklyReflections',
+      weekKey: wk,
+      weekLabel: f.weekLabel||wk,
+      confidence: 0.6,
+      summary: String(text).trim(),
+      evidence: 'Weekly reflection for '+(f.weekLabel||wk),
+      source
+    };
+    if(existingIdx!==-1) list[existingIdx]=record; else list.push(record);
+    list.sort((a,b)=> new Date(a.date)-new Date(b.date));
+    state.coachMemory.weeklyReflections = list.slice(-16); // keep last ~4 months
+    await saveCoachMemory();
+    return record;
+  }
+
+  function weeklyReflectionHTML(){
+    const list = (state.coachMemory.weeklyReflections||[]).slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const wk = weekKeyForDate(todayStr());
+    const current = list.find(r=>r.weekKey===wk);
+    const past = list.filter(r=>r.weekKey!==wk).slice(-4).reverse();
+    return `<div class="weekly-reflection">
+      <div class="weekly-reflection-head">
+        <h3>Weekly Reflection</h3>
+        <button class="icon-btn" id="genWeeklyReflectionBtn">${current ? '↻ Regenerate' : '✎ Generate This Week\u2019s Reflection'}</button>
+      </div>
+      <div id="weeklyReflectionBody">
+        ${current
+          ? `<p class="weekly-reflection-text">${escapeHtml(current.summary)}</p><div class="weekly-reflection-meta">${escapeHtml(current.weekLabel||current.weekKey)} · ${escapeHtml(SOURCE_LABEL[current.source]||'Local coach')}</div>`
+          : `<p class="empty">No reflection generated for this week yet.</p>`}
+      </div>
+      ${past.length ? `<details class="weekly-reflection-history"><summary>Past reflections (${past.length})</summary>${
+        past.map(r=>`<div class="weekly-reflection-past-item"><div class="weekly-reflection-meta">${escapeHtml(r.weekLabel||r.weekKey)} · ${escapeHtml(SOURCE_LABEL[r.source]||'Local coach')}</div><p>${escapeHtml(r.summary)}</p></div>`).join('')
+      }</details>` : ''}
+    </div>`;
+  }
+
+  function bindWeeklyReflectionControls(afterRegenerate){
+    const btn = document.getElementById('genWeeklyReflectionBtn');
+    if(!btn) return;
+    btn.onclick = async ()=>{
+      const original = btn.textContent;
+      btn.disabled=true; btn.textContent='Thinking…';
+      try{
+        await generateWeeklyReflection(true);
+        afterRegenerate();
+      }catch(e){
+        console.warn('Weekly reflection generation failed:', e.message);
+        toast('Could not generate the weekly reflection — try again');
+        btn.disabled=false; btn.textContent=original;
+      }
+    };
   }
 
   const SOURCE_LABEL = {gemini:'Gemini', mistral:'Mistral', local:'Local coach'};
@@ -3195,7 +3538,8 @@
     const body = (hasEnoughData
       ? '<div class="insight-grid">'+cached.cards.map(insightCardHTML).join('')+'</div>'
       : '<div class="insights-empty insight-empty-state"><div class="insights-icon">✨</div><p class="section-intro">Log a bit more this week — time blocks, sleep, or goal progress — and your coach will have something to say.</p></div>')
-      + coachThreadHTML();
+      + coachThreadHTML()
+      + weeklyReflectionHTML();
 
     view.innerHTML = insightsShellHTML(body, meta);
     bindInsightsControls(async ()=>{
@@ -3203,6 +3547,10 @@
       btn.disabled=true; btn.classList.add('spin'); btn.innerHTML='<span class="gear">↻</span> Thinking…';
       try{ await generateInsights(); }
       catch(e){ toast('Could not refresh insights — try again'); }
+      if(isStaleRender(myTicket)) return;
+      renderInsights(startRender());
+    });
+    bindWeeklyReflectionControls(()=>{
       if(isStaleRender(myTicket)) return;
       renderInsights(startRender());
     });
