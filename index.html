@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Ledger — Daily Time & Health Tracker</title>
+<title>My Ledger — Daily Time & Health Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -44,7 +44,7 @@
     background:linear-gradient(180deg, var(--ink) 70%, rgba(22,28,38,0));
     padding:22px 0 10px;
   }
-  .topbar-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;}
+  .topbar-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
   .brand{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
   .brand-mark{font-size:22px;color:var(--amber);}
   .brand h1{font-size:22px;letter-spacing:0.2px;font-style:italic;font-weight:500;}
@@ -54,6 +54,9 @@
   .save-btn:disabled{opacity:0.6;cursor:default;}
   .reset-btn{background:none;border:1px solid var(--line);color:var(--fog);font-weight:600;padding:6px 14px;border-radius:7px;font-size:12.5px;}
   .reset-btn:hover{color:var(--coral);border-color:var(--coral);}
+  .topbar-btn{display:inline-flex;align-items:center;justify-content:center;min-width:92px;height:32px;padding:6px 14px;box-sizing:border-box;}
+  .topbar-btn.icon-only{min-width:0;width:32px;padding:0;}
+  .topbar-btn.icon-only svg{width:16px;height:16px;display:block;}
 
   .tabs{
     display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);padding-bottom:0;
@@ -351,6 +354,10 @@
   .coach-field input,.coach-field textarea{background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:6px;font-size:12.5px;font-family:'Inter',sans-serif;resize:vertical;}
   .coach-field textarea{min-height:56px;}
   .coach-field.wide{grid-column:1/-1;}
+  .coach-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+  .coach-row .coach-field{flex:1;min-width:160px;}
+  .coach-row .coach-field.small{flex:0 0 90px;min-width:90px;}
+  .coach-row .coach-field.small input{width:100%;}
   .coach-save-row{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
   .memory-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
   .memory-toolbar .memory-count{color:var(--fog);font-size:12px;}
@@ -429,7 +436,7 @@
 
   .loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--fog);font-style:italic;}
 
-  /* Ask Ledger */
+  /* Ask Lej */
   .ask-wrap{display:flex;flex-direction:column;gap:14px;}
   .ask-chips{display:flex;flex-wrap:wrap;gap:8px;}
   .ask-chip{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:8px 13px;border-radius:20px;font-size:12.5px;text-align:left;}
@@ -558,7 +565,7 @@
 <body>
 <div id="loginGate" class="login-gate">
   <form id="loginForm" class="login-card">
-    <h1>The Ledger</h1>
+    <h1>My Ledger</h1>
     <p class="login-sub">Sign in to continue</p>
     <input type="email" id="loginEmail" placeholder="Email" autocomplete="username" required>
     <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
@@ -569,14 +576,26 @@
 <div id="app" style="display:none;">
   <header class="topbar">
     <div class="topbar-actions">
-      <button id="coachProfileBtn" class="reset-btn">Coach Profile</button>
-      <button id="saveAllBtn" class="save-btn">Save</button>
-      <button id="resetBtn" class="reset-btn">Reset Day</button>
-      <button id="signOutBtn" class="reset-btn">Sign Out</button>
+      <button id="saveAllBtn" class="save-btn topbar-btn icon-only" title="Save" aria-label="Save">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      </button>
+      <button id="coachProfileBtn" class="reset-btn topbar-btn icon-only" title="Profile" aria-label="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+      <button id="exportBtn" class="reset-btn topbar-btn icon-only" title="Export (JSON)" aria-label="Export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <button id="importBtn" class="reset-btn topbar-btn icon-only" title="Import (JSON)" aria-label="Import">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </button>
+      <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;">
+      <button id="signOutBtn" class="reset-btn topbar-btn icon-only" title="Sign Out" aria-label="Sign Out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
     </div>
     <div class="brand">
       <span class="brand-mark">◐</span>
-      <h1>The Ledger</h1>
+      <h1>My Ledger</h1>
       <span class="sub" id="todayLabel"></span>
     </div>
     <nav class="tabs" id="tabs">
@@ -585,44 +604,10 @@
       <button class="tab" data-tab="weight">Weight</button>
       <button class="tab" data-tab="dashboard">Dashboard</button>
       <button class="tab" data-tab="insights">Insights</button>
-      <button class="tab" data-tab="ask">Ask Ledger</button>
+      <button class="tab" data-tab="ask">Ask Lej</button>
     </nav>
   </header>
   <main id="view"><div class="loading">Loading your ledger…</div></main>
-  <details class="app-footer">
-    <summary><span class="caret">▶</span><span class="q">?</span> How to use The Ledger</summary>
-    <div class="howto-grid">
-      <div class="howto-card">
-        <h3>Today</h3>
-        <p>Log time blocks with a label, category, start time, and duration. They appear on the vertical day timeline and the totals wheel. Use the date arrows or picker to jump to other days. Log sleep here too — just use the "Sleep" category and it'll roll into your dashboard stats automatically.</p>
-      </div>
-      <div class="howto-card">
-        <h3>Goals</h3>
-        <p>Set a target and track progress toward it. Progress bars and the dashboard's overall percentage update as you update each goal.</p>
-      </div>
-      <div class="howto-card">
-        <h3>Weight</h3>
-        <p>Add weigh-ins over time to see your trend on a simple line chart.</p>
-      </div>
-      <div class="howto-card">
-        <h3>Dashboard</h3>
-        <p>A weekly and monthly overview of what happened: time by category, sleep averages, goal progress, and a weight trend — all objective, no advice.</p>
-      </div>
-      <div class="howto-card">
-        <h3>Insights</h3>
-        <p>Your coach — turns this week's logged data into plain-language cards (biggest win, an opportunity, a hidden pattern, and more). It remembers what it told you last time and follows up ("Since Last Time" cards, plus a running Coaching Thread below your cards) instead of starting fresh every refresh. Works offline with a built-in local coach; add a Gemini or Mistral API key under "Providers" to have an AI write the phrasing instead.</p>
-      </div>
-      <div class="howto-card">
-        <h3>Coach Profile</h3>
-        <p>Click "Coach Profile" in the top bar to tell Ask Ledger who you are — identity, goals, routine, and things to avoid — so it stops treating every question like a cold start. It also keeps a running Coach Memory of stable patterns it notices over time (e.g. "mornings are your best focus window"), which you can review or delete there. Only the most relevant memories are sent with each question, not the whole list. Use "← Back" to return to whatever tab you were on.</p>
-      </div>
-      <div class="howto-card">
-        <h3>Saving</h3>
-        <p>Changes save automatically as you go. Use <strong>Save</strong> in the top bar to force-save immediately, or <strong>Reset Day</strong> to clear all time blocks for the day currently shown.</p>
-      </div>
-    </div>
-    <p class="howto-foot-note">Tip: everything is stored locally per day/entry, so you can revisit past dates any time from the Today tab.</p>
-  </details>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -708,35 +693,52 @@
     });
   }
 
-  // Grouped by family so related categories read as shades of one hue:
-  // Blue = Productive, Green = Health, Orange = Life, Purple = Leisure, Gray = Other
+  // Grouped by family so related categories read as shades of one hue —
+  // this lets the AI coach scan color at a glance instead of parsing labels:
+  // Blue = Work & Growth, Green = Health, Orange = Family & Kids,
+  // Purple = Hobbies & Skills, Pink = Social & Leisure, Teal = Travel, Gray = Chores
   let CATEGORIES = [
-    // Productive — blue
-    {id:'work',label:'Work',color:'#3d6fb4'},
-    {id:'learning',label:'Learning',color:'#5f8ed4'},
-    {id:'reading',label:'Reading',color:'#8fb8e8'},
+    // Work & Growth — blue
+    {id:'work',label:'Work',color:'#2c5a94'},
+    {id:'learning',label:'Learning',color:'#3d6fb4'},
+    {id:'reading',label:'Reading',color:'#5f8ed4'},
+    {id:'research',label:'Research',color:'#86aee0'},
     // Health — green
-    {id:'exercise',label:'Exercise',color:'#3d9463'},
-    {id:'meals',label:'Meals',color:'#5cae7c'},
-    {id:'sleep',label:'Sleep',color:'#7ec49a'},
+    {id:'exercise',label:'Exercise',color:'#2f7a4f'},
+    {id:'meals',label:'Meals',color:'#3d9463'},
+    {id:'sleep',label:'Sleep',color:'#5cae7c'},
+    {id:'self_care',label:'Self Care',color:'#7ec49a'},
     {id:'rest',label:'Rest',color:'#a3d9bb'},
-    {id:'self_care',label:'Self Care',color:'#7EC49A'},
-    {id:'wellness',label:'Wellness',color:'#5CAE7C'},
-    // Life — orange
-    {id:'family_time',label:'Family Time',color:'#d9722e'},
-    {id:'personal',label:'Personal',color:'#e0893f'},
-    {id:'kids_playtime',label:'Kids Playtime',color:'#eda256'},
-    {id:'giann',label:'Giann',color:'#f0b56f'},
-    {id:'teaching_kids',label:'Teaching Kids',color:'#f5c88a'},
-    {id:'travel',label:'Travel',color:'#c96020'},
-    {id:'shopping',label:'Shopping',color:'#D9722E'},
-    {id:'online_shopping',label:'Online Shopping',color:'#E0893F'},
-    // Leisure — purple
-    {id:'leisure',label:'Leisure',color:'#8a63c9'},
-    {id:'entertainment',label:'Watching',color:'#a583d9'},
-    {id:'social_media',label:'Social Media',color:'#c2a3e8'},
-    // Other — gray
-    {id:'other',label:'Others',color:'#5a6473'}
+    {id:'wellness',label:'Wellness',color:'#c3e8d1'},
+    // Family & Kids — orange
+    {id:'family_time',label:'Family Time',color:'#b85a1f'},
+    {id:'kids_playtime',label:'Kids Playtime',color:'#c96020'},
+    {id:'teaching_kids',label:'Teaching Kids',color:'#d9722e'},
+    {id:'giann',label:'Giann',color:'#e0893f'},
+    {id:'kids_bedtime',label:'Kids Bedtime',color:'#eda256'},
+    {id:'kids_school_prep',label:'Kids School Prep',color:'#f0b56f'},
+    {id:'kids_talking_time',label:'Kids Talking Time',color:'#f5c88a'},
+    {id:'personal',label:'Personal',color:'#fad9ab'},
+    // Hobbies & Skills — purple
+    {id:'learning_piano',label:'Learning Piano',color:'#6f4ba8'},
+    {id:'learning_flags',label:'Learning Flags',color:'#8a63c9'},
+    {id:'learn_cooking',label:'Learn Cooking',color:'#a583d9'},
+    {id:'listening_to_music',label:'Listening to Music',color:'#c2a3e8'},
+    {id:'program',label:'Program',color:'#d6bcf0'},
+    // Social & Leisure — pink
+    {id:'watching',label:'Watching',color:'#a8306f'},
+    {id:'social_media',label:'Social Media',color:'#c2478a'},
+    {id:'friends_meet',label:'Friends Meet',color:'#d9679f'},
+    {id:'attend_concert',label:'Attend Concert',color:'#e893bc'},
+    {id:'leisure',label:'Leisure',color:'#f0b3d3'},
+    // Travel — teal
+    {id:'travel_work',label:'Travel Work',color:'#1c7a9e'},
+    {id:'travel',label:'Travel',color:'#5cb8dc'},
+    // Chores — gray
+    {id:'cleaning',label:'Cleaning',color:'#5a6473'},
+    {id:'online_shopping',label:'Online Shopping',color:'#7c8494'},
+    {id:'shopping',label:'Shopping',color:'#9aa2b0'},
+    {id:'other',label:'Others',color:'#4a5261'}
   ];
 
   let state = {
@@ -756,11 +758,10 @@
     askHistory: [],
     askLoading: false,
     coachProfile: {
-      name:'', age:'', occupation:'',
-      primaryGoals:'', topPriorities:'',
-      wakeTime:'', bedTime:'', workingHours:'', exerciseSchedule:'',
-      distractions:'', badHabits:'', triggers:'',
-      longTermVision:''
+      name:'', age:'',
+      marriedTo:'', son1:'', son2:'', sibling:'',
+      work:'', position:'', shortTermGoal:'', longTermGoal:'',
+      hobbies:'', likes:'', others:''
     },
     coachMemory: {
       observations:[], patterns:[], strategies:[],
@@ -934,7 +935,7 @@
 
   async function saveAllNow(){
     const btn = document.getElementById('saveAllBtn');
-    if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+    if(btn){ btn.disabled=true; btn.title='Saving…'; btn.setAttribute('aria-label','Saving…'); }
     const keys = ['sleep-data','goals-data','weight-data','custom-categories-data','coach-profile-data','coach-memory-data','user-model-data', ...Object.keys(state.ledgerCache).map(d=>'ledger:'+d)];
     const values = {
       'sleep-data': state.sleep, 'goals-data': state.goals,
@@ -952,12 +953,65 @@
     // Then push the full snapshot to Firebase right away (skip the debounce).
     clearTimeout(cloudSyncTimer);
     const cloudOk = await pushToCloud();
-    if(btn){ btn.disabled=false; btn.textContent='Save'; }
+    if(btn){ btn.disabled=false; btn.title='Save'; btn.setAttribute('aria-label','Save'); }
     if(cloudOk) toast('✔ Saved to Firebase!');
     else if(localOk) toast('⚠️ Saved on this device only (offline)');
     else toast('Some data could not save — check your connection and try again');
     return localOk;
   }
+
+  async function exportData(){
+    try{
+      const snapshot = buildLocalSnapshot();
+      const blob = new Blob([JSON.stringify(snapshot, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `my-ledger-export-${todayStr()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('✔ Exported');
+    }catch(e){
+      toast('Could not export — see console for details');
+      console.error('Export failed:', e);
+    }
+  }
+
+  async function importDataFromFile(file){
+    if(!file) return;
+    let parsed;
+    try{
+      const text = await file.text();
+      parsed = JSON.parse(text);
+    }catch(e){
+      toast('That file isn\'t valid JSON — import cancelled');
+      return;
+    }
+    if(!parsed || typeof parsed!=='object' || Array.isArray(parsed)){
+      toast('That file doesn\'t look like a Ledger export — import cancelled');
+      return;
+    }
+    if(!confirm('Importing will overwrite your current data on this device with the contents of this file. Continue?')) return;
+    try{
+      Object.keys(parsed).forEach(k=>{
+        localStorage.setItem(lsKey(k), JSON.stringify(parsed[k]));
+      });
+    }catch(e){
+      toast('Could not write imported data — your browser storage may be full or blocked');
+      return;
+    }
+    // Reload state from the freshly-written localStorage and push it to
+    // the cloud right away so every device stays in sync with the import.
+    state.ledgerCache = {};
+    await loadAll();
+    clearTimeout(cloudSyncTimer);
+    const cloudOk = await pushToCloud();
+    renderView();
+    toast(cloudOk ? '✔ Imported and synced' : '✔ Imported on this device (offline)');
+  }
+
 
   async function loadAll(){
     const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, coachThread, askHistory, coachProfile, coachMemory, userModel] = await Promise.all([
@@ -1916,7 +1970,7 @@
     {ids:['reading'], label:'Longest Reading Session', icon:'📚'},
     {ids:['work'], label:'Longest Work Session', icon:'💼'},
     {ids:['learning'], label:'Longest Learning Session', icon:'🧠'},
-    {ids:['wellness','self_care'], label:'Longest Wellness Session', icon:'🧘'},
+    {ids:['self_care'], label:'Longest Self-Care Session', icon:'🧘'},
     {ids:['family_time'], label:'Longest Family Time', icon:'👨‍👩‍👧'},
     {ids:['kids_playtime'], label:'Longest Playtime', icon:'🧸'},
     {ids:['teaching_kids'], label:'Longest Teaching Session', icon:'📖'},
@@ -1926,7 +1980,7 @@
     {ids:['exercise'], label:'Exercise', icon:'🏋️', target:180},
     {ids:['reading'], label:'Reading', icon:'📚', target:180},
     {ids:['learning'], label:'Learning', icon:'🧠', target:180},
-    {ids:['wellness','self_care'], label:'Wellness & Self-Care', icon:'🧘', target:90},
+    {ids:['self_care'], label:'Self-Care', icon:'🧘', target:90},
     {ids:['family_time'], label:'Family Time', icon:'👨‍👩‍👧', target:240},
     {ids:['kids_playtime'], label:'Kids Playtime', icon:'🧸', target:180},
     {ids:['teaching_kids'], label:'Teaching Kids', icon:'📖', target:90},
@@ -1936,7 +1990,7 @@
     {ids:['exercise'], label:'Exercise', icon:'🏋️', target:720},
     {ids:['reading'], label:'Reading', icon:'📚', target:600},
     {ids:['learning'], label:'Learning', icon:'🧠', target:600},
-    {ids:['wellness','self_care'], label:'Wellness & Self-Care', icon:'🧘', target:360},
+    {ids:['self_care'], label:'Self-Care', icon:'🧘', target:360},
     {ids:['family_time'], label:'Family Time', icon:'👨‍👩‍👧', target:900},
     {ids:['kids_playtime'], label:'Kids Playtime', icon:'🧸', target:600},
     {ids:['teaching_kids'], label:'Teaching Kids', icon:'📖', target:300},
@@ -2116,8 +2170,8 @@
   // so swapping the generator never touches the render layer.
   // ------------------------------------------------------------------
 
-  const GOOD_UP_CATS = ['work','learning','reading','exercise','family_time','self_care','wellness','giann','teaching_kids'];
-  const GOOD_DOWN_CATS = ['social_media','entertainment','online_shopping'];
+  const GOOD_UP_CATS = ['work','learning','reading','research','program','exercise','family_time','self_care','giann','teaching_kids','learning_piano','learning_flags','learn_cooking'];
+  const GOOD_DOWN_CATS = ['social_media','watching','online_shopping'];
 
   function pct(n){ return Math.round(n); }
   function pctDelta(cur,prev){
@@ -2370,9 +2424,9 @@
   // ---------- prompt shared by both AI providers ----------
   // ---------- Coach Identity ----------
   // One shared persona used everywhere the AI generates user-facing text
-  // (Insights, Weekly Reflection, Ask Ledger) so it reads as the same coach
+  // (Insights, Weekly Reflection, Ask Lej) so it reads as the same coach
   // across every surface, not a different voice per feature.
-  const COACH_IDENTITY = `You are "Ask Ledger" — not a generic assistant, but an elite executive performance coach who has worked with this specific user for years. `+
+  const COACH_IDENTITY = `You are "Ask Lej" — not a generic assistant, but an elite executive performance coach who has worked with this specific user for years. `+
     `You combine behavioral psychology, productivity science, habit formation, and accountability into how you talk. `+
     `You notice patterns before the user names them, challenge excuses directly but respectfully instead of just validating them, celebrate genuine progress without empty praise, and always relate today's advice back to previous conversations and long-term history rather than treating each moment in isolation.`;
 
@@ -2435,7 +2489,7 @@
     return parsed;
   }
 
-  // ---------- Ask Ledger: free-form Q&A over the same underlying facts ----------
+  // ---------- Ask Lej: free-form Q&A over the same underlying facts ----------
   async function computeAskFacts(){
     const base = await computeInsightFacts();
 
@@ -2542,15 +2596,14 @@
   function coachProfileText(){
     const p = state.coachProfile||{};
     const lines=[];
-    const identity=[p.name&&`Name: ${p.name}`, p.age&&`Age: ${p.age}`, p.occupation&&`Occupation: ${p.occupation}`].filter(Boolean);
+    const identity=[p.name&&`Name: ${p.name}`, p.age&&`Age: ${p.age}`].filter(Boolean);
     if(identity.length) lines.push('Identity — '+identity.join(', '));
-    const goals=[p.primaryGoals&&`Primary goals: ${p.primaryGoals}`, p.topPriorities&&`Top priorities: ${p.topPriorities}`].filter(Boolean);
-    if(goals.length) lines.push('Goals — '+goals.join('; '));
-    const routine=[p.wakeTime&&`wakes at ${p.wakeTime}`, p.bedTime&&`sleeps at ${p.bedTime}`, p.workingHours&&`works ${p.workingHours}`, p.exerciseSchedule&&`exercises ${p.exerciseSchedule}`].filter(Boolean);
-    if(routine.length) lines.push('Routine — '+routine.join(', '));
-    const avoid=[p.distractions&&`distractions: ${p.distractions}`, p.badHabits&&`bad habits: ${p.badHabits}`, p.triggers&&`triggers: ${p.triggers}`].filter(Boolean);
-    if(avoid.length) lines.push('Things to avoid — '+avoid.join('; '));
-    if(p.longTermVision) lines.push('Long-term vision — '+p.longTermVision);
+    const family=[p.marriedTo&&`Married to: ${p.marriedTo}`, p.son1&&`Son #1: ${p.son1}`, p.son2&&`Son #2: ${p.son2}`, p.sibling&&`Sibling: ${p.sibling}`].filter(Boolean);
+    if(family.length) lines.push('Family — '+family.join(', '));
+    const occupation=[p.work&&`Work: ${p.work}`, p.position&&`Position: ${p.position}`, p.shortTermGoal&&`Short term goal: ${p.shortTermGoal}`, p.longTermGoal&&`Long term goal: ${p.longTermGoal}`].filter(Boolean);
+    if(occupation.length) lines.push('Occupation — '+occupation.join('; '));
+    const love=[p.hobbies&&`Top hobbies: ${p.hobbies}`, p.likes&&`Likes: ${p.likes}`, p.others&&`Others: ${p.others}`].filter(Boolean);
+    if(love.length) lines.push('Things I love — '+love.join('; '));
     return lines.join('\n');
   }
 
@@ -2690,7 +2743,7 @@
   }
 
   // No persistent "monthly review" object exists yet, so this is computed
-  // fresh from the same month-over-month facts Ask Ledger already builds —
+  // fresh from the same month-over-month facts Ask Lej already builds —
   // cheap, and always in sync with the latest data.
   function getLatestMonthlyReviewText(f){
     if(!f || !f.monthCategories) return '';
@@ -2758,7 +2811,7 @@
     if(patterns[1]) next.energyPatterns = patterns[1].summary;
     if(strategies[0]) next.effectiveStrategies = strategies[0].summary;
     if(observations[0]) next.recurringObstacle = observations[0].summary;
-    if(state.coachProfile && state.coachProfile.longTermVision) next.longTermMission = state.coachProfile.longTermVision;
+    if(state.coachProfile && state.coachProfile.longTermGoal) next.longTermMission = state.coachProfile.longTermGoal;
     if(state.goals && Array.isArray(state.goals.goals) && state.goals.goals.length){
       const active = state.goals.goals.map(g=>({title:g.title, pct:goalPct(g)})).filter(g=>g.pct<100).sort((a,b)=>b.pct-a.pct)[0];
       if(active) next.currentFocus = active.title;
@@ -2769,7 +2822,7 @@
     return sSet('user-model-data', next);
   }
 
-  // Fire-and-forget: called after every Ask Ledger conversation turn so the
+  // Fire-and-forget: called after every Ask Lej conversation turn so the
   // model keeps evolving continuously rather than being a one-time form.
   // Never throws into the caller — a failed update just leaves the model
   // as it was, it doesn't block or break the chat.
@@ -2959,7 +3012,7 @@
     return `I can't match that question to a specific pattern yet, but here's what's in your data: you logged ${minutesToHM(totalLogged)} this week${sleepPart}. Try asking about being tired, time-wasters, goals, or what improved this month.`;
   }
 
-  // ---------- Ask Ledger pipeline: Gemini -> Mistral -> local ----------
+  // ---------- Ask Lej pipeline: Gemini -> Mistral -> local ----------
   async function askLedger(question){
     const f = await computeAskFacts();
     const keys = getAIKeys();
@@ -3013,11 +3066,11 @@
     const history = state.askHistory||[];
     const thread = history.length
       ? history.flatMap(h=>[{role:'user',text:h.q},{role:'assistant',text:h.a,source:h.source}]).map(askMsgHTML).join('')
-      : '<div class="ask-empty">Ask a question about your logged time, sleep, goals, or weight — Ask Ledger reads your data and answers directly.</div>';
+      : '<div class="ask-empty">Ask a question about your logged time, sleep, goals, or weight — Ask Lej reads your data and answers directly.</div>';
 
     view.innerHTML = `<section class="panel">
       <div class="insights-head">
-        <div><h2>Ask Ledger</h2><div class="insights-meta">Answers pulled straight from your data<span class="src-tag">${escapeHtml(SOURCE_LABEL[getAIKeys().gemini? 'gemini' : getAIKeys().mistral? 'mistral' : 'local']||'Local coach')}</span></div></div>
+        <div><h2>Ask Lej</h2><div class="insights-meta">Answers pulled straight from your data<span class="src-tag">${escapeHtml(SOURCE_LABEL[getAIKeys().gemini? 'gemini' : getAIKeys().mistral? 'mistral' : 'local']||'Local coach')}</span></div></div>
         <div class="insights-actions">
           <button class="icon-btn" id="toggleAISettingsBtn"><span class="gear">⚙</span> Providers</button>
           ${history.length ? '<button class="icon-btn ask-clear-btn" id="askClearBtn">Clear</button>' : ''}
@@ -3048,7 +3101,7 @@
     };
     const clearBtn = document.getElementById('askClearBtn');
     if(clearBtn) clearBtn.onclick=async ()=>{
-      if(!confirm('Clear the Ask Ledger conversation?')) return;
+      if(!confirm('Clear the Ask Lej conversation?')) return;
       state.askHistory=[];
       await sSet('ask-ledger-history', []);
       renderAskLedger();
@@ -3099,28 +3152,26 @@
 
   // ---------- render: Coach Profile & Coach Memory ----------
   const COACH_PROFILE_FIELDS = [
-    {section:'Identity', fields:[
+    {section:'Identity', layout:'row', fields:[
       {key:'name', label:'Name', type:'text', placeholder:'e.g. Alex'},
-      {key:'age', label:'Age', type:'text', placeholder:'e.g. 32'},
-      {key:'occupation', label:'Occupation', type:'text', placeholder:'e.g. Product designer'}
+      {key:'age', label:'Age', type:'text', placeholder:'e.g. 32', small:true}
     ]},
-    {section:'Goals', fields:[
-      {key:'primaryGoals', label:'Primary goals', type:'textarea', placeholder:'e.g. Run a half-marathon, ship the app redesign', wide:true},
-      {key:'topPriorities', label:'Top priorities', type:'textarea', placeholder:'e.g. Health first, then career, then side projects', wide:true}
+    {section:'Family', fields:[
+      {key:'marriedTo', label:'Married to', type:'text', placeholder:'e.g. Jamie'},
+      {key:'son1', label:'Son #1', type:'text', placeholder:'Name'},
+      {key:'son2', label:'Son #2', type:'text', placeholder:'Name'},
+      {key:'sibling', label:'Sibling', type:'text', placeholder:'Name'}
     ]},
-    {section:'Routine', fields:[
-      {key:'wakeTime', label:'Wake time', type:'text', placeholder:'e.g. 6:30 AM'},
-      {key:'bedTime', label:'Bed time', type:'text', placeholder:'e.g. 10:30 PM'},
-      {key:'workingHours', label:'Working hours', type:'text', placeholder:'e.g. 9 AM – 5 PM'},
-      {key:'exerciseSchedule', label:'Preferred exercise schedule', type:'text', placeholder:'e.g. Runs M/W/F mornings'}
+    {section:'Occupation', fields:[
+      {key:'work', label:'Work', type:'text', placeholder:'e.g. Acme Inc.'},
+      {key:'position', label:'Position', type:'text', placeholder:'e.g. Product designer'},
+      {key:'shortTermGoal', label:'Short term goal', type:'textarea', placeholder:'e.g. Ship the redesign this quarter'},
+      {key:'longTermGoal', label:'Long term goal', type:'textarea', placeholder:'e.g. Become a design director'}
     ]},
-    {section:'Things to Avoid', fields:[
-      {key:'distractions', label:'Distractions', type:'textarea', placeholder:'e.g. Phone notifications, YouTube rabbit holes'},
-      {key:'badHabits', label:'Bad habits', type:'textarea', placeholder:'e.g. Skipping breakfast, late-night snacking'},
-      {key:'triggers', label:'Triggers', type:'textarea', placeholder:'e.g. Stressful meetings lead to junk food'}
-    ]},
-    {section:'Long-term Vision', fields:[
-      {key:'longTermVision', label:'Long-term vision', type:'textarea', placeholder:'Where do you want to be in a year or five?', wide:true}
+    {section:'Things I Love', fields:[
+      {key:'hobbies', label:'List top 5 hobbies', type:'textarea', placeholder:'e.g. Hiking, chess, cooking, guitar, photography', wide:true},
+      {key:'likes', label:'Likes', type:'textarea', placeholder:'e.g. Coffee, jazz, rainy days'},
+      {key:'others', label:'Others', type:'textarea', placeholder:'Anything else worth knowing'}
     ]}
   ];
 
@@ -3149,21 +3200,26 @@
     const fieldHTML = (f)=>{
       const val = escapeHtml(p[f.key]||'');
       const wideClass = f.wide ? ' wide' : '';
+      const smallClass = f.small ? ' small' : '';
       const input = f.type==='textarea'
         ? `<textarea id="cf_${f.key}" placeholder="${escapeHtml(f.placeholder||'')}">${val}</textarea>`
         : `<input type="text" id="cf_${f.key}" placeholder="${escapeHtml(f.placeholder||'')}" value="${val}">`;
-      return `<div class="coach-field${wideClass}"><label for="cf_${f.key}">${escapeHtml(f.label)}</label>${input}</div>`;
+      return `<div class="coach-field${wideClass}${smallClass}"><label for="cf_${f.key}">${escapeHtml(f.label)}</label>${input}</div>`;
     };
     const profileSectionsHTML = COACH_PROFILE_FIELDS.map(sec=>`
       <div class="coach-section">
         <h3>${escapeHtml(sec.section)}</h3>
-        <div class="coach-grid">${sec.fields.map(fieldHTML).join('')}</div>
-      </div>`).join('');
+        <div class="${sec.layout==='row' ? 'coach-row' : 'coach-grid'}">${sec.fields.map(fieldHTML).join('')}</div>
+      </div>`).join('') + `
+      <div class="coach-section">
+        <h3>Long-term Vision</h3>
+        <p class="empty" style="padding:4px 0;">Coming soon</p>
+      </div>`;
 
     const memories = allMemoriesFlat().slice().sort((a,b)=> (b.confidence-a.confidence) || (new Date(b.date)-new Date(a.date)) );
     const memoryListHTML = memories.length
       ? `<div class="memory-list">${memories.map(memoryItemHTML).join('')}</div>`
-      : '<p class="empty">No long-term memories yet — they build up automatically as you use Ask Ledger with a Gemini or Mistral key connected.</p>';
+      : '<p class="empty">No long-term memories yet — they build up automatically as you use Ask Lej with a Gemini or Mistral key connected.</p>';
 
     const um = state.userModel||{};
     const hasUserModel = USER_MODEL_FIELDS.some(f=>um[f.key]);
@@ -3181,16 +3237,16 @@
         <div class="coach-back-row">
           <button class="icon-btn" id="coachBackBtn">← Back</button>
         </div>
-        <h2>Coach Profile</h2>
-        <p class="section-intro" style="color:var(--fog);font-size:12.5px;margin:-12px 0 20px;">Tell Ask Ledger who you are so it can coach you like it's known you for months, not seconds. Saved with the rest of your ledger.</p>
+        <h2>Profile</h2>
+        <p class="section-intro" style="color:var(--fog);font-size:12.5px;margin:-12px 0 20px;">Tell Ask Lej who you are so it can coach you like it's known you for months, not seconds. Saved with the rest of your ledger.</p>
         ${profileSectionsHTML}
         <div class="coach-save-row">
-          <button class="icon-btn" id="saveCoachProfileBtn">Save Coach Profile</button>
+          <button class="icon-btn" id="saveCoachProfileBtn">Save Profile</button>
         </div>
       </section>
       <section class="panel">
         <div class="insights-head">
-          <div><h2>User Model</h2><div class="insights-meta">How Ask Ledger reads the way you operate — evolves after every conversation<span class="user-model-meta">${userModelMetaHTML}</span></div></div>
+          <div><h2>User Model</h2><div class="insights-meta">How Ask Lej reads the way you operate — evolves after every conversation<span class="user-model-meta">${userModelMetaHTML}</span></div></div>
           <div class="insights-actions">
             <button class="icon-btn" id="refreshUserModelBtn">${hasUserModel ? '↻ Refresh Now' : '✎ Generate Now'}</button>
           </div>
@@ -3199,7 +3255,7 @@
       </section>
       <section class="panel">
         <div class="insights-head">
-          <div><h2>Coach Memory</h2><div class="insights-meta">Long-term patterns Ask Ledger has learned about you<span class="src-tag">${memoryCount()} stored</span></div></div>
+          <div><h2>Coach Memory</h2><div class="insights-meta">Long-term patterns Ask Lej has learned about you<span class="src-tag">${memoryCount()} stored</span></div></div>
           <div class="insights-actions">
             ${memories.length ? '<button class="icon-btn" id="clearMemoryBtn">Clear All</button>' : ''}
           </div>
@@ -3218,7 +3274,7 @@
       const btn = document.getElementById('refreshUserModelBtn');
       const original = btn.textContent;
       btn.disabled=true; btn.textContent='Thinking…';
-      // Use the most recent Ask Ledger exchange as fresh evidence, if any exists.
+      // Use the most recent Ask Lej exchange as fresh evidence, if any exists.
       const last = (state.askHistory||[]).length ? state.askHistory[state.askHistory.length-1] : null;
       try{
         await updateUserModel(last ? {q:last.q, a:last.a} : null);
@@ -3365,7 +3421,7 @@
   // Generates (or, if force=true, regenerates) the reflection for the
   // current ISO week. Stores it in coachMemory.weeklyReflections keyed by
   // weekKey so it survives independently of the daily insights cache, and
-  // is what Ask Ledger's "RECENT WEEKLY PATTERNS" block actually reads.
+  // is what Ask Lej's "RECENT WEEKLY PATTERNS" block actually reads.
   async function generateWeeklyReflection(force){
     if(!Array.isArray(state.coachMemory.weeklyReflections)) state.coachMemory.weeklyReflections=[];
     const list = state.coachMemory.weeklyReflections;
@@ -3458,7 +3514,7 @@
     const keys = getAIKeys();
     return '<div class="ai-settings" id="aiSettingsPanel" style="display:none;">'+
       '<h3>AI providers (optional)</h3>'+
-      '<p>Add a Gemini or Mistral API key to have your insights written by that model instead of the built-in local coach. Insights tries Mistral first, then Gemini, then the local coach. Ask Ledger tries Gemini first, then Mistral, then the local coach. Keys are stored only in this browser — never synced or sent anywhere except directly to that provider.</p>'+
+      '<p>Add a Gemini or Mistral API key to have your insights written by that model instead of the built-in local coach. Insights tries Mistral first, then Gemini, then the local coach. Ask Lej tries Gemini first, then Mistral, then the local coach. Keys are stored only in this browser — never synced or sent anywhere except directly to that provider.</p>'+
       '<div class="ai-settings-row"><label for="geminiKeyInput">Gemini API key</label><input type="password" id="geminiKeyInput" placeholder="AIza…" value="'+escapeHtml(keys.gemini||'')+'"></div>'+
       '<div class="ai-settings-row"><label for="mistralKeyInput">Mistral API key</label><input type="password" id="mistralKeyInput" placeholder="…" value="'+escapeHtml(keys.mistral||'')+'"></div>'+
       '<div class="ai-settings-foot"><button class="icon-btn" id="saveAIKeysBtn">Save keys</button></div>'+
@@ -3592,16 +3648,15 @@
   }
 
   function startApp(){
-    document.getElementById('resetBtn').onclick=async ()=>{
-      if(!confirm('This clears all time blocks logged for '+humanDate(state.date)+'. Continue?')) return;
-      state.ledgerCache[state.date] = [];
-      await saveLedger(state.date);
-      if(state.activeTab==='today') renderToday();
-      toast('Day reset');
-    };
-
     document.getElementById('saveAllBtn').onclick = saveAllNow;
     document.getElementById('coachProfileBtn').onclick = openCoachProfile;
+    document.getElementById('exportBtn').onclick = exportData;
+    document.getElementById('importBtn').onclick = ()=> document.getElementById('importFileInput').click();
+    document.getElementById('importFileInput').onchange = async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      await importDataFromFile(file);
+      e.target.value = '';
+    };
 
     document.getElementById('todayLabel').textContent = humanDate(todayStr());
 
