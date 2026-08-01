@@ -100,6 +100,13 @@
   .block-form button{background:var(--amber);border:none;color:#1c1406;font-weight:700;padding:8px 14px;border-radius:7px;font-size:13.5px;}
   .block-form button:hover{filter:brightness(1.08);}
 
+  /* Two-level category picker: group dropdown -> cascading category dropdown + delete */
+  .cat-picker{display:flex;gap:6px;flex:2;min-width:220px;}
+  .cat-picker select{flex:1;min-width:0;}
+  .cat-del-btn{flex-shrink:0;width:34px;background:var(--panel-2);border:1px solid var(--line);color:var(--fog);border-radius:7px;font-size:14px;cursor:pointer;}
+  .cat-del-btn:hover{color:var(--coral);border-color:var(--coral);}
+  @media (max-width:760px){.cat-picker{flex-basis:100%;}}
+
   .icon-btn{background:none;border:none;color:var(--fog);font-size:16px;line-height:1;}
   .icon-btn:hover{color:var(--coral);}
 
@@ -211,6 +218,19 @@
   .goal-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
   .goal-card-head h3{font-size:15.5px;font-weight:600;font-family:'Inter';}
   .goal-progress-pct{font-family:'IBM Plex Mono',monospace;color:var(--sage);font-size:12.5px;}
+  .goal-extra-badges{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px;}
+  .goal-extra-badges .badge-note{background:var(--panel-3);color:var(--fog);font-size:12px;padding:4px 9px;border-radius:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .goal-extra-badges a.badge-yt{background:var(--panel-3);color:var(--coral);font-size:12px;padding:4px 9px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+  .goal-extra-badges a.badge-yt:hover{filter:brightness(1.2);}
+  .goal-extra-toggle{background:none;border:1px dashed var(--line);color:var(--fog);font-size:11.5px;padding:4px 9px;border-radius:6px;margin-bottom:10px;}
+  .goal-extra-toggle:hover{color:var(--bone);border-color:var(--fog);}
+  .goal-extra-panel{background:var(--panel-3);border-radius:7px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px;}
+  .goal-extra-panel label{font-size:11px;color:var(--fog);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;display:block;}
+  .goal-extra-panel textarea{width:100%;min-height:60px;resize:vertical;background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;}
+  .goal-extra-panel input[type=url]{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:8px 10px;border-radius:7px;font-size:13px;}
+  .goal-extra-panel .actions{display:flex;gap:8px;justify-content:flex-end;}
+  .goal-extra-panel .actions button{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;}
+  .goal-extra-panel .actions .save-extra{background:var(--amber);color:#1c1406;border:none;}
   .goal-steps{display:flex;flex-direction:column;gap:5px;margin:10px 0;}
   .goal-step{display:flex;align-items:center;gap:8px;font-size:13px;}
   .goal-step.done span{text-decoration:line-through;color:var(--fog);}
@@ -699,47 +719,56 @@
   // Purple = Hobbies & Skills, Pink = Social & Leisure, Teal = Travel, Gray = Chores
   let CATEGORIES = [
     // Work & Growth — blue
-    {id:'work',label:'Work',color:'#2c5a94'},
-    {id:'learning',label:'Learning',color:'#3d6fb4'},
-    {id:'reading',label:'Reading',color:'#5f8ed4'},
-    {id:'research',label:'Research',color:'#86aee0'},
+    {id:'work',label:'Work',color:'#2c5a94',group:'Work & Growth'},
+    {id:'learning',label:'Learning',color:'#3d6fb4',group:'Work & Growth'},
+    {id:'reading',label:'Reading',color:'#5f8ed4',group:'Work & Growth'},
+    {id:'research',label:'Research',color:'#86aee0',group:'Work & Growth'},
     // Health — green
-    {id:'exercise',label:'Exercise',color:'#2f7a4f'},
-    {id:'meals',label:'Meals',color:'#3d9463'},
-    {id:'sleep',label:'Sleep',color:'#5cae7c'},
-    {id:'self_care',label:'Self Care',color:'#7ec49a'},
-    {id:'rest',label:'Rest',color:'#a3d9bb'},
-    {id:'wellness',label:'Wellness',color:'#c3e8d1'},
+    {id:'exercise',label:'Exercise',color:'#2f7a4f',group:'Health'},
+    {id:'meals',label:'Meals',color:'#3d9463',group:'Health'},
+    {id:'sleep',label:'Sleep',color:'#5cae7c',group:'Health'},
+    {id:'sleep_morning',label:'Morning Sleep',color:'#4f9d6e',group:'Health'},
+    {id:'sleep_night',label:'Night Sleep',color:'#3d8a5b',group:'Health'},
+    {id:'self_care',label:'Self Care',color:'#7ec49a',group:'Health'},
+    {id:'rest',label:'Rest',color:'#a3d9bb',group:'Health'},
+    {id:'wellness',label:'Wellness',color:'#c3e8d1',group:'Health'},
     // Family & Kids — orange
-    {id:'family_time',label:'Family Time',color:'#b85a1f'},
-    {id:'kids_playtime',label:'Kids Playtime',color:'#c96020'},
-    {id:'teaching_kids',label:'Teaching Kids',color:'#d9722e'},
-    {id:'giann',label:'Giann',color:'#e0893f'},
-    {id:'kids_bedtime',label:'Kids Bedtime',color:'#eda256'},
-    {id:'kids_school_prep',label:'Kids School Prep',color:'#f0b56f'},
-    {id:'kids_talking_time',label:'Kids Talking Time',color:'#f5c88a'},
-    {id:'personal',label:'Personal',color:'#fad9ab'},
+    {id:'family_time',label:'Family Time',color:'#b85a1f',group:'Family & Kids'},
+    {id:'kids_playtime',label:'Kids Playtime',color:'#c96020',group:'Family & Kids'},
+    {id:'teaching_kids',label:'Teaching Kids',color:'#d9722e',group:'Family & Kids'},
+    {id:'giann',label:'Giann',color:'#e0893f',group:'Family & Kids'},
+    {id:'kids_bedtime',label:'Kids Bedtime',color:'#eda256',group:'Family & Kids'},
+    {id:'kids_school_prep',label:'Kids School Prep',color:'#f0b56f',group:'Family & Kids'},
+    {id:'kids_talking_time',label:'Kids Talking Time',color:'#f5c88a',group:'Family & Kids'},
+    {id:'personal',label:'Personal',color:'#fad9ab',group:'Family & Kids'},
     // Hobbies & Skills — purple
-    {id:'learning_piano',label:'Learning Piano',color:'#6f4ba8'},
-    {id:'learning_flags',label:'Learning Flags',color:'#8a63c9'},
-    {id:'learn_cooking',label:'Learn Cooking',color:'#a583d9'},
-    {id:'listening_to_music',label:'Listening to Music',color:'#c2a3e8'},
-    {id:'program',label:'Program',color:'#d6bcf0'},
+    {id:'learning_piano',label:'Learning Piano',color:'#6f4ba8',group:'Hobbies & Skills'},
+    {id:'learning_flags',label:'Learning Flags',color:'#8a63c9',group:'Hobbies & Skills'},
+    {id:'learn_cooking',label:'Learn Cooking',color:'#a583d9',group:'Hobbies & Skills'},
+    {id:'listening_to_music',label:'Listening to Music',color:'#c2a3e8',group:'Hobbies & Skills'},
+    {id:'program',label:'Program',color:'#d6bcf0',group:'Hobbies & Skills'},
     // Social & Leisure — pink
-    {id:'watching',label:'Watching',color:'#a8306f'},
-    {id:'social_media',label:'Social Media',color:'#c2478a'},
-    {id:'friends_meet',label:'Friends Meet',color:'#d9679f'},
-    {id:'attend_concert',label:'Attend Concert',color:'#e893bc'},
-    {id:'leisure',label:'Leisure',color:'#f0b3d3'},
+    {id:'watching',label:'Watching',color:'#a8306f',group:'Social & Leisure'},
+    {id:'social_media',label:'Social Media',color:'#c2478a',group:'Social & Leisure'},
+    {id:'friends_meet',label:'Friends Meet',color:'#d9679f',group:'Social & Leisure'},
+    {id:'attend_concert',label:'Attend Concert',color:'#e893bc',group:'Social & Leisure'},
+    {id:'leisure',label:'Leisure',color:'#f0b3d3',group:'Social & Leisure'},
     // Travel — teal
-    {id:'travel_work',label:'Travel Work',color:'#1c7a9e'},
-    {id:'travel',label:'Travel',color:'#5cb8dc'},
+    {id:'travel_work',label:'Travel Work',color:'#1c7a9e',group:'Travel'},
+    {id:'travel',label:'Travel',color:'#5cb8dc',group:'Travel'},
     // Chores — gray
-    {id:'cleaning',label:'Cleaning',color:'#5a6473'},
-    {id:'online_shopping',label:'Online Shopping',color:'#7c8494'},
-    {id:'shopping',label:'Shopping',color:'#9aa2b0'},
-    {id:'other',label:'Others',color:'#4a5261'}
+    {id:'cleaning',label:'Cleaning',color:'#5a6473',group:'Chores'},
+    {id:'online_shopping',label:'Online Shopping',color:'#7c8494',group:'Chores'},
+    {id:'shopping',label:'Shopping',color:'#9aa2b0',group:'Chores'},
+    {id:'other',label:'Others',color:'#4a5261',group:'Chores'}
   ];
+  // Fixed display order for the built-in groups; any group a person adds via
+  // the "+ Add new group…" option is appended after these, in the order it
+  // was first created.
+  const GROUP_ORDER = ['Work & Growth','Health','Family & Kids','Hobbies & Skills','Social & Leisure','Travel','Chores'];
+  // Remembers which group was selected in the "add activity" form across
+  // re-renders, so picking a group doesn't reset every time renderToday() runs.
+  let lastSelectedGroup = null;
 
   let state = {
     date: todayStr(),
@@ -748,6 +777,7 @@
     goals: {goals:[]},
     weight: {records:{}},
     customCategories: [],
+    deletedCategories: [],
     activeTab: 'today',
     quality: 3,
     weekCache: null,
@@ -792,6 +822,43 @@
   const CUSTOM_PALETTE = ['#c2185b','#0097a7','#7cb342','#f57c00','#5e35b1','#00838f','#8d6e63','#3949ab'];
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function catOf(id){return CATEGORIES.find(c=>c.id===id)||CATEGORIES[CATEGORIES.length-1];}
+  // Any category that feeds the Sleep tab / dashboard sleep stats. 'sleep' is
+  // the original single-block category, kept for backward compatibility with
+  // logs made before Morning/Night Sleep existed.
+  function isSleepCat(id){ return id==='sleep' || id==='sleep_morning' || id==='sleep_night'; }
+  // ---------- category groups (2-level dropdown: group -> category) ----------
+  function allGroups(){
+    const seen = [];
+    GROUP_ORDER.forEach(g=>{ if(CATEGORIES.some(c=>(c.group||'Custom')===g)) seen.push(g); });
+    CATEGORIES.forEach(c=>{ const g=c.group||'Custom'; if(!seen.includes(g)) seen.push(g); });
+    return seen;
+  }
+  function catsInGroup(group){ return CATEGORIES.filter(c=>(c.group||'Custom')===group); }
+  function groupOfCat(id){ return catOf(id).group || 'Custom'; }
+  function categoryGroupOptionsHTML(selectedGroup){
+    return allGroups().map(g=>`<option value="${escapeHtml(g)}" ${g===selectedGroup?'selected':''}>${escapeHtml(g)}</option>`).join('')
+      + `<option value="__addgroup__">+ Add new group…</option>`;
+  }
+  function categoryOptionsHTML(group, selectedId){
+    return catsInGroup(group).map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${escapeHtml(c.label)}</option>`).join('')
+      + `<option value="__add__">+ Add new category…</option>`;
+  }
+  // Deletes a category everywhere (built-in or custom). Past activities that
+  // used it keep their stored id but display as "Others" via catOf()'s fallback,
+  // so no historical data needs to be migrated.
+  async function deleteCategory(id){
+    if(isSleepCat(id)){ toast('Sleep categories can\'t be deleted — they power sleep tracking'); return false; }
+    if(id==='other'){ toast('Others can\'t be deleted — it\'s the fallback category'); return false; }
+    const cat = catOf(id);
+    if(!confirm(`Delete category "${cat.label}"? Past activities logged under it will show as "Others".`)) return false;
+    CATEGORIES = CATEGORIES.filter(c=>c.id!==id);
+    state.customCategories = state.customCategories.filter(c=>c.id!==id);
+    if(!state.deletedCategories.includes(id)) state.deletedCategories.push(id);
+    await sSet('custom-categories-data', state.customCategories);
+    await sSet('deleted-categories-data', state.deletedCategories);
+    toast('Category deleted');
+    return true;
+  }
   // ---------- render race guard ----------
   // Dashboard/Insights are async and do several `await`s before writing to
   // #view. If the user switches tabs while one of those is still in flight,
@@ -936,10 +1003,11 @@
   async function saveAllNow(){
     const btn = document.getElementById('saveAllBtn');
     if(btn){ btn.disabled=true; btn.title='Saving…'; btn.setAttribute('aria-label','Saving…'); }
-    const keys = ['sleep-data','goals-data','weight-data','custom-categories-data','coach-profile-data','coach-memory-data','user-model-data', ...Object.keys(state.ledgerCache).map(d=>'ledger:'+d)];
+    const keys = ['sleep-data','goals-data','weight-data','custom-categories-data','deleted-categories-data','coach-profile-data','coach-memory-data','user-model-data', ...Object.keys(state.ledgerCache).map(d=>'ledger:'+d)];
     const values = {
       'sleep-data': state.sleep, 'goals-data': state.goals,
       'weight-data': state.weight, 'custom-categories-data': state.customCategories,
+      'deleted-categories-data': state.deletedCategories,
       'coach-profile-data': state.coachProfile, 'coach-memory-data': state.coachMemory,
       'user-model-data': state.userModel
     };
@@ -1014,11 +1082,12 @@
 
 
   async function loadAll(){
-    const [sleep, goals, weight, customCategories, todayBlocks, insightsCache, coachThread, askHistory, coachProfile, coachMemory, userModel] = await Promise.all([
+    const [sleep, goals, weight, customCategories, deletedCategories, todayBlocks, insightsCache, coachThread, askHistory, coachProfile, coachMemory, userModel] = await Promise.all([
       sGet('sleep-data', {records:{}}),
       sGet('goals-data', {goals:[]}),
       sGet('weight-data', {records:{}}),
       sGet('custom-categories-data', []),
+      sGet('deleted-categories-data', []),
       sGet('ledger:'+state.date, []),
       sGet('insights-cache:'+todayStr(), null),
       sGet('coach-thread', []),
@@ -1042,7 +1111,9 @@
     if(!state.weight.records || typeof state.weight.records!=='object') state.weight.records = {};
 
     state.customCategories = Array.isArray(customCategories) ? customCategories : [];
-    state.customCategories.forEach(c=>{ if(!CATEGORIES.some(x=>x.id===c.id)) CATEGORIES.push(c); });
+    state.customCategories.forEach(c=>{ if(!c.group) c.group='Custom'; if(!CATEGORIES.some(x=>x.id===c.id)) CATEGORIES.push(c); });
+    state.deletedCategories = Array.isArray(deletedCategories) ? deletedCategories : [];
+    if(state.deletedCategories.length){ CATEGORIES = CATEGORIES.filter(c=>!state.deletedCategories.includes(c.id)); }
     state.ledgerCache[state.date] = todayBlocks;
     state.insightsCache = insightsCache;
     state.coachThread = coachThread || [];
@@ -1108,10 +1179,17 @@
   let editingBlockId = null;
   function editFormHTML(b){
     const h = Math.floor(b.duration/60), m = b.duration%60;
+    const group = groupOfCat(b.category);
     return `<div class="activity-edit" data-edit-id="${b.id}">
       <div class="row">
         <input type="text" class="editTask" value="${escapeHtml(b.task)}" maxlength="60" placeholder="Description">
-        <select class="editCategory">${CATEGORIES.map(c=>`<option value="${c.id}" ${c.id===b.category?'selected':''}>${c.label}</option>`).join('')}</select>
+      </div>
+      <div class="row">
+        <div class="cat-picker">
+          <select class="editCategoryGroup">${categoryGroupOptionsHTML(group)}</select>
+          <select class="editCategory">${categoryOptionsHTML(group, b.category)}</select>
+          <button type="button" class="cat-del-btn editCategoryDel" title="Delete this category">🗑</button>
+        </div>
       </div>
       <div class="row">
         <input type="number" class="editHours" min="0" max="24" value="${h}" placeholder="h">
@@ -1160,7 +1238,11 @@
         <div class="ledger-col">
           <form id="blockForm" class="block-form">
             <input type="text" id="taskInput" placeholder="e.g. Stretch, Sleep, Deep work (optional)" maxlength="60">
-            <select id="categorySelect">${CATEGORIES.map(c=>`<option value="${c.id}">${c.label}</option>`).join('')}<option value="__add__">+ Add new category…</option></select>
+            <div class="cat-picker">
+              <select id="categoryGroupSelect">${categoryGroupOptionsHTML(lastSelectedGroup && allGroups().includes(lastSelectedGroup) ? lastSelectedGroup : allGroups()[0])}</select>
+              <select id="categorySelect">${categoryOptionsHTML(lastSelectedGroup && allGroups().includes(lastSelectedGroup) ? lastSelectedGroup : allGroups()[0], null)}</select>
+              <button type="button" id="categoryDelBtn" class="cat-del-btn" title="Delete this category">🗑</button>
+            </div>
             <input type="number" id="durHours" min="0" max="24" placeholder="h">
             <input type="number" id="durMins" min="0" max="59" placeholder="m">
             <button type="submit">Add</button>
@@ -1178,10 +1260,35 @@
     document.getElementById('prevDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,-1); await loadLedger(state.date); renderToday(); };
     document.getElementById('nextDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,1); await loadLedger(state.date); renderToday(); };
     document.getElementById('dateInput').onchange = async (e)=>{ editingBlockId=null; state.date=e.target.value; await loadLedger(state.date); renderToday(); };
+    document.getElementById('categoryGroupSelect').onchange = async (e)=>{
+      const groupSel = e.target;
+      if(groupSel.value === '__addgroup__'){
+        const groupName = (prompt('New group name (e.g. Kids):')||'').trim();
+        if(!groupName){ groupSel.value = lastSelectedGroup && allGroups().includes(lastSelectedGroup) ? lastSelectedGroup : allGroups()[0]; return; }
+        if(allGroups().includes(groupName)){ toast('That group already exists'); groupSel.value = groupName; document.getElementById('categorySelect').innerHTML = categoryOptionsHTML(groupName, null); return; }
+        const catLabel = (prompt(`First category under "${groupName}" (e.g. Playing):`)||'').trim();
+        if(!catLabel){ toast('A group needs at least one category'); groupSel.value = lastSelectedGroup && allGroups().includes(lastSelectedGroup) ? lastSelectedGroup : allGroups()[0]; return; }
+        const id = slugify(catLabel);
+        if(CATEGORIES.some(c=>c.id===id)){ toast('That category already exists'); return; }
+        const color = CUSTOM_PALETTE[state.customCategories.length % CUSTOM_PALETTE.length];
+        const newCat = {id, label:catLabel, color, group:groupName};
+        CATEGORIES.push(newCat);
+        state.customCategories.push(newCat);
+        await sSet('custom-categories-data', state.customCategories);
+        lastSelectedGroup = groupName;
+        renderToday();
+        document.getElementById('categoryGroupSelect').value = groupName;
+        document.getElementById('categorySelect').value = id;
+        return;
+      }
+      lastSelectedGroup = groupSel.value;
+      document.getElementById('categorySelect').innerHTML = categoryOptionsHTML(groupSel.value, null);
+    };
     document.getElementById('categorySelect').onchange = async (e)=>{
       if(e.target.value !== '__add__') return;
-      const label = prompt('New category name:');
-      if(!label || !label.trim()){ e.target.value = CATEGORIES[0].id; return; }
+      const group = document.getElementById('categoryGroupSelect').value;
+      const label = (prompt(`New category under "${group}":`)||'').trim();
+      if(!label){ e.target.value = catsInGroup(group)[0]?.id || ''; return; }
       const id = slugify(label);
       if(CATEGORIES.some(c=>c.id===id)){
         toast('That category already exists');
@@ -1189,17 +1296,31 @@
         return;
       }
       const color = CUSTOM_PALETTE[state.customCategories.length % CUSTOM_PALETTE.length];
-      const newCat = {id, label:label.trim(), color};
+      const newCat = {id, label, color, group};
       CATEGORIES.push(newCat);
       state.customCategories.push(newCat);
       await sSet('custom-categories-data', state.customCategories);
+      lastSelectedGroup = group;
       renderToday();
+      document.getElementById('categoryGroupSelect').value = group;
       document.getElementById('categorySelect').value = id;
+    };
+    document.getElementById('categoryDelBtn').onclick = async ()=>{
+      const catSel = document.getElementById('categorySelect');
+      const id = catSel.value;
+      if(id === '__add__') return;
+      const group = document.getElementById('categoryGroupSelect').value;
+      const ok = await deleteCategory(id);
+      if(ok){
+        lastSelectedGroup = allGroups().includes(group) ? group : (allGroups()[0] || null);
+        renderToday();
+      }
     };
     document.getElementById('blockForm').onsubmit = async (e)=>{
       e.preventDefault();
       const task = document.getElementById('taskInput').value.trim();
       const category = document.getElementById('categorySelect').value;
+      if(category==='__add__' || category==='__addgroup__') return;
       const h = parseInt(document.getElementById('durHours').value)||0;
       const m = parseInt(document.getElementById('durMins').value)||0;
       const duration = h*60+m;
@@ -1209,7 +1330,7 @@
       const block = {id:uid(), task: task || catOf(category).label, category, duration};
       arr.push(block);
       await saveLedger(date);
-      if(category==='sleep'){ await syncSleepFromToday(date); }
+      if(isSleepCat(category)){ await syncSleepFromToday(date); }
       renderToday();
     };
     document.getElementById('blocksList').addEventListener('click', async (e)=>{
@@ -1220,7 +1341,7 @@
         const removed = state.ledgerCache[date].find(b=>b.id===delBtn.dataset.id);
         state.ledgerCache[date] = state.ledgerCache[date].filter(b=>b.id!==delBtn.dataset.id);
         await saveLedger(date);
-        if(removed && removed.category==='sleep'){ await syncSleepFromToday(date); }
+        if(removed && isSleepCat(removed.category)){ await syncSleepFromToday(date); }
         if(editingBlockId===delBtn.dataset.id) editingBlockId=null;
         renderToday();
         return;
@@ -1235,9 +1356,25 @@
         const removed = state.ledgerCache[date].find(b=>b.id===id);
         state.ledgerCache[date] = state.ledgerCache[date].filter(b=>b.id!==id);
         await saveLedger(date);
-        if(removed && removed.category==='sleep'){ await syncSleepFromToday(date); }
+        if(removed && isSleepCat(removed.category)){ await syncSleepFromToday(date); }
         editingBlockId=null;
         renderToday();
+        return;
+      }
+
+      const catDelBtn = e.target.closest('.editCategoryDel');
+      if(catDelBtn){
+        const panel = catDelBtn.closest('.activity-edit');
+        const groupSel = panel.querySelector('.editCategoryGroup');
+        const catSel = panel.querySelector('.editCategory');
+        const id = catSel.value;
+        if(id === '__add__') return;
+        const ok = await deleteCategory(id);
+        if(ok){
+          const group = allGroups().includes(groupSel.value) ? groupSel.value : (allGroups()[0] || null);
+          groupSel.innerHTML = categoryGroupOptionsHTML(group);
+          catSel.innerHTML = categoryOptionsHTML(group, null);
+        }
         return;
       }
 
@@ -1247,15 +1384,16 @@
         const id = panel.dataset.editId;
         const task = panel.querySelector('.editTask').value.trim();
         const category = panel.querySelector('.editCategory').value;
+        if(category==='__add__' || category==='__addgroup__') return;
         const hh = parseInt(panel.querySelector('.editHours').value)||0;
         const mm = parseInt(panel.querySelector('.editMins').value)||0;
         const duration = hh*60+mm;
         if(duration<=0){ toast('Add a duration above 0'); return; }
         const blk = state.ledgerCache[date].find(x=>x.id===id);
-        const wasSleep = blk.category==='sleep';
+        const wasSleep = isSleepCat(blk.category);
         blk.task = task || catOf(category).label; blk.category = category; blk.duration = duration;
         await saveLedger(date);
-        if(wasSleep || category==='sleep'){ await syncSleepFromToday(date); }
+        if(wasSleep || isSleepCat(category)){ await syncSleepFromToday(date); }
         editingBlockId=null;
         renderToday();
         return;
@@ -1268,24 +1406,88 @@
         renderToday();
       }
     });
+    document.getElementById('blocksList').addEventListener('change', async (e)=>{
+      const date = state.date;
+
+      const groupSel = e.target.closest('.editCategoryGroup');
+      if(groupSel){
+        const panel = groupSel.closest('.activity-edit');
+        const catSel = panel.querySelector('.editCategory');
+        const blk = state.ledgerCache[date].find(x=>x.id===panel.dataset.editId);
+        if(groupSel.value === '__addgroup__'){
+          const groupName = (prompt('New group name (e.g. Kids):')||'').trim();
+          if(!groupName){ groupSel.value = groupOfCat(blk.category); return; }
+          if(allGroups().includes(groupName)){ toast('That group already exists'); groupSel.value = groupName; catSel.innerHTML = categoryOptionsHTML(groupName, null); return; }
+          const catLabel = (prompt(`First category under "${groupName}" (e.g. Playing):`)||'').trim();
+          if(!catLabel){ toast('A group needs at least one category'); groupSel.value = groupOfCat(blk.category); return; }
+          const id = slugify(catLabel);
+          if(CATEGORIES.some(c=>c.id===id)){ toast('That category already exists'); return; }
+          const color = CUSTOM_PALETTE[state.customCategories.length % CUSTOM_PALETTE.length];
+          const newCat = {id, label:catLabel, color, group:groupName};
+          CATEGORIES.push(newCat);
+          state.customCategories.push(newCat);
+          await sSet('custom-categories-data', state.customCategories);
+          groupSel.innerHTML = categoryGroupOptionsHTML(groupName);
+          catSel.innerHTML = categoryOptionsHTML(groupName, id);
+          return;
+        }
+        catSel.innerHTML = categoryOptionsHTML(groupSel.value, null);
+        return;
+      }
+
+      const catSel = e.target.closest('.editCategory');
+      if(catSel){
+        if(catSel.value !== '__add__') return;
+        const panel = catSel.closest('.activity-edit');
+        const groupSel2 = panel.querySelector('.editCategoryGroup');
+        const group = groupSel2.value;
+        const blk = state.ledgerCache[date].find(x=>x.id===panel.dataset.editId);
+        const label = (prompt(`New category under "${group}":`)||'').trim();
+        if(!label){ catSel.value = (groupOfCat(blk.category)===group) ? blk.category : (catsInGroup(group)[0]?.id || ''); return; }
+        const id = slugify(label);
+        if(CATEGORIES.some(c=>c.id===id)){ toast('That category already exists'); catSel.value = id; return; }
+        const color = CUSTOM_PALETTE[state.customCategories.length % CUSTOM_PALETTE.length];
+        const newCat = {id, label, color, group};
+        CATEGORIES.push(newCat);
+        state.customCategories.push(newCat);
+        await sSet('custom-categories-data', state.customCategories);
+        catSel.innerHTML = categoryOptionsHTML(group, id);
+      }
+    });
   }
 
   // ---------- cross-tab sync helpers ----------
-  async function syncSleepFromToday(date){
-    const blocks = state.ledgerCache[date] || await loadLedger(date);
-    const sleepBlocks = blocks.filter(b=>b.category==='sleep');
-    const totalMin = sleepBlocks.reduce((s,b)=>s+b.duration,0);
+  // A "wake day" record represents the sleep a person gets before waking up
+  // that day: Night Sleep logged the evening before (prevDate) plus Morning
+  // Sleep — and legacy single-block Sleep, for logs made before the split —
+  // logged that same morning (wakeDate). This is what the Sleep tab,
+  // dashboard, and insights all read as "that day's sleep."
+  async function syncSleepRecordForWakeDay(wakeDate){
+    const prevDate = shiftDate(wakeDate, -1);
+    const morningBlocks = state.ledgerCache[wakeDate] || await loadLedger(wakeDate);
+    const nightBlocks = state.ledgerCache[prevDate] || await loadLedger(prevDate);
+    const morningMin = morningBlocks.filter(b=>b.category==='sleep_morning' || b.category==='sleep').reduce((s,b)=>s+b.duration,0);
+    const nightMin = nightBlocks.filter(b=>b.category==='sleep_night').reduce((s,b)=>s+b.duration,0);
+    const totalMin = morningMin + nightMin;
     if(totalMin<=0){
-      if(state.sleep.records[date]){ delete state.sleep.records[date]; await sSet('sleep-data', state.sleep); }
+      if(state.sleep.records[wakeDate]){ delete state.sleep.records[wakeDate]; await sSet('sleep-data', state.sleep); }
       return;
     }
-    const existing = state.sleep.records[date] || {};
-    state.sleep.records[date] = {
+    const existing = state.sleep.records[wakeDate] || {};
+    state.sleep.records[wakeDate] = {
       duration: totalMin,
       quality: existing.quality || 3,
       notes: existing.notes || ''
     };
     await sSet('sleep-data', state.sleep);
+  }
+  // A sleep-family block logged on `date` can affect two wake-day records:
+  // `date` itself (if it's Morning/legacy Sleep) and `date`+1 (if it's Night
+  // Sleep, which counts toward the following morning's wake day). Resync
+  // both so it doesn't matter which sub-category was actually touched.
+  async function syncSleepFromToday(date){
+    await syncSleepRecordForWakeDay(date);
+    await syncSleepRecordForWakeDay(shiftDate(date, 1));
   }
   // ---------- render: Weight ----------
   function bmiValue(kg, cm){
@@ -1507,6 +1709,10 @@
   }
 
   // ---------- render: Goals ----------
+  // Tracks which goals currently have their Notes/YouTube editor open.
+  // UI-only state — intentionally not persisted, so panels start collapsed on load.
+  const openGoalExtras = new Set();
+
   // Shared progress math so the card, the dashboard, and the summary label agree.
   function goalPct(g){
     const type=g.type||'checklist';
@@ -1576,6 +1782,39 @@
           <button type="submit">Add</button>
         </form>`;
     }
+    const hasNote = !!(g.notes && g.notes.trim());
+    const hasYT = !!(g.youtube && g.youtube.trim());
+    const isOpen = openGoalExtras.has(g.id);
+
+    let badges = '';
+    if(!isOpen && (hasNote || hasYT)){
+      badges = `<div class="goal-extra-badges">
+        ${hasNote? `<span class="badge-note" title="${escapeHtml(g.notes)}">📝 ${escapeHtml(g.notes)}</span>` : ''}
+        ${hasYT? `<a class="badge-yt" href="${escapeHtml(g.youtube)}" target="_blank" rel="noopener noreferrer">▶ Watch video</a>` : ''}
+      </div>`;
+    }
+
+    const toggleLabel = isOpen ? 'Close notes & link' : (hasNote || hasYT ? 'Edit notes & link' : '+ Add notes / YouTube link');
+    const toggleBtn = `<button type="button" class="goal-extra-toggle" data-id="${g.id}">${toggleLabel}</button>`;
+
+    let extraPanel = '';
+    if(isOpen){
+      extraPanel = `<form class="goal-extra-panel" data-goal="${g.id}">
+        <div>
+          <label for="note-${g.id}">Notes</label>
+          <textarea id="note-${g.id}" placeholder="Optional notes for this goal…" maxlength="500">${escapeHtml(g.notes||'')}</textarea>
+        </div>
+        <div>
+          <label for="yt-${g.id}">YouTube link</label>
+          <input type="url" id="yt-${g.id}" placeholder="https://youtube.com/watch?v=…" value="${escapeHtml(g.youtube||'')}">
+        </div>
+        <div class="actions">
+          <button type="button" class="cancel-extra" data-id="${g.id}">Cancel</button>
+          <button type="submit" class="save-extra">Save</button>
+        </div>
+      </form>`;
+    }
+
     return `<div class="goal-card" data-id="${g.id}">
       <div class="goal-card-head">
         <h3>${escapeHtml(g.title)}</h3>
@@ -1585,6 +1824,9 @@
         </div>
       </div>
       ${body}
+      ${badges}
+      ${toggleBtn}
+      ${extraPanel}
     </div>`;
   }
   function renderGoals(){
@@ -1651,6 +1893,21 @@
     list.addEventListener('click', async (e)=>{
       const del=e.target.closest('.del-goal');
       if(del){ state.goals.goals=state.goals.goals.filter(g=>g.id!==del.dataset.id); await sSet('goals-data', state.goals); renderGoals(); return; }
+
+      const toggle=e.target.closest('.goal-extra-toggle');
+      if(toggle){
+        if(openGoalExtras.has(toggle.dataset.id)) openGoalExtras.delete(toggle.dataset.id);
+        else openGoalExtras.add(toggle.dataset.id);
+        renderGoals();
+        return;
+      }
+
+      const cancel=e.target.closest('.cancel-extra');
+      if(cancel){
+        openGoalExtras.delete(cancel.dataset.id);
+        renderGoals();
+        return;
+      }
     });
     list.addEventListener('change', async (e)=>{
       const cb=e.target.closest('.step-check'); if(!cb) return;
@@ -1679,6 +1936,20 @@
         if(isNaN(val)) return;
         if(kind==='count') goal.count.current=val;
         else if(kind==='range') goal.range.current=val;
+        await sSet('goals-data', state.goals);
+        renderGoals();
+        return;
+      }
+      if(e.target.classList.contains('goal-extra-panel')){
+        e.preventDefault();
+        const goalId=e.target.dataset.goal;
+        const goal=state.goals.goals.find(g=>g.id===goalId);
+        if(!goal) return;
+        const note=e.target.querySelector('textarea').value.trim();
+        const yt=e.target.querySelector('input[type=url]').value.trim();
+        goal.notes = note || undefined;
+        goal.youtube = yt || undefined;
+        openGoalExtras.delete(goalId);
         await sSet('goals-data', state.goals);
         renderGoals();
       }
