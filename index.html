@@ -821,6 +821,14 @@
   function slugify(s){ return s.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || 'custom_'+uid(); }
   const CUSTOM_PALETTE = ['#c2185b','#0097a7','#7cb342','#f57c00','#5e35b1','#00838f','#8d6e63','#3949ab'];
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  // Group/category names come from prompt() as free text and get stored,
+  // then rendered in many places. escapeHtml() at each render site is the
+  // real defense, but stripping markup-significant characters here too
+  // means a raw label can never contain HTML in the first place, and it
+  // keeps the stored value itself clean (e.g. for export/AI-prompt use,
+  // which don't go through escapeHtml). Also caps length so a pasted
+  // essay can't blow out layout.
+  function sanitizeLabel(s){ return String(s).replace(/[<>]/g,'').trim().slice(0,40); }
   function catOf(id){return CATEGORIES.find(c=>c.id===id)||CATEGORIES[CATEGORIES.length-1];}
   // Any category that feeds the Sleep tab / dashboard sleep stats. 'sleep' is
   // the original single-block category, kept for backward compatibility with
@@ -1209,7 +1217,7 @@
       <span class="activity-swatch" style="background:${cat.color}"></span>
       <div class="activity-main">
         <span class="activity-task">${escapeHtml(b.task)}</span>
-        <span class="activity-meta">${cat.label} · ${minutesToHM(b.duration)}</span>
+        <span class="activity-meta">${escapeHtml(cat.label)} · ${minutesToHM(b.duration)}</span>
       </div>
       <button class="icon-btn del-block activity-del" data-id="${b.id}" aria-label="Delete ${escapeHtml(b.task)}">×</button>
     </div>`;
@@ -1263,10 +1271,10 @@
     document.getElementById('categoryGroupSelect').onchange = async (e)=>{
       const groupSel = e.target;
       if(groupSel.value === '__addgroup__'){
-        const groupName = (prompt('New group name (e.g. Kids):')||'').trim();
+        const groupName = sanitizeLabel(prompt('New group name (e.g. Kids):')||'');
         if(!groupName){ groupSel.value = lastSelectedGroup && allGroups().includes(lastSelectedGroup) ? lastSelectedGroup : allGroups()[0]; return; }
         if(allGroups().includes(groupName)){ toast('That group already exists'); groupSel.value = groupName; document.getElementById('categorySelect').innerHTML = categoryOptionsHTML(groupName, null); return; }
-        const catLabel = (prompt(`First category under "${groupName}" (e.g. Playing):`)||'').trim();
+        const catLabel = sanitizeLabel(prompt(`First category under "${groupName}" (e.g. Playing):`)||'');
         if(!catLabel){ toast('A group needs at least one category'); groupSel.value = lastSelectedGroup && allGroups().includes(lastSelectedGroup) ? lastSelectedGroup : allGroups()[0]; return; }
         const id = slugify(catLabel);
         if(CATEGORIES.some(c=>c.id===id)){ toast('That category already exists'); return; }
@@ -1287,7 +1295,7 @@
     document.getElementById('categorySelect').onchange = async (e)=>{
       if(e.target.value !== '__add__') return;
       const group = document.getElementById('categoryGroupSelect').value;
-      const label = (prompt(`New category under "${group}":`)||'').trim();
+      const label = sanitizeLabel(prompt(`New category under "${group}":`)||'');
       if(!label){ e.target.value = catsInGroup(group)[0]?.id || ''; return; }
       const id = slugify(label);
       if(CATEGORIES.some(c=>c.id===id)){
@@ -1415,10 +1423,10 @@
         const catSel = panel.querySelector('.editCategory');
         const blk = state.ledgerCache[date].find(x=>x.id===panel.dataset.editId);
         if(groupSel.value === '__addgroup__'){
-          const groupName = (prompt('New group name (e.g. Kids):')||'').trim();
+          const groupName = sanitizeLabel(prompt('New group name (e.g. Kids):')||'');
           if(!groupName){ groupSel.value = groupOfCat(blk.category); return; }
           if(allGroups().includes(groupName)){ toast('That group already exists'); groupSel.value = groupName; catSel.innerHTML = categoryOptionsHTML(groupName, null); return; }
-          const catLabel = (prompt(`First category under "${groupName}" (e.g. Playing):`)||'').trim();
+          const catLabel = sanitizeLabel(prompt(`First category under "${groupName}" (e.g. Playing):`)||'');
           if(!catLabel){ toast('A group needs at least one category'); groupSel.value = groupOfCat(blk.category); return; }
           const id = slugify(catLabel);
           if(CATEGORIES.some(c=>c.id===id)){ toast('That category already exists'); return; }
@@ -1442,7 +1450,7 @@
         const groupSel2 = panel.querySelector('.editCategoryGroup');
         const group = groupSel2.value;
         const blk = state.ledgerCache[date].find(x=>x.id===panel.dataset.editId);
-        const label = (prompt(`New category under "${group}":`)||'').trim();
+        const label = sanitizeLabel(prompt(`New category under "${group}":`)||'');
         if(!label){ catSel.value = (groupOfCat(blk.category)===group) ? blk.category : (catsInGroup(group)[0]?.id || ''); return; }
         const id = slugify(label);
         if(CATEGORIES.some(c=>c.id===id)){ toast('That category already exists'); catSel.value = id; return; }
@@ -1555,9 +1563,9 @@
     const stepX = entries.length>1 ? (w-padL-15)/(entries.length-1) : 0;
     const coords = entries.map((e,i)=>({x:padL+i*stepX, y:h-padB-((e.weight-lo)/(hi-lo))*(h-padB-padT)}));
     const path = coords.map((c,i)=>(i===0?'M':'L')+c.x.toFixed(1)+' '+c.y.toFixed(1)).join(' ');
-    const dots = coords.map((c,i)=>`<circle cx="${c.x}" cy="${c.y}" r="3.5" fill="var(--sage)"><title>${entries[i].date}: ${entries[i].weight}kg</title></circle>`).join('');
+    const dots = coords.map((c,i)=>`<circle cx="${c.x}" cy="${c.y}" r="3.5" fill="var(--sage)"><title>${escapeHtml(entries[i].date)}: ${entries[i].weight}kg</title></circle>`).join('');
     const skip=Math.ceil(entries.length/6)||1;
-    const labels = coords.map((c,i)=> i%skip===0 ? `<text x="${c.x}" y="${h-6}" text-anchor="middle" class="trend-axis">${entries[i].date.slice(5)}</text>`:'').join('');
+    const labels = coords.map((c,i)=> i%skip===0 ? `<text x="${c.x}" y="${h-6}" text-anchor="middle" class="trend-axis">${escapeHtml(entries[i].date.slice(5))}</text>`:'').join('');
     const yLabels = `<text x="2" y="${padT+4}" class="trend-axis">${hi.toFixed(1)}</text><text x="2" y="${h-padB}" class="trend-axis">${lo.toFixed(1)}</text>`;
     return `<svg viewBox="0 0 ${w} ${h}" class="trend-svg">${yLabels}<path d="${path}" fill="none" stroke="var(--sage)" stroke-width="2"/>${dots}${labels}</svg>`;
   }
@@ -2228,7 +2236,7 @@
       const t = totalsByCat[c.id];
       const pct = grand? Math.round(t/grand*100) : 0;
       return `<div class="cat-bar-row">
-        <span class="cat-bar-label"><i style="background:${c.color}"></i>${c.label}</span>
+        <span class="cat-bar-label"><i style="background:${c.color}"></i>${escapeHtml(c.label)}</span>
         <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
         <span class="mono cat-bar-val">${minutesToHM(t)}</span>
       </div>`;
@@ -2377,11 +2385,11 @@
   }
 
   function recordCardHTML(icon, label, valueText, subText){
-    return '<div class="record-card">'+
-      '<div class="record-head"><span class="record-icon">'+icon+'</span><span class="record-label">'+escapeHtml(label)+'</span></div>'+
-      '<p class="record-value">'+valueText+'</p>'+
-      (subText?'<p class="record-sub">'+subText+'</p>':'')+
-    '</div>';
+    return `<div class="record-card">
+      <div class="record-head"><span class="record-icon">${icon}</span><span class="record-label">${escapeHtml(label)}</span></div>
+      <p class="record-value">${valueText}</p>
+      ${subText?`<p class="record-sub">${subText}</p>`:''}
+    </div>`;
   }
 
   function personalBestsHTML(allDays){
@@ -2406,12 +2414,12 @@
     const pct = target>0 ? Math.min(100, Math.round(current/target*100)) : 0;
     const complete = current>=target && target>0;
     const color = complete ? 'var(--sage)' : 'var(--amber)';
-    return '<div class="challenge-card'+(complete?' is-complete':'')+'">'+
-      '<div class="challenge-head"><span class="challenge-icon">'+icon+'</span><span class="challenge-label">'+escapeHtml(label)+'</span>'+
-      (complete?'<span class="challenge-check">✓ Done</span>':'')+
-      '<span class="challenge-val mono">'+fmt(current)+' / '+fmt(target)+'</span></div>'+
-      '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
-    '</div>';
+    return `<div class="challenge-card${complete?' is-complete':''}">
+      <div class="challenge-head"><span class="challenge-icon">${icon}</span><span class="challenge-label">${escapeHtml(label)}</span>
+      ${complete?'<span class="challenge-check">✓ Done</span>':''}
+      <span class="challenge-val mono">${fmt(current)} / ${fmt(target)}</span></div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
   }
   const dayCountFmt = v=>v+(v===1?' day':' days');
 
@@ -3774,36 +3782,36 @@
   const SOURCE_LABEL = {gemini:'Gemini', mistral:'Mistral', local:'Local coach'};
 
   function insightCardHTML(c){
-    return '<div class="insight-card tone-'+escapeHtml(c.tone||'neutral')+'">'+
-      '<div class="insight-card-head"><span class="insight-card-icon">'+escapeHtml(c.icon||'✨')+'</span>'+
-        '<span class="insight-card-title">'+escapeHtml(c.title)+'</span></div>'+
-      '<p class="insight-card-body">'+escapeHtml(c.text)+'</p>'+
-    '</div>';
+    return `<div class="insight-card tone-${escapeHtml(c.tone||'neutral')}">
+      <div class="insight-card-head"><span class="insight-card-icon">${escapeHtml(c.icon||'✨')}</span>
+        <span class="insight-card-title">${escapeHtml(c.title)}</span></div>
+      <p class="insight-card-body">${escapeHtml(c.text)}</p>
+    </div>`;
   }
 
   function aiSettingsHTML(){
     const keys = getAIKeys();
-    return '<div class="ai-settings" id="aiSettingsPanel" style="display:none;">'+
-      '<h3>AI providers (optional)</h3>'+
-      '<p>Add a Gemini or Mistral API key to have your insights written by that model instead of the built-in local coach. Insights tries Mistral first, then Gemini, then the local coach. Ask Lej tries Gemini first, then Mistral, then the local coach. Keys are stored only in this browser — never synced or sent anywhere except directly to that provider.</p>'+
-      '<div class="ai-settings-row"><label for="geminiKeyInput">Gemini API key</label><input type="password" id="geminiKeyInput" placeholder="AIza…" value="'+escapeHtml(keys.gemini||'')+'"></div>'+
-      '<div class="ai-settings-row"><label for="mistralKeyInput">Mistral API key</label><input type="password" id="mistralKeyInput" placeholder="…" value="'+escapeHtml(keys.mistral||'')+'"></div>'+
-      '<div class="ai-settings-foot"><button class="icon-btn" id="saveAIKeysBtn">Save keys</button></div>'+
-    '</div>';
+    return `<div class="ai-settings" id="aiSettingsPanel" style="display:none;">
+      <h3>AI providers (optional)</h3>
+      <p>Add a Gemini or Mistral API key to have your insights written by that model instead of the built-in local coach. Insights tries Mistral first, then Gemini, then the local coach. Ask Lej tries Gemini first, then Mistral, then the local coach. Keys are stored only in this browser — never synced or sent anywhere except directly to that provider.</p>
+      <div class="ai-settings-row"><label for="geminiKeyInput">Gemini API key</label><input type="password" id="geminiKeyInput" placeholder="AIza…" value="${escapeHtml(keys.gemini||'')}"></div>
+      <div class="ai-settings-row"><label for="mistralKeyInput">Mistral API key</label><input type="password" id="mistralKeyInput" placeholder="…" value="${escapeHtml(keys.mistral||'')}"></div>
+      <div class="ai-settings-foot"><button class="icon-btn" id="saveAIKeysBtn">Save keys</button></div>
+    </div>`;
   }
 
   function insightsShellHTML(bodyHTML, metaHTML){
-    return '<section class="panel">'+
-      '<div class="insights-head">'+
-        '<div><h2>Insights</h2><div class="insights-meta">What your data means'+(metaHTML||'')+'</div></div>'+
-        '<div class="insights-actions">'+
-          '<button class="icon-btn" id="toggleAISettingsBtn"><span class="gear">⚙</span> Providers</button>'+
-          '<button class="icon-btn" id="refreshInsightsBtn">↻ Refresh</button>'+
-        '</div>'+
-      '</div>'+
-      aiSettingsHTML()+
-      bodyHTML+
-    '</section>';
+    return `<section class="panel">
+      <div class="insights-head">
+        <div><h2>Insights</h2><div class="insights-meta">What your data means${metaHTML||''}</div></div>
+        <div class="insights-actions">
+          <button class="icon-btn" id="toggleAISettingsBtn"><span class="gear">⚙</span> Providers</button>
+          <button class="icon-btn" id="refreshInsightsBtn">↻ Refresh</button>
+        </div>
+      </div>
+      ${aiSettingsHTML()}
+      ${bodyHTML}
+    </section>`;
   }
 
   function bindInsightsControls(onRefresh){
@@ -3824,10 +3832,10 @@
   function coachThreadHTML(){
     const entries = (state.coachThread||[]).slice(-6);
     if(entries.length<2) return '';
-    return '<div class="coach-thread"><h3>Coaching Thread</h3>'+
-      entries.map(t=>'<div class="coach-thread-item"><div class="coach-thread-date">'+escapeHtml(t.weekday||t.date)+'</div>'+
-        '<div class="coach-thread-note">'+escapeHtml(t.note)+'</div></div>').join('')+
-    '</div>';
+    return `<div class="coach-thread"><h3>Coaching Thread</h3>
+      ${entries.map(t=>`<div class="coach-thread-item"><div class="coach-thread-date">${escapeHtml(t.weekday||t.date)}</div>
+        <div class="coach-thread-note">${escapeHtml(t.note)}</div></div>`).join('')}
+    </div>`;
   }
 
   async function renderInsights(ticket){
