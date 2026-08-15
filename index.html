@@ -21,6 +21,18 @@
     --line: rgba(237,239,243,0.09);
     --radius: 10px;
   }
+  html[data-theme="light"]{
+    --ink:#f4f1ea;
+    --panel:#ffffff;
+    --panel-2:#f6f4ef;
+    --panel-3:#ece8df;
+    --fog:#6b7280;
+    --bone:#1f2430;
+    --amber:#c9822a;
+    --sage:#3f8464;
+    --coral:#c14733;
+    --line: rgba(31,36,48,0.10);
+  }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
@@ -99,6 +111,19 @@
   }
   .block-form button{background:var(--amber);border:none;color:#1c1406;font-weight:700;padding:8px 14px;border-radius:7px;font-size:13.5px;}
   .block-form button:hover{filter:brightness(1.08);}
+
+  .day-type-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .day-type-row label{font-size:12.5px;color:var(--fog);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+  .day-type-row select{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:9px 14px;border-radius:20px;font-size:13.5px;font-weight:600;}
+  .section-label{font-size:13px;color:var(--fog);text-transform:uppercase;letter-spacing:0.06em;margin:18px 0 8px;font-family:'Inter',sans-serif;font-weight:600;}
+  .fitness-bars{display:flex;align-items:flex-end;gap:10px;height:120px;margin-bottom:8px;}
+  .fitness-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;}
+  .fitness-bar-track{flex:1;width:100%;max-width:28px;background:var(--panel-3);border-radius:6px;display:flex;align-items:flex-end;overflow:hidden;}
+  .fitness-bar-fill{width:100%;background:var(--sage);border-radius:6px 6px 0 0;min-height:2px;}
+  .fitness-bar-label{font-size:11px;color:var(--fog);margin-top:6px;}
+  .timeline-bar{display:flex;width:100%;height:22px;border-radius:6px;overflow:hidden;background:var(--panel-3);}
+  .timeline-seg{height:100%;}
+  .daily-notes{width:100%;min-height:90px;resize:vertical;background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:10px 12px;border-radius:8px;font-size:13.5px;line-height:1.5;}
 
   /* Two-level category picker: group dropdown -> cascading category dropdown + delete */
   .cat-picker{display:flex;gap:6px;flex:2;min-width:220px;}
@@ -204,6 +229,7 @@
   .sleep-row .srdate{font-family:'IBM Plex Mono',monospace;color:var(--fog);width:90px;}
   .sleep-row .srstars{color:var(--amber);letter-spacing:1px;}
   .sleep-row .srnotes{color:var(--fog);font-style:italic;font-size:12px;flex:1;}
+  .sleep-notes-input{flex:1;min-width:120px;background:var(--panel-3);border:1px solid var(--line);color:var(--bone);padding:6px 9px;border-radius:6px;font-size:12.5px;}
 
   /* Goals */
   .add-goal-form{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:12px;}
@@ -215,7 +241,12 @@
   .goal-type-fields.active{display:flex;}
   .goal-type-fields input{width:0;}
   .goal-card{background:var(--panel-2);border-radius:8px;padding:16px;margin-bottom:12px;}
-  .goal-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .goal-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:10px;}
+  .due-chip{display:inline-block;margin-top:4px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:10px;}
+  .due-chip.due-neutral{background:var(--panel-3);color:var(--fog);}
+  .due-chip.due-soon{background:rgba(232,163,61,0.18);color:var(--amber);}
+  .due-chip.due-overdue{background:rgba(217,97,79,0.18);color:var(--coral);}
+  .due-chip.due-done{background:rgba(111,166,140,0.18);color:var(--sage);}
   .goal-card-head h3{font-size:15.5px;font-weight:600;font-family:'Inter';}
   .goal-progress-pct{font-family:'IBM Plex Mono',monospace;color:var(--sage);font-size:12.5px;}
   .goal-extra-badges{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px;}
@@ -231,6 +262,9 @@
   .goal-extra-panel .actions{display:flex;gap:8px;justify-content:flex-end;}
   .goal-extra-panel .actions button{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;}
   .goal-extra-panel .actions .save-extra{background:var(--amber);color:#1c1406;border:none;}
+  .goal-yt-embeds{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+  .yt-embed-wrap{position:relative;width:100%;padding-top:56.25%;border-radius:8px;overflow:hidden;background:#000;}
+  .yt-embed-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
   .goal-steps{display:flex;flex-direction:column;gap:5px;margin:10px 0;}
   .goal-step{display:flex;align-items:center;gap:8px;font-size:13px;}
   .goal-step.done span{text-decoration:line-through;color:var(--fog);}
@@ -316,6 +350,50 @@
 
   /* Weekly Review */
   .review-panel{margin-bottom:18px;}
+  .coachlej-shell{padding-top:14px;}
+  .coachlej-nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px;}
+  .coachlej-tab{background:var(--panel-2);border:1px solid var(--line);color:var(--fog);padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;}
+  .coachlej-tab.active{background:var(--amber);border-color:var(--amber);color:#1c1406;}
+  .coachlej-tab:hover:not(.active){color:var(--bone);}
+  .settings-btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .settings-cat-group{margin-bottom:14px;}
+  .settings-cat-group h4{font-size:12.5px;color:var(--fog);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 6px;font-weight:600;}
+  .settings-cat-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .settings-cat-chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--chip-color,var(--line));color:var(--bone);padding:5px 6px 5px 12px;border-radius:16px;font-size:12.5px;}
+  .settings-cat-del{background:none;border:none;color:var(--fog);font-size:15px;line-height:1;padding:2px 6px;border-radius:50%;}
+  .settings-cat-del:hover{color:var(--coral);background:var(--panel-3);}
+  .settings-theme-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .theme-toggle{display:flex;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:4px;}
+  .theme-opt{background:none;border:none;color:var(--fog);padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;}
+  .theme-opt.active{background:var(--amber);color:#1c1406;}
+  .home-hero{margin-bottom:22px;}
+  .home-greet{font-family:'Fraunces',serif;font-size:22px;font-style:italic;margin-bottom:16px;}
+  .home-score-row{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .home-score-ring{position:relative;width:100px;height:100px;flex-shrink:0;}
+  .home-score-ring svg{width:100%;height:100%;}
+  .home-score-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:28px;font-weight:600;}
+  .home-score-meta{flex:1;min-width:180px;}
+  .home-score-label{color:var(--fog);font-size:12.5px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+  .home-next{font-size:15px;}
+  .home-next strong{color:var(--amber);}
+  .score-breakdown-toggle{margin-top:8px;background:none;border:none;color:var(--fog);font-size:12px;font-weight:600;text-decoration:underline;padding:0;}
+  .score-breakdown-toggle:hover{color:var(--bone);}
+  .score-breakdown{display:flex;flex-direction:column;gap:7px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+  .score-row{display:flex;align-items:center;gap:10px;font-size:12.5px;}
+  .score-row-label{width:130px;flex-shrink:0;color:var(--fog);}
+  .score-row-bar{flex:1;height:6px;background:var(--panel-3);border-radius:4px;overflow:hidden;}
+  .score-row-bar .fill{height:100%;}
+  .score-row-pct{width:36px;text-align:right;font-weight:700;flex-shrink:0;}
+  .score-row-weight{width:26px;text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--fog);font-size:11.5px;flex-shrink:0;}
+  .score-day-type-note{font-size:12px;color:var(--fog);margin-bottom:4px;}
+  .score-formula{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--fog);line-height:1.6;word-break:break-word;}
+  .score-formula strong{color:var(--bone);font-size:13px;}
+  .streak-list{display:flex;flex-direction:column;gap:8px;}
+  .streak-item{display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:8px;padding:8px 12px;font-size:13px;}
+  .streak-flame{font-size:15px;}
+  .streak-label{flex:1;}
+  .streak-count{font-weight:700;color:var(--amber);}
+  .streak-risk{font-size:10.5px;color:var(--coral);background:rgba(217,97,79,0.15);padding:2px 7px;border-radius:8px;font-weight:700;}
   .review-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
   .review-badge{background:var(--amber);color:#1c1406;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;margin-left:10px;letter-spacing:0.3px;vertical-align:middle;}
   .review-sub{color:var(--fog);font-size:11.5px;font-family:'IBM Plex Mono',monospace;}
@@ -503,7 +581,10 @@
   .period-select-row{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap;}
   .period-select{background:var(--panel-2);border:1px solid var(--line);color:var(--bone);border-radius:6px;padding:6px 10px;font-size:12.5px;font-family:'IBM Plex Mono',monospace;}
   .period-select:focus-visible{outline:2px solid var(--amber);outline-offset:1px;}
-  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--coral);color:#2b0d08;padding:8px 16px;border-radius:8px;font-size:12.5px;font-weight:600;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none;}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--coral);color:#2b0d08;padding:8px 16px;border-radius:8px;font-size:12.5px;font-weight:600;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none;display:flex;align-items:center;gap:10px;}
+  .toast.show{pointer-events:auto;}
+  .toast-undo-btn{background:rgba(0,0,0,0.18);border:none;color:inherit;padding:4px 10px;border-radius:6px;font-weight:700;font-size:12px;}
+  .toast-undo-btn:hover{background:rgba(0,0,0,0.3);}
   .toast.show{opacity:1;}
 
   /* ---------- Mobile ---------- */
@@ -599,19 +680,7 @@
       <button id="saveAllBtn" class="save-btn topbar-btn icon-only" title="Save" aria-label="Save">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       </button>
-      <button id="coachProfileBtn" class="reset-btn topbar-btn icon-only" title="Profile" aria-label="Profile">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </button>
-      <button id="exportBtn" class="reset-btn topbar-btn icon-only" title="Export (JSON)" aria-label="Export">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      </button>
-      <button id="importBtn" class="reset-btn topbar-btn icon-only" title="Import (JSON)" aria-label="Import">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      </button>
       <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;">
-      <button id="signOutBtn" class="reset-btn topbar-btn icon-only" title="Sign Out" aria-label="Sign Out">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
     </div>
     <div class="brand">
       <span class="brand-mark">◐</span>
@@ -619,12 +688,13 @@
       <span class="sub" id="todayLabel"></span>
     </div>
     <nav class="tabs" id="tabs">
-      <button class="tab active" data-tab="today">Today</button>
-      <button class="tab" data-tab="goals">Goals</button>
-      <button class="tab" data-tab="weight">Weight</button>
-      <button class="tab" data-tab="dashboard">Dashboard</button>
-      <button class="tab" data-tab="insights">Insights</button>
-      <button class="tab" data-tab="ask">Ask Lej</button>
+      <button class="tab active" data-tab="dashboard">🏠 Home</button>
+      <button class="tab" data-tab="today">📅 Today</button>
+      <button class="tab" data-tab="goals">🎯 Goals</button>
+      <button class="tab" data-tab="weight">❤️ Health</button>
+      <button class="tab" data-tab="analytics">📊 Analytics</button>
+      <button class="tab" data-tab="coach">🤖 Coach</button>
+      <button class="tab" data-tab="settings">⚙️ Settings</button>
     </nav>
   </header>
   <main id="view"><div class="loading">Loading your ledger…</div></main>
@@ -636,6 +706,14 @@
 <script>
 (function(){
   "use strict";
+
+  // ---------- Theme (device-local — not synced to the cloud) ----------
+  function getTheme(){ try{ return localStorage.getItem('ledger-theme') || 'dark'; }catch(e){ return 'dark'; } }
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    try{ localStorage.setItem('ledger-theme', theme); }catch(e){}
+  }
+  applyTheme(getTheme());
 
   // ---------- Firebase Auth (gates access to the cloud database) ----------
   // Guarded: if the Firebase SDK failed to load (slow connection, ad
@@ -678,8 +756,6 @@
     // person always has a working local-only ledger.
     loginGateEl.style.display = 'none';
     appEl.style.display = '';
-    const signOutBtnEl = document.getElementById('signOutBtn');
-    if(signOutBtnEl) signOutBtnEl.style.display = 'none';
     startApp();
     toast('Cloud sync unavailable — working in local-only mode');
   } else {
@@ -704,7 +780,6 @@
       if(user){
         loginGateEl.style.display = 'none';
         appEl.style.display = '';
-        document.getElementById('signOutBtn').onclick = ()=> fbAuth.signOut();
         if(!appStarted){ appStarted = true; startApp(); }
       } else {
         appEl.style.display = 'none';
@@ -762,10 +837,20 @@
     {id:'shopping',label:'Shopping',color:'#9aa2b0',group:'Chores'},
     {id:'other',label:'Others',color:'#4a5261',group:'Chores'}
   ];
+  // Frozen copy of the built-ins so a deleted built-in category can be
+  // restored via Undo (the mutable CATEGORIES array above gets spliced).
+  const BUILTIN_CATEGORIES = CATEGORIES.map(c=>Object.assign({}, c));
   // Fixed display order for the built-in groups; any group a person adds via
   // the "+ Add new group…" option is appended after these, in the order it
   // was first created.
   const GROUP_ORDER = ['Work & Growth','Health','Family & Kids','Hobbies & Skills','Social & Leisure','Travel','Chores'];
+  // Every brand-new day starts pre-populated with these categories at 0
+  // duration, so they're always in the list ready to have hours filled in
+  // (edit a row to set its time) instead of having to be added by hand.
+  const DEFAULT_DAILY_CATEGORY_IDS = ['self_care','social_media','program','rest','sleep_morning','meals'];
+  function buildDefaultDailyBlocks(){
+    return DEFAULT_DAILY_CATEGORY_IDS.map(id=>({id:uid(), task:catOf(id).label, category:id, duration:0}));
+  }
   // Remembers which group was selected in the "add activity" form across
   // re-renders, so picking a group doesn't reset every time renderToday() runs.
   let lastSelectedGroup = null;
@@ -773,12 +858,14 @@
   let state = {
     date: todayStr(),
     ledgerCache: {},
+    notesCache: {},
+    dayTypeCache: {},
     sleep: {records:{}},
     goals: {goals:[]},
     weight: {records:{}},
     customCategories: [],
     deletedCategories: [],
-    activeTab: 'today',
+    activeTab: 'dashboard',
     quality: 3,
     weekCache: null,
     monthDate: todayStr().slice(0,7),
@@ -853,18 +940,30 @@
   }
   // Deletes a category everywhere (built-in or custom). Past activities that
   // used it keep their stored id but display as "Others" via catOf()'s fallback,
-  // so no historical data needs to be migrated.
+  // so no historical data needs to be migrated. Offers a few seconds to Undo.
   async function deleteCategory(id){
     if(isSleepCat(id)){ toast('Sleep categories can\'t be deleted — they power sleep tracking'); return false; }
     if(id==='other'){ toast('Others can\'t be deleted — it\'s the fallback category'); return false; }
     const cat = catOf(id);
     if(!confirm(`Delete category "${cat.label}"? Past activities logged under it will show as "Others".`)) return false;
+    const snapshot = Object.assign({}, cat);
+    const wasCustom = state.customCategories.some(c=>c.id===id);
     CATEGORIES = CATEGORIES.filter(c=>c.id!==id);
     state.customCategories = state.customCategories.filter(c=>c.id!==id);
     if(!state.deletedCategories.includes(id)) state.deletedCategories.push(id);
     await sSet('custom-categories-data', state.customCategories);
     await sSet('deleted-categories-data', state.deletedCategories);
-    toast('Category deleted');
+    toastWithUndo(`"${snapshot.label}" deleted`, async ()=>{
+      CATEGORIES.push(snapshot);
+      if(wasCustom){
+        state.customCategories.push(snapshot);
+        await sSet('custom-categories-data', state.customCategories);
+      }
+      state.deletedCategories = state.deletedCategories.filter(d=>d!==id);
+      await sSet('deleted-categories-data', state.deletedCategories);
+      toast('Category restored');
+      renderView();
+    });
     return true;
   }
   // ---------- render race guard ----------
@@ -877,7 +976,16 @@
   let renderTicket = 0;
   function startRender(){ return ++renderTicket; }
   function isStaleRender(id){ return id !== renderTicket; }
-  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._hideTimer);t._hideTimer=setTimeout(()=>t.classList.remove('show'),2200);}
+  function toastWithUndo(msg, onUndo){
+    const t=document.getElementById('toast');
+    t.innerHTML = `<span>${escapeHtml(msg)}</span><button type="button" class="toast-undo-btn" id="toastUndoBtn">Undo</button>`;
+    t.classList.add('show');
+    clearTimeout(t._hideTimer);
+    let used=false;
+    document.getElementById('toastUndoBtn').onclick = ()=>{ if(used) return; used=true; t.classList.remove('show'); onUndo(); };
+    t._hideTimer = setTimeout(()=>{ t.classList.remove('show'); }, 6000);
+  }
 
   // ---------- storage (browser localStorage + Firebase cloud sync) ----------
   /* Data lives in localStorage so the app always works offline, and is
@@ -1000,12 +1108,71 @@
 
   async function loadLedger(date){
     if(state.ledgerCache[date]) return state.ledgerCache[date];
-    const blocks = await sGet('ledger:'+date, []);
+    let blocks = await sGet('ledger:'+date, []);
+    if(!blocks.length){
+      blocks = buildDefaultDailyBlocks();
+      state.ledgerCache[date] = blocks;
+      await saveLedger(date);
+      return blocks;
+    }
     state.ledgerCache[date] = blocks;
     return blocks;
   }
   async function saveLedger(date){
     return sSet('ledger:'+date, state.ledgerCache[date]);
+  }
+  // Read-only lookup for historical scans (streaks, correlations). Unlike
+  // loadLedger, this never seeds default blocks into an empty past day —
+  // scanning 30-90 days back must not silently write 90 days of new data.
+  async function peekLedger(date){
+    if(state.ledgerCache[date]) return state.ledgerCache[date];
+    return sGet('ledger:'+date, []);
+  }
+  async function loadNotes(date){
+    if(state.notesCache[date]!==undefined) return state.notesCache[date];
+    const notes = await sGet('daynotes:'+date, '');
+    state.notesCache[date] = notes;
+    return notes;
+  }
+  async function saveNotes(date, text){
+    state.notesCache[date] = text;
+    return sSet('daynotes:'+date, text);
+  }
+  // Day type: what kind of day today is meant to be (Family, Work, Giann,
+  // Vacation, Learning, Personal). Drives which score components apply —
+  // see DAY_TYPES / activeScoreComponents() below. Exercise and Self Care
+  // always apply no matter the day type.
+  const DAY_TYPES = {
+    family:   {label:'Family Day',   emoji:'👨‍👩‍👧‍👦', componentIds:['exercise','selfcare','kids','dayLogged']},
+    work:     {label:'Work Day',     emoji:'💼', componentIds:['exercise','selfcare','dayLogged']},
+    giann:    {label:'Giann Day',    emoji:'💞', componentIds:['exercise','selfcare','giann','dayLogged']},
+    vacation: {label:'Vacation Day', emoji:'🌴', componentIds:['exercise','selfcare','dayLogged']},
+    learning: {label:'Learning Day', emoji:'📚', componentIds:['exercise','selfcare','learning','goals','dayLogged']},
+    personal: {label:'Personal Day', emoji:'🧘', componentIds:['exercise','selfcare','goals','dayLogged']}
+  };
+  const DEFAULT_DAY_TYPE = 'personal';
+  async function loadDayType(date){
+    if(state.dayTypeCache[date]!==undefined) return state.dayTypeCache[date];
+    const dt = await sGet('daytype:'+date, DEFAULT_DAY_TYPE);
+    state.dayTypeCache[date] = DAY_TYPES[dt] ? dt : DEFAULT_DAY_TYPE;
+    return state.dayTypeCache[date];
+  }
+  async function saveDayType(date, dayType){
+    state.dayTypeCache[date] = dayType;
+    return sSet('daytype:'+date, dayType);
+  }
+  // Linear, chronological-by-entry-order view of today's blocks (blocks
+  // don't carry clock times, so this reflects logging order, not time of day).
+  function dayTimelineHTML(blocks){
+    if(!blocks.length) return '<p class="empty">Nothing logged yet.</p>';
+    const total = blocks.reduce((s,b)=>s+b.duration,0);
+    if(total<=0) return '<p class="empty">Add some hours to see today\'s timeline.</p>';
+    const segs = blocks.filter(b=>b.duration>0).map(b=>{
+      const cat = catOf(b.category);
+      const pct = (b.duration/total*100).toFixed(2);
+      return `<div class="timeline-seg" style="width:${pct}%;background:${cat.color}" title="${escapeHtml(b.task)} — ${minutesToHM(b.duration)}"></div>`;
+    }).join('');
+    return `<div class="timeline-bar">${segs}</div>`;
   }
 
   async function saveAllNow(){
@@ -1090,7 +1257,7 @@
 
 
   async function loadAll(){
-    const [sleep, goals, weight, customCategories, deletedCategories, todayBlocks, insightsCache, coachThread, askHistory, coachProfile, coachMemory, userModel] = await Promise.all([
+    const [sleep, goals, weight, customCategories, deletedCategories, todayBlocks, insightsCache, coachThread, askHistory, coachProfile, coachMemory, userModel, todayNotes] = await Promise.all([
       sGet('sleep-data', {records:{}}),
       sGet('goals-data', {goals:[]}),
       sGet('weight-data', {records:{}}),
@@ -1102,8 +1269,10 @@
       sGet('ask-ledger-history', []),
       sGet('coach-profile-data', null),
       sGet('coach-memory-data', null),
-      sGet('user-model-data', null)
+      sGet('user-model-data', null),
+      sGet('daynotes:'+state.date, '')
     ]);
+    state.notesCache[state.date] = todayNotes || '';
     // Normalize shapes defensively: cloud data (shared across devices/browsers)
     // or an older version of this app can hand back something that's missing
     // fields the renderers assume exist (e.g. weight.records). Without this,
@@ -1122,7 +1291,12 @@
     state.customCategories.forEach(c=>{ if(!c.group) c.group='Custom'; if(!CATEGORIES.some(x=>x.id===c.id)) CATEGORIES.push(c); });
     state.deletedCategories = Array.isArray(deletedCategories) ? deletedCategories : [];
     if(state.deletedCategories.length){ CATEGORIES = CATEGORIES.filter(c=>!state.deletedCategories.includes(c.id)); }
-    state.ledgerCache[state.date] = todayBlocks;
+    if(!todayBlocks.length){
+      state.ledgerCache[state.date] = buildDefaultDailyBlocks();
+      await saveLedger(state.date);
+    } else {
+      state.ledgerCache[state.date] = todayBlocks;
+    }
     state.insightsCache = insightsCache;
     state.coachThread = coachThread || [];
     state.askHistory = askHistory || [];
@@ -1226,7 +1400,10 @@
   function activityListHTML(blocks){
     return blocks.map((b,i)=>activityRowHTML(b,i,blocks)).join('');
   }
-  function renderToday(){
+  async function renderToday(ticket){
+    const myTicket = ticket || startRender();
+    const dayType = await loadDayType(state.date);
+    if(isStaleRender(myTicket)) return;
     const blocks = state.ledgerCache[state.date] || [];
     const total = blocks.reduce((s,b)=>s+b.duration,0);
     const remaining = 1440-total;
@@ -1242,6 +1419,12 @@
           <span>${minutesToHM(total)} logged · ${remaining>0?minutesToHM(remaining)+' remaining':'day complete ✓'}</span>
         </div>
       </div>
+      <div class="day-type-row" id="dayTypeRow">
+        <label for="dayTypeSelect">Today is a</label>
+        <select id="dayTypeSelect">
+          ${Object.keys(DAY_TYPES).map(k=>`<option value="${k}" ${k===dayType?'selected':''}>${DAY_TYPES[k].emoji} ${escapeHtml(DAY_TYPES[k].label)}</option>`).join('')}
+        </select>
+      </div>
       <div class="today-grid">
         <div class="ledger-col">
           <form id="blockForm" class="block-form">
@@ -1255,6 +1438,10 @@
             <input type="number" id="durMins" min="0" max="59" placeholder="m">
             <button type="submit">Add</button>
           </form>
+          <h3 class="section-label">Timeline</h3>
+          ${dayTimelineHTML(blocks)}
+          <h3 class="section-label">Daily Notes</h3>
+          <textarea id="dailyNotes" class="daily-notes" placeholder="Anything worth remembering about today…" maxlength="2000">${escapeHtml(state.notesCache[state.date] || '')}</textarea>
         </div>
         <div class="wheel-col">
           ${dayWheelSVG(blocks)}
@@ -1265,9 +1452,15 @@
       </div>
     </section>`;
 
-    document.getElementById('prevDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,-1); await loadLedger(state.date); renderToday(); };
-    document.getElementById('nextDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,1); await loadLedger(state.date); renderToday(); };
-    document.getElementById('dateInput').onchange = async (e)=>{ editingBlockId=null; state.date=e.target.value; await loadLedger(state.date); renderToday(); };
+    document.getElementById('dayTypeSelect').addEventListener('change', async (e)=>{
+      await saveDayType(state.date, e.target.value);
+      toast(`✔ ${DAY_TYPES[e.target.value].label} set`);
+    });
+    document.getElementById('dailyNotes').addEventListener('change', (e)=>{ saveNotes(state.date, e.target.value); });
+
+    document.getElementById('prevDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,-1); await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date)]); renderToday(); };
+    document.getElementById('nextDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,1); await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date)]); renderToday(); };
+    document.getElementById('dateInput').onchange = async (e)=>{ editingBlockId=null; state.date=e.target.value; await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date)]); renderToday(); };
     document.getElementById('categoryGroupSelect').onchange = async (e)=>{
       const groupSel = e.target;
       if(groupSel.value === '__addgroup__'){
@@ -1553,6 +1746,50 @@
       <button class="icon-btn del-weight" data-date="${d}" aria-label="Delete">×</button>
     </div>`;
   }
+  // ---------- Sleep (part of the combined Health page) ----------
+  // Duration comes from Morning/Night Sleep blocks logged in the Daily
+  // Planner and is read-only here; quality and notes are editable directly
+  // on this page and saved straight to sleep-data.
+  function sleepQualityStarsHTML(date, quality){
+    let out='';
+    for(let i=1;i<=5;i++){ out+=`<button type="button" class="q-star${i<=(quality||0)?' active':''}" data-date="${date}" data-q="${i}">★</button>`; }
+    return `<span class="quality-select">${out}</span>`;
+  }
+  function sleepRowHTML(date, rec){
+    return `<div class="sleep-row">
+      <span class="srdate mono">${date}</span>
+      <span class="mono">${minutesToHM(rec.duration)}</span>
+      ${sleepQualityStarsHTML(date, rec.quality)}
+      <input type="text" class="sleep-notes-input" data-date="${date}" value="${escapeHtml(rec.notes||'')}" placeholder="Notes">
+    </div>`;
+  }
+  async function setSleepQuality(date, q){
+    const rec = state.sleep.records[date]; if(!rec) return;
+    rec.quality = q;
+    await sSet('sleep-data', state.sleep);
+    renderHealth();
+  }
+  async function setSleepNotes(date, notes){
+    const rec = state.sleep.records[date]; if(!rec) return;
+    rec.notes = notes;
+    await sSet('sleep-data', state.sleep);
+  }
+  function sleepTrendSVG(entries){
+    if(!entries.length) return '<p class="empty">Log Morning/Night Sleep blocks in the Daily Planner to see your trend.</p>';
+    const w=600,h=160,padL=34,padB=22,padT=14;
+    const hours=entries.map(e=>e.hours);
+    const minW=Math.min(...hours), maxW=Math.max(...hours);
+    const range=(maxW-minW)||1, pad=range*0.2;
+    const lo=Math.max(0,minW-pad), hi=maxW+pad;
+    const stepX = entries.length>1 ? (w-padL-15)/(entries.length-1) : 0;
+    const coords = entries.map((e,i)=>({x:padL+i*stepX, y:h-padB-((e.hours-lo)/(hi-lo))*(h-padB-padT)}));
+    const path = coords.map((c,i)=>(i===0?'M':'L')+c.x.toFixed(1)+' '+c.y.toFixed(1)).join(' ');
+    const dots = coords.map((c,i)=>`<circle cx="${c.x}" cy="${c.y}" r="3.5" fill="var(--amber)"><title>${escapeHtml(entries[i].date)}: ${entries[i].hours.toFixed(1)}h</title></circle>`).join('');
+    const skip=Math.ceil(entries.length/6)||1;
+    const labels = coords.map((c,i)=> i%skip===0 ? `<text x="${c.x}" y="${h-6}" text-anchor="middle" class="trend-axis">${escapeHtml(entries[i].date.slice(5))}</text>`:'').join('');
+    const yLabels = `<text x="2" y="${padT+4}" class="trend-axis">${hi.toFixed(1)}</text><text x="2" y="${h-padB}" class="trend-axis">${lo.toFixed(1)}</text>`;
+    return `<svg viewBox="0 0 ${w} ${h}" class="trend-svg">${yLabels}<path d="${path}" fill="none" stroke="var(--amber)" stroke-width="2"/>${dots}${labels}</svg>`;
+  }
   function weightTrendSVG(entries){
     if(!entries.length) return '<p class="empty">Log a weekly weigh-in to see your trend.</p>';
     const w=600,h=160,padL=34,padB=22,padT=14;
@@ -1590,7 +1827,8 @@
     }
     return `<label>Height <input type="number" id="bmiHeight" min="50" max="272" step="0.1" placeholder="cm" value="${cm||''}"></label>`;
   }
-  function renderWeight(){
+  async function renderHealth(ticket){
+    const myTicket = ticket || startRender();
     const dates = Object.keys(state.weight.records).sort().reverse();
     const chron = dates.slice(0,20).reverse().map(d=>({date:d, weight:state.weight.records[d].weight}));
     const heightCm = state.weight.heightCm || '';
@@ -1598,8 +1836,61 @@
     const age = state.weight.age || '';
     const sex = state.weight.sex || '';
     const latestKg = dates.length ? state.weight.records[dates[0]].weight : '';
+    const sleepDatesAll = Object.keys(state.sleep.records).sort().reverse();
+    const sleepChron = sleepDatesAll.slice(0,20).reverse().map(d=>({date:d, hours:state.sleep.records[d].duration/60}));
+    const avgSleep = sleepDatesAll.length? Math.round(sleepDatesAll.reduce((s,d)=>s+state.sleep.records[d].duration,0)/sleepDatesAll.length) : null;
+    const avgQuality = sleepDatesAll.length? (sleepDatesAll.reduce((s,d)=>s+state.sleep.records[d].quality,0)/sleepDatesAll.length).toFixed(1) : null;
+
+    const week = await loadWeek();
+    if(isStaleRender(myTicket)) return;
+    const dailyExercise = week.map(d=>({date:d.date, minutes: d.blocks.filter(b=>b.category==='exercise').reduce((s,b)=>s+b.duration,0)}));
+    const todayMin = dailyExercise[dailyExercise.length-1].minutes;
+    const weekTotal = dailyExercise.reduce((s,d)=>s+d.minutes,0);
+    const daysActive = dailyExercise.filter(d=>d.minutes>0).length;
+    const avgPerActiveDay = daysActive? Math.round(weekTotal/daysActive) : 0;
+    const maxMin = Math.max(...dailyExercise.map(d=>d.minutes), 1);
+    const logEntries = [];
+    week.forEach(d=>{ d.blocks.filter(b=>b.category==='exercise' && b.duration>0).forEach(b=>logEntries.push(Object.assign({date:d.date}, b))); });
+    logEntries.sort((a,b)=> b.date.localeCompare(a.date));
+
     const view = document.getElementById('view');
     view.innerHTML = `
+    <section class="panel">
+      <h2>Sleep</h2>
+      <p class="howto-foot-note">Each night here is <strong>that day's Morning Sleep + the previous evening's Night Sleep</strong> — e.g. Tuesday's row = Monday night's Night Sleep + Tuesday morning's Morning Sleep, matching how you actually slept. Log both in the Daily Planner; quality and notes are edited right here.</p>
+      <div class="metric-grid" style="margin-bottom:18px;">
+        ${metricCardHTML(avgSleep!==null? (avgSleep/60).toFixed(1):'—', avgSleep!==null?'h':'', 'Avg duration')}
+        ${metricCardHTML(avgQuality!==null? avgQuality:'—', avgQuality!==null?'/5':'', 'Avg quality')}
+        ${metricCardHTML(sleepDatesAll.length, '', 'Nights logged')}
+      </div>
+      <div class="sleep-trend">${sleepTrendSVG(sleepChron)}</div>
+      <div class="sleep-list" id="sleepList">
+        ${sleepDatesAll.length? sleepDatesAll.map(d=>sleepRowHTML(d, state.sleep.records[d])).join('') : '<p class="empty">No sleep logged yet.</p>'}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Fitness</h2>
+      <p class="howto-foot-note">Minutes come from the Exercise category you log in the Daily Planner.</p>
+      <div class="metric-grid" style="margin-bottom:18px;">
+        ${metricCardHTML(todayMin>0? minutesToHM(todayMin):'Not yet', '', "Today's exercise")}
+        ${metricCardHTML(minutesToHM(weekTotal), '', 'This week')}
+        ${metricCardHTML(daysActive+'/7', '', 'Active days')}
+        ${metricCardHTML(avgPerActiveDay>0? minutesToHM(avgPerActiveDay):'—', '', 'Avg per active day')}
+      </div>
+      <div class="fitness-bars">
+        ${dailyExercise.map(d=>{
+          const h = Math.round(d.minutes/maxMin*100);
+          const label = new Date(d.date+'T00:00:00').toLocaleDateString(undefined,{weekday:'short'});
+          return `<div class="fitness-bar-col"><div class="fitness-bar-track"><div class="fitness-bar-fill" style="height:${h}%" title="${minutesToHM(d.minutes)}"></div></div><span class="fitness-bar-label">${label}</span></div>`;
+        }).join('')}
+      </div>
+      <h3 class="section-label">Log</h3>
+      <div class="sleep-list">
+        ${logEntries.length? logEntries.map(e=>exerciseLogRowHTML(e.date,e)).join('') : '<p class="empty">No exercise logged this week.</p>'}
+      </div>
+    </section>
+
     <section class="panel">
       <h2>Weight</h2>
       <form id="weightForm" class="sleep-form">
@@ -1610,7 +1901,7 @@
         <button type="submit">Log weight</button>
       </form>
       <div class="sleep-trend">${weightTrendSVG(chron)}</div>
-      <div class="sleep-list">
+      <div class="sleep-list" id="weightList">
         ${dates.length? dates.map(d=>weightRowHTML(d, state.weight.records[d])).join('') : '<p class="empty">No weight logged yet.</p>'}
       </div>
     </section>
@@ -1640,7 +1931,7 @@
       btn.onclick = async ()=>{
         state.weight.heightUnit = btn.dataset.unit;
         await sSet('weight-data', state.weight);
-        renderWeight();
+        renderHealth();
       };
     });
 
@@ -1706,20 +1997,43 @@
       if(!date || !kg || kg<=0){ toast('Fill in a date and a valid weight'); return; }
       state.weight.records[date] = {weight:kg, notes};
       await sSet('weight-data', state.weight);
-      renderWeight();
+      renderHealth();
     };
-    document.querySelector('.sleep-list').onclick=async(e)=>{
+    document.querySelector('#weightList').onclick=async(e)=>{
       const btn=e.target.closest('.del-weight'); if(!btn) return;
       delete state.weight.records[btn.dataset.date];
       await sSet('weight-data', state.weight);
-      renderWeight();
+      renderHealth();
     };
+    const sleepListEl = document.getElementById('sleepList');
+    if(sleepListEl){
+      sleepListEl.addEventListener('click', (e)=>{
+        const star = e.target.closest('.q-star'); if(!star) return;
+        setSleepQuality(star.dataset.date, parseInt(star.dataset.q));
+      });
+      sleepListEl.addEventListener('change', (e)=>{
+        const input = e.target.closest('.sleep-notes-input'); if(!input) return;
+        setSleepNotes(input.dataset.date, input.value.trim());
+      });
+    }
+  }
+
+  // exerciseLogRowHTML is used by the Fitness section inside renderHealth (merged tab).
+  function exerciseLogRowHTML(date, b){
+    return `<div class="sleep-row"><span class="srdate mono">${date}</span><span class="mono">${minutesToHM(b.duration)}</span><span class="srnotes">${escapeHtml(b.task)}</span></div>`;
   }
 
   // ---------- render: Goals ----------
   // Tracks which goals currently have their Notes/YouTube editor open.
   // UI-only state — intentionally not persisted, so panels start collapsed on load.
   const openGoalExtras = new Set();
+  // The long-term planning area groups every goal into one of these kinds.
+  // Older goals saved before this existed have no `kind` and fall back to 'goal'.
+  const GOAL_KIND_LABELS = {goal:'Goals', project:'Projects', learning:'Learning Goals'};
+  const GOAL_KIND_ORDER = ['goal','project','learning'];
+  // Milestones were removed as a kind — any goal saved with kind:'milestone'
+  // before this change falls back to the 'Goals' bucket automatically below.
+  function goalKind(g){ return GOAL_KIND_LABELS[g.kind] ? g.kind : 'goal'; }
 
   // Shared progress math so the card, the dashboard, and the summary label agree.
   function goalPct(g){
@@ -1737,6 +2051,13 @@
     const done=steps.filter(s=>s.done).length, total=steps.length;
     return total? Math.round(done/total*100):0;
   }
+  // Stamps a goal with today's date whenever real forward progress happens
+  // (a step gets checked, a count goes up, a range moves toward its target).
+  // Used by the score to detect "did I move a goal forward today" instead of
+  // just looking at overall completion %, which doesn't change day-to-day
+  // unless something was actually logged today.
+  function markGoalProgress(g){ g.lastProgressDate = todayStr(); }
+  function goalMovedToday(g){ return g.lastProgressDate === todayStr(); }
   function goalSummaryLabel(g){
     const type=g.type||'checklist';
     if(type==='count'){
@@ -1749,6 +2070,51 @@
     }
     const steps=g.steps||[];
     return `${steps.filter(s=>s.done).length}/${steps.length} steps`;
+  }
+  // Due-date urgency for the card badge — kept as a small pure helper so
+  // renderGoals' sort and goalCardHTML's badge always agree.
+  function dueDateInfo(g){
+    if(!g.dueDate) return null;
+    const days = Math.round((new Date(g.dueDate+'T00:00:00') - new Date(todayStr()+'T00:00:00'))/86400000);
+    return {days, dueDate:g.dueDate};
+  }
+  function dueDateChipHTML(g){
+    const info = dueDateInfo(g);
+    if(!info) return '';
+    const pct = goalPct(g);
+    const shortDate = humanDate(info.dueDate).replace(/^\w+,\s*/,'');
+    let cls, text;
+    if(pct>=100){ cls='done'; text='✓ Done'; }
+    else if(info.days<0){ cls='overdue'; text=`Overdue ${Math.abs(info.days)}d`; }
+    else if(info.days===0){ cls='soon'; text='Due today'; }
+    else if(info.days<=7){ cls='soon'; text=`Due in ${info.days}d`; }
+    else { cls='neutral'; text=`Due ${shortDate}`; }
+    return `<span class="due-chip due-${cls}">${text}</span>`;
+  }
+  // Multiple YouTube links per goal, played inline via embed (not just a
+  // link out). Backward-compatible with the old single `g.youtube` field.
+  function goalYoutubeLinks(g){
+    if(Array.isArray(g.youtubeLinks)) return g.youtubeLinks.filter(Boolean);
+    if(g.youtube) return [g.youtube];
+    return [];
+  }
+  function extractYouTubeId(url){
+    try{
+      const u = new URL(url);
+      const host = u.hostname.replace(/^www\.|^m\./,'');
+      if(host==='youtu.be') return u.pathname.slice(1).split('/')[0] || null;
+      if(host==='youtube.com'){
+        if(u.pathname==='/watch') return u.searchParams.get('v');
+        const m = u.pathname.match(/\/(embed|shorts)\/([^/?]+)/);
+        if(m) return m[2];
+      }
+    }catch(e){}
+    return null;
+  }
+  function youtubeEmbedHTML(url){
+    const id = extractYouTubeId(url);
+    if(!id) return `<a class="badge-yt" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">▶ ${escapeHtml(url)}</a>`;
+    return `<div class="yt-embed-wrap"><iframe src="https://www.youtube.com/embed/${escapeHtml(id)}" title="YouTube video" loading="lazy" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
   }
   function goalCardHTML(g){
     const type=g.type||'checklist';
@@ -1791,30 +2157,36 @@
         </form>`;
     }
     const hasNote = !!(g.notes && g.notes.trim());
-    const hasYT = !!(g.youtube && g.youtube.trim());
+    const ytLinks = goalYoutubeLinks(g);
+    const hasDue = !!g.dueDate;
     const isOpen = openGoalExtras.has(g.id);
 
     let badges = '';
-    if(!isOpen && (hasNote || hasYT)){
+    if(!isOpen && hasNote){
       badges = `<div class="goal-extra-badges">
-        ${hasNote? `<span class="badge-note" title="${escapeHtml(g.notes)}">📝 ${escapeHtml(g.notes)}</span>` : ''}
-        ${hasYT? `<a class="badge-yt" href="${escapeHtml(g.youtube)}" target="_blank" rel="noopener noreferrer">▶ Watch video</a>` : ''}
+        <span class="badge-note" title="${escapeHtml(g.notes)}">📝 ${escapeHtml(g.notes)}</span>
       </div>`;
     }
+    const videoEmbeds = !isOpen && ytLinks.length
+      ? `<div class="goal-yt-embeds">${ytLinks.map(youtubeEmbedHTML).join('')}</div>` : '';
 
-    const toggleLabel = isOpen ? 'Close notes & link' : (hasNote || hasYT ? 'Edit notes & link' : '+ Add notes / YouTube link');
+    const toggleLabel = isOpen ? 'Close details' : (hasNote || ytLinks.length || hasDue ? 'Edit due date / plan / videos' : '+ Add due date / plan / videos');
     const toggleBtn = `<button type="button" class="goal-extra-toggle" data-id="${g.id}">${toggleLabel}</button>`;
 
     let extraPanel = '';
     if(isOpen){
       extraPanel = `<form class="goal-extra-panel" data-goal="${g.id}">
         <div>
-          <label for="note-${g.id}">Notes</label>
-          <textarea id="note-${g.id}" placeholder="Optional notes for this goal…" maxlength="500">${escapeHtml(g.notes||'')}</textarea>
+          <label for="due-${g.id}">Due date</label>
+          <input type="date" id="due-${g.id}" value="${escapeHtml(g.dueDate||'')}">
         </div>
         <div>
-          <label for="yt-${g.id}">YouTube link</label>
-          <input type="url" id="yt-${g.id}" placeholder="https://youtube.com/watch?v=…" value="${escapeHtml(g.youtube||'')}">
+          <label for="note-${g.id}">Plan — how will you achieve this?</label>
+          <textarea id="note-${g.id}" class="goal-note-input" placeholder="Steps, resources, or approach for hitting this goal…" maxlength="500">${escapeHtml(g.notes||'')}</textarea>
+        </div>
+        <div>
+          <label for="yt-${g.id}">YouTube links (one per line — as many as you want)</label>
+          <textarea id="yt-${g.id}" class="goal-yt-input" rows="3" placeholder="https://youtube.com/watch?v=...&#10;https://youtu.be/...">${escapeHtml(ytLinks.join('\n'))}</textarea>
         </div>
         <div class="actions">
           <button type="button" class="cancel-extra" data-id="${g.id}">Cancel</button>
@@ -1825,7 +2197,10 @@
 
     return `<div class="goal-card" data-id="${g.id}">
       <div class="goal-card-head">
-        <h3>${escapeHtml(g.title)}</h3>
+        <div>
+          <h3>${escapeHtml(g.title)}</h3>
+          ${dueDateChipHTML(g)}
+        </div>
         <div style="display:flex;align-items:center;gap:10px;">
           <span class="goal-progress-pct">${pct}%</span>
           <button class="icon-btn del-goal" data-id="${g.id}" aria-label="Delete goal">×</button>
@@ -1833,23 +2208,50 @@
       </div>
       ${body}
       ${badges}
+      ${videoEmbeds}
       ${toggleBtn}
       ${extraPanel}
     </div>`;
   }
   function renderGoals(){
     const view=document.getElementById('view');
+    const goals = state.goals.goals;
+    const overallPct = goals.length ? Math.round(goals.reduce((s,g)=>s+goalPct(g),0)/goals.length) : null;
+    const completed = goals.filter(g=>goalPct(g)>=100).length;
+    const groups = GOAL_KIND_ORDER.map(k=>({kind:k, label:GOAL_KIND_LABELS[k], items:goals.filter(g=>goalKind(g)===k).slice().sort((a,b)=>{
+      if(!a.dueDate && !b.dueDate) return 0;
+      if(!a.dueDate) return 1;
+      if(!b.dueDate) return -1;
+      return a.dueDate.localeCompare(b.dueDate);
+    })}));
     view.innerHTML=`
     <section class="panel">
-      <h2>Goals & Milestones</h2>
+      <h2>Progress</h2>
+      <div class="metric-grid">
+        ${metricCardHTML(overallPct!==null? overallPct:'—', overallPct!==null?'%':'', 'Overall progress')}
+        ${metricCardHTML(completed, '', 'Completed', goals.length? `<span class="metric-trend flat">of ${goals.length} total</span>`:'')}
+        ${GOAL_KIND_ORDER.map(k=>{
+          const items = goals.filter(g=>goalKind(g)===k);
+          const pct = items.length ? Math.round(items.reduce((s,g)=>s+goalPct(g),0)/items.length) : null;
+          return metricCardHTML(pct!==null? pct:'—', pct!==null?'%':'', GOAL_KIND_LABELS[k]);
+        }).join('')}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Add to Your Plan</h2>
       <form id="addGoalForm" class="add-goal-form">
         <div class="row">
-          <input type="text" id="goalTitle" placeholder="New goal, e.g. Read 24 books" required maxlength="60">
+          <input type="text" id="goalTitle" placeholder="e.g. Read 24 books" required maxlength="60">
+          <select id="goalKindSelect">
+            ${GOAL_KIND_ORDER.map(k=>`<option value="${k}">${GOAL_KIND_LABELS[k]}</option>`).join('')}
+          </select>
           <select id="goalType">
             <option value="checklist">Checklist</option>
             <option value="count">Count (e.g. 12/24 books)</option>
             <option value="range">Range (e.g. 72kg → 64kg)</option>
           </select>
+          <input type="date" id="goalDueDate" title="Due date (optional)">
         </div>
         <div class="goal-type-fields active" data-type="checklist">
           <span class="empty" style="font-size:12px;">Add steps after creating the goal.</span>
@@ -1863,12 +2265,17 @@
           <input type="number" id="goalRangeTarget" placeholder="Goal, e.g. 64" step="any">
           <input type="text" id="goalRangeUnit" placeholder="Unit, e.g. kg" maxlength="10">
         </div>
-        <button type="submit">Add goal</button>
+        <button type="submit">Add</button>
       </form>
-      <div id="goalsList">
-        ${state.goals.goals.length? state.goals.goals.map(goalCardHTML).join('') : '<p class="empty">No goals yet — add one above.</p>'}
+    </section>
+
+    ${groups.map(grp=>`
+    <section class="panel">
+      <h2>${escapeHtml(grp.label)}</h2>
+      <div id="goalsList-${grp.kind}">
+        ${grp.items.length? grp.items.map(goalCardHTML).join('') : `<p class="empty">No ${escapeHtml(grp.label.toLowerCase())} yet.</p>`}
       </div>
-    </section>`;
+    </section>`).join('')}`;
 
     const typeSelect=document.getElementById('goalType');
     typeSelect.onchange=()=>{
@@ -1880,7 +2287,9 @@
       const title=document.getElementById('goalTitle').value.trim();
       if(!title) return;
       const type=typeSelect.value;
-      const goal={id:uid(), title, type};
+      const kind=document.getElementById('goalKindSelect').value;
+      const dueDate=document.getElementById('goalDueDate').value || undefined;
+      const goal={id:uid(), title, type, kind, dueDate};
       if(type==='count'){
         const target=parseFloat(document.getElementById('goalCountTarget').value)||0;
         const unit=document.getElementById('goalCountUnit').value.trim();
@@ -1897,7 +2306,7 @@
       await sSet('goals-data', state.goals);
       renderGoals();
     };
-    const list=document.getElementById('goalsList');
+    const list=view;
     list.addEventListener('click', async (e)=>{
       const del=e.target.closest('.del-goal');
       if(del){ state.goals.goals=state.goals.goals.filter(g=>g.id!==del.dataset.id); await sSet('goals-data', state.goals); renderGoals(); return; }
@@ -1922,6 +2331,7 @@
       const goal=state.goals.goals.find(g=>g.id===cb.dataset.goal);
       const step=goal.steps.find(s=>s.id===cb.dataset.step);
       step.done=cb.checked;
+      if(cb.checked) markGoalProgress(goal); // checking a step off is forward progress; unchecking isn't
       await sSet('goals-data', state.goals);
       renderGoals();
     });
@@ -1942,8 +2352,15 @@
         const kind=e.target.dataset.kind;
         const val=parseFloat(e.target.querySelector('input').value);
         if(isNaN(val)) return;
-        if(kind==='count') goal.count.current=val;
-        else if(kind==='range') goal.range.current=val;
+        if(kind==='count'){
+          if(val>goal.count.current) markGoalProgress(goal); // only forward movement counts
+          goal.count.current=val;
+        } else if(kind==='range'){
+          const {start=0,target=0,current=0}=goal.range;
+          const movedForward = target>=start ? val>current : val<current;
+          if(movedForward) markGoalProgress(goal);
+          goal.range.current=val;
+        }
         await sSet('goals-data', state.goals);
         renderGoals();
         return;
@@ -1953,10 +2370,14 @@
         const goalId=e.target.dataset.goal;
         const goal=state.goals.goals.find(g=>g.id===goalId);
         if(!goal) return;
-        const note=e.target.querySelector('textarea').value.trim();
-        const yt=e.target.querySelector('input[type=url]').value.trim();
+        const due=e.target.querySelector('input[type=date]').value;
+        const note=e.target.querySelector('.goal-note-input').value.trim();
+        const ytRaw=e.target.querySelector('.goal-yt-input').value;
+        const ytLinks=ytRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+        goal.dueDate = due || undefined;
         goal.notes = note || undefined;
-        goal.youtube = yt || undefined;
+        goal.youtubeLinks = ytLinks.length ? ytLinks : undefined;
+        delete goal.youtube;
         openGoalExtras.delete(goalId);
         await sSet('goals-data', state.goals);
         renderGoals();
@@ -2057,6 +2478,248 @@
       </div>`;
     }).join('');
   }
+  // ---------- render: Home (landing dashboard) ----------
+  // Answers "how am I doing today?" at a glance. Pulls only from data
+  // already loaded into state — no heavyweight week/month aggregation
+  // like the Reports tab below.
+  // ---------- Streaks ----------
+  // Counts consecutive days a category has logged time>0, scanning
+  // backward with peekLedger so it never seeds/writes historical days.
+  // If today isn't logged yet, the day is treated as "in progress" (not a
+  // break) — the streak is measured through yesterday until today closes.
+  async function computeStreak(catId, maxDays){
+    maxDays = maxDays || 200;
+    let cursor = todayStr();
+    const todayBlocks = await peekLedger(cursor);
+    const todayDone = todayBlocks.some(b=>b.category===catId && b.duration>0);
+    if(!todayDone) cursor = shiftDate(cursor, -1);
+    let streak = 0;
+    for(let i=0;i<maxDays;i++){
+      const blocks = await peekLedger(cursor);
+      const done = blocks.some(b=>b.category===catId && b.duration>0);
+      if(!done) break;
+      streak++;
+      cursor = shiftDate(cursor, -1);
+    }
+    return {catId, streak, todayDone};
+  }
+  const STREAK_CATEGORY_IDS = DEFAULT_DAILY_CATEGORY_IDS.concat(['exercise']);
+  async function computeAllStreaks(){
+    const results = [];
+    for(const id of STREAK_CATEGORY_IDS){ results.push(await computeStreak(id)); }
+    return results.sort((a,b)=>b.streak-a.streak);
+  }
+  function streaksHTML(streaks){
+    const active = streaks.filter(s=>s.streak>0);
+    if(!active.length) return '<p class="empty">No active streaks yet — log a habit two days in a row to start one.</p>';
+    return `<div class="streak-list">${active.slice(0,6).map(s=>{
+      const cat = catOf(s.catId);
+      const risk = !s.todayDone;
+      return `<div class="streak-item">
+        <span class="streak-flame">🔥</span>
+        <span class="streak-label">${escapeHtml(cat.label)}</span>
+        <span class="streak-count">${s.streak}d</span>
+        ${risk? '<span class="streak-risk" title="Not logged yet today">at risk</span>' : ''}
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // ---------- Today's Score ----------
+  // A weighted checklist of what actually matters to the user, not just
+  // "did you log time." Each component scores 0-100 independently; the
+  // final score is a weighted average of whichever components apply today
+  // (a component with no data, like Goals when none exist, drops out of
+  // the average instead of dragging the score down).
+  const KIDS_CAT_IDS = ['kids_playtime','teaching_kids','kids_bedtime','kids_school_prep','kids_talking_time'];
+  const LEARNING_ACTIVITY_CAT_IDS = ['learning','learning_piano','learning_flags','learn_cooking'];
+  function minutesFor(blocks, catIds){ return blocks.filter(b=>catIds.includes(b.category)).reduce((s,b)=>s+b.duration,0); }
+  function countFor(blocks, catId){ return blocks.filter(b=>b.category===catId && b.duration>0).length; }
+  function pctFromMinutes(minutes, targetMin){ return targetMin>0 ? Math.min(100, Math.round(minutes/targetMin*100)) : 0; }
+  function pctFromCount(count, targetCount){ return targetCount>0 ? Math.min(100, Math.round(count/targetCount*100)) : 0; }
+  // Instead of averaging overall completion % (which barely moves day to
+  // day), this looks at whether any *active* goal was actually pushed
+  // forward today (step checked, count/range moved toward target) — see
+  // markGoalProgress(). Completed goals don't count against you for going
+  // quiet. Returns null (component drops out) if there's nothing active to
+  // move in the first place.
+  function goalsMovedTodayPct(goals, {onlyKind, excludeKinds}={}){
+    let items = goals.filter(g=>goalPct(g)<100);
+    if(onlyKind) items = items.filter(g=>goalKind(g)===onlyKind);
+    if(excludeKinds) items = items.filter(g=>!excludeKinds.includes(goalKind(g)));
+    if(!items.length) return null;
+    const moved = items.filter(goalMovedToday).length;
+    return pctFromCount(moved, 1);
+  }
+  const SCORE_COMPONENTS = [
+    {id:'exercise', label:'Exercise (≥15m)', weight:2,
+      evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['exercise']), 15)},
+    {id:'selfcare', label:'Self Care (2 logged)', weight:2,
+      evaluate: ctx=> pctFromCount(countFor(ctx.blocks,'self_care'), 2)},
+    {id:'family', label:'Family Time', weight:2,
+      evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['family_time']), 15)},
+    {id:'kids', label:'Time with Kids (≥1h)', weight:2,
+      evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,KIDS_CAT_IDS), 60)},
+    {id:'giann', label:'Time with Giann (≥30m)', weight:2,
+      evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['giann']), 30)},
+    {id:'learning', label:'Learning', weight:2,
+      evaluate: ctx=>{
+        const activityPct = pctFromMinutes(minutesFor(ctx.blocks, LEARNING_ACTIVITY_CAT_IDS), 20);
+        const goalsPct = goalsMovedTodayPct(ctx.goals, {onlyKind:'learning'});
+        return goalsPct===null ? activityPct : Math.round((activityPct+goalsPct)/2);
+      }},
+    {id:'goals', label:'Moved a Goal Forward', weight:2,
+      evaluate: ctx=> goalsMovedTodayPct(ctx.goals, {excludeKinds:['learning']})},
+    {id:'dayLogged', label:'Day Logged', weight:1,
+      evaluate: ctx=> Math.min(100, Math.round(ctx.total/1440*100))}
+  ];
+  function activeScoreComponents(dayType){
+    const cfg = DAY_TYPES[dayType] || DAY_TYPES[DEFAULT_DAY_TYPE];
+    // Exercise and Self Care always apply, no matter what day type is picked.
+    const ids = new Set(['exercise','selfcare', ...cfg.componentIds]);
+    return SCORE_COMPONENTS.filter(c=>ids.has(c.id));
+  }
+  function homeScoreBreakdown(blocks, dayType){
+    const ctx = {blocks, total: blocks.reduce((s,b)=>s+b.duration,0), goals: state.goals.goals||[]};
+    return activeScoreComponents(dayType).map(c=>({id:c.id, label:c.label, weight:c.weight, pct:c.evaluate(ctx)}))
+      .filter(c=>c.pct!==null);
+  }
+  function homeScore(blocks, dayType){
+    const parts = homeScoreBreakdown(blocks, dayType);
+    if(!parts.length) return 0;
+    const weightedSum = parts.reduce((s,p)=>s+p.pct*p.weight,0);
+    const totalWeight = parts.reduce((s,p)=>s+p.weight,0);
+    return Math.round(weightedSum/totalWeight);
+  }
+  function homeScoreBreakdownHTML(blocks, dayType){
+    const parts = homeScoreBreakdown(blocks, dayType).slice().sort((a,b)=>a.pct-b.pct);
+    const weightedSum = parts.reduce((s,p)=>s+p.pct*p.weight,0);
+    const totalWeight = parts.reduce((s,p)=>s+p.weight,0);
+    const score = totalWeight ? Math.round(weightedSum/totalWeight) : 0;
+    const cfg = DAY_TYPES[dayType] || DAY_TYPES[DEFAULT_DAY_TYPE];
+    return `<div class="score-breakdown">
+      <div class="score-day-type-note">${cfg.emoji} <strong>${escapeHtml(cfg.label)}</strong> — showing the ${parts.length} component${parts.length===1?'':'s'} that count today</div>
+      ${parts.map(p=>`
+      <div class="score-row">
+        <span class="score-row-label">${escapeHtml(p.label)}</span>
+        <div class="score-row-bar"><div class="fill" style="width:${p.pct}%;background:${p.pct>=100?'var(--sage)':p.pct>=50?'var(--amber)':'var(--coral)'}"></div></div>
+        <span class="score-row-pct">${p.pct}%</span>
+        <span class="score-row-weight">×${p.weight}</span>
+      </div>`).join('')}
+      <div class="score-formula">
+        ${parts.map(p=>`${p.pct}%×${p.weight}`).join(' + ')} = ${weightedSum}
+        <br>${weightedSum} ÷ (${parts.map(p=>p.weight).join('+')} = ${totalWeight}) = <strong>${score}</strong>
+      </div>
+    </div>`;
+  }
+
+  function greetingText(){
+    const h = new Date().getHours();
+    if(h<5) return 'Still up';
+    if(h<12) return 'Good morning';
+    if(h<18) return 'Good afternoon';
+    return 'Good evening';
+  }
+  function nextTaskHTML(blocks){
+    const exerciseMin = minutesFor(blocks, ['exercise']);
+    if(exerciseMin<15) return `Log <strong>${15-exerciseMin}m more Exercise</strong> to hit today's minimum`;
+    const selfCareCount = countFor(blocks, 'self_care');
+    if(selfCareCount<2) return `Log Self Care <strong>${selfCareCount===0?'twice':'once more'}</strong> today`;
+    const missing = DEFAULT_DAILY_CATEGORY_IDS
+      .map(id=>({id, block: blocks.find(b=>b.category===id)}))
+      .filter(x=>!x.block || x.block.duration<=0);
+    if(missing.length) return `Log <strong>${escapeHtml(catOf(missing[0].id).label)}</strong> for today`;
+    const openGoal = (state.goals.goals||[]).find(g=>goalPct(g)<100);
+    if(openGoal) return `Keep pushing on <strong>${escapeHtml(openGoal.title)}</strong> (${goalPct(openGoal)}%)`;
+    return `All caught up — nothing pending 🎉`;
+  }
+  function homeSleepHTML(){
+    const rec = state.sleep.records[state.date];
+    if(!rec) return metricCardHTML('—','','Sleep','<span class="metric-trend flat">Not logged yet</span>');
+    return metricCardHTML((rec.duration/60).toFixed(1),'h','Sleep',`<span class="metric-trend flat">Quality ${rec.quality}/5</span>`);
+  }
+  function weightTrendChipHTML(curr, prev){
+    if(prev===null || prev===undefined) return '<span class="metric-trend flat">First entry</span>';
+    const diff = Math.round((curr-prev)*10)/10;
+    if(Math.abs(diff)<0.1) return '<span class="metric-trend flat">→ steady</span>';
+    return `<span class="metric-trend ${diff<0?'up':'down'}">${diff>0?'↑ +':'↓ -'}${Math.abs(diff)}kg</span>`;
+  }
+  function homeWeightHTML(){
+    const dates = Object.keys(state.weight.records).sort();
+    if(!dates.length) return metricCardHTML('—','','Weight trend','<span class="metric-trend flat">No entries yet</span>');
+    const last = dates[dates.length-1], prev = dates[dates.length-2];
+    const curr = state.weight.records[last].weight;
+    const prevW = prev ? state.weight.records[prev].weight : null;
+    return metricCardHTML(curr,'kg','Weight trend', weightTrendChipHTML(curr, prevW));
+  }
+  function homeCoachSummaryHTML(){
+    const cards = state.insightsCache && state.insightsCache.cards;
+    if(cards && cards.length) return insightCardHTML(cards[0]);
+    return '<p class="empty">No coach summary yet — visit Insights to generate one.</p>';
+  }
+  let homeScoreBreakdownOpen = false;
+  async function renderHome(ticket){
+    const myTicket = ticket || startRender();
+    await loadLedger(state.date);
+    const dayType = await loadDayType(state.date);
+    const streaks = await computeAllStreaks();
+    if(isStaleRender(myTicket)) return;
+    const blocks = state.ledgerCache[state.date] || [];
+    const total = blocks.reduce((s,b)=>s+b.duration,0);
+    const habitsDone = DEFAULT_DAILY_CATEGORY_IDS.filter(id=>blocks.some(b=>b.category===id && b.duration>0)).length;
+    const exerciseMin = blocks.filter(b=>b.category==='exercise').reduce((s,b)=>s+b.duration,0);
+    const score = homeScore(blocks, dayType);
+    const view = document.getElementById('view');
+    view.innerHTML = `
+    <section class="panel home-hero">
+      <div class="home-greet">${greetingText()} 👋</div>
+      <div class="home-score-row">
+        <div class="home-score-ring">
+          <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--panel-3)" stroke-width="10"/>
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--amber)" stroke-width="10" stroke-linecap="round"
+              stroke-dasharray="${(score/100*326.7).toFixed(1)} 326.7" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div class="home-score-num">${score}</div>
+        </div>
+        <div class="home-score-meta">
+          <div class="home-score-label">Today's Score</div>
+          <div class="home-next">${nextTaskHTML(blocks)}</div>
+          <button type="button" class="score-breakdown-toggle" id="scoreBreakdownToggle">${homeScoreBreakdownOpen?'Hide':'Show'} breakdown</button>
+        </div>
+      </div>
+      ${homeScoreBreakdownOpen ? homeScoreBreakdownHTML(blocks, dayType) : ''}
+      <div class="day-progress" style="margin-top:16px;">
+        <div class="bar"><div class="fill" style="width:${Math.min(100,total/1440*100)}%"></div></div>
+        <span>${minutesToHM(total)} logged today · ${total<1440? minutesToHM(1440-total)+' remaining':'day complete ✓'}</span>
+      </div>
+    </section>
+
+    <div class="dash-grid">
+      <div class="metric-grid" style="grid-column:1 / -1;">
+        ${metricCardHTML(habitsDone+'/'+DEFAULT_DAILY_CATEGORY_IDS.length,'','Habits completed')}
+        ${metricCardHTML(exerciseMin>0? minutesToHM(exerciseMin):'Not yet', '', 'Workout status')}
+        ${homeSleepHTML()}
+        ${homeWeightHTML()}
+      </div>
+      <section class="panel">
+        <h2>Streaks</h2>
+        ${streaksHTML(streaks)}
+      </section>
+      <section class="panel">
+        <h2>Today at a Glance</h2>
+        ${dayWheelSVG(blocks)}
+      </section>
+      <section class="panel" style="grid-column:1 / -1;">
+        <h2>Coach Summary</h2>
+        ${homeCoachSummaryHTML()}
+      </section>
+    </div>`;
+
+    document.getElementById('scoreBreakdownToggle').onclick = ()=>{
+      homeScoreBreakdownOpen = !homeScoreBreakdownOpen;
+      renderHome(startRender());
+    };
+  }
+
   async function renderDashboard(ticket){
     const myTicket = ticket || startRender();
     const view=document.getElementById('view');
@@ -2705,7 +3368,7 @@
   // One shared persona used everywhere the AI generates user-facing text
   // (Insights, Weekly Reflection, Ask Lej) so it reads as the same coach
   // across every surface, not a different voice per feature.
-  const COACH_IDENTITY = `You are "Ask Lej" — not a generic assistant, but an elite executive performance coach who has worked with this specific user for years. `+
+  const COACH_IDENTITY = `You are "Coach Lej" — not a generic assistant, but an elite executive performance coach who has worked with this specific user for years. `+
     `You combine behavioral psychology, productivity science, habit formation, and accountability into how you talk. `+
     `You notice patterns before the user names them, challenge excuses directly but respectfully instead of just validating them, celebrate genuine progress without empty praise, and always relate today's advice back to previous conversations and long-term history rather than treating each moment in isolation.`;
 
@@ -3340,95 +4003,6 @@
       `<div class="ask-msg-meta">${escapeHtml(SOURCE_LABEL[m.source]||'Local coach')}</div></div>`;
   }
 
-  function renderAskLedger(){
-    const view=document.getElementById('view');
-    const history = state.askHistory||[];
-    const thread = history.length
-      ? history.flatMap(h=>[{role:'user',text:h.q},{role:'assistant',text:h.a,source:h.source}]).map(askMsgHTML).join('')
-      : '<div class="ask-empty">Ask a question about your logged time, sleep, goals, or weight — Ask Lej reads your data and answers directly.</div>';
-
-    view.innerHTML = `<section class="panel">
-      <div class="insights-head">
-        <div><h2>Ask Lej</h2><div class="insights-meta">Answers pulled straight from your data<span class="src-tag">${escapeHtml(SOURCE_LABEL[getAIKeys().gemini? 'gemini' : getAIKeys().mistral? 'mistral' : 'local']||'Local coach')}</span></div></div>
-        <div class="insights-actions">
-          <button class="icon-btn" id="toggleAISettingsBtn"><span class="gear">⚙</span> Providers</button>
-          ${history.length ? '<button class="icon-btn ask-clear-btn" id="askClearBtn">Clear</button>' : ''}
-        </div>
-      </div>
-      ${aiSettingsHTML()}
-      <div class="ask-wrap">
-        <div class="ask-chips" id="askChips">${ASK_SUGGESTIONS.map(s=>`<button class="ask-chip" data-q="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}</div>
-        <div class="ask-thread" id="askThread">${thread}</div>
-        <div class="ask-input-row">
-          <textarea id="askInput" rows="1" placeholder="Ask about your time, sleep, goals, or weight…"></textarea>
-          <button class="ask-send-btn" id="askSendBtn">Ask</button>
-        </div>
-      </div>
-    </section>`;
-
-    document.getElementById('toggleAISettingsBtn').onclick=()=>{
-      const panel=document.getElementById('aiSettingsPanel');
-      panel.style.display = panel.style.display==='none' ? '' : 'none';
-    };
-    document.getElementById('saveAIKeysBtn').onclick=()=>{
-      setAIKeys({
-        gemini: document.getElementById('geminiKeyInput').value.trim(),
-        mistral: document.getElementById('mistralKeyInput').value.trim()
-      });
-      toast('Provider keys saved on this device');
-      renderAskLedger();
-    };
-    const clearBtn = document.getElementById('askClearBtn');
-    if(clearBtn) clearBtn.onclick=async ()=>{
-      if(!confirm('Clear the Ask Lej conversation?')) return;
-      state.askHistory=[];
-      await sSet('ask-ledger-history', []);
-      renderAskLedger();
-    };
-
-    const thread_el = document.getElementById('askThread');
-    thread_el.scrollTop = thread_el.scrollHeight;
-
-    const input = document.getElementById('askInput');
-    const sendBtn = document.getElementById('askSendBtn');
-
-    async function send(q){
-      const question = (q||input.value).trim();
-      if(!question || state.askLoading) return;
-      state.askLoading = true;
-      input.value='';
-      thread_el.insertAdjacentHTML('beforeend', `<div class="ask-msg user"><div class="ask-bubble">${escapeHtml(question)}</div></div>`+
-        `<div class="ask-msg assistant ask-thinking" id="askThinking"><div class="ask-bubble">Reading your data…</div></div>`);
-      thread_el.scrollTop = thread_el.scrollHeight;
-      sendBtn.disabled = true;
-      try{
-        const {answer, source} = await askLedger(question);
-        const thinkingEl = document.getElementById('askThinking');
-        if(thinkingEl) thinkingEl.remove();
-        thread_el.insertAdjacentHTML('beforeend', askMsgHTML({role:'assistant', text:answer, source}));
-        state.askHistory = (state.askHistory||[]).concat([{q:question, a:answer, source, ts:new Date().toISOString()}]).slice(-30);
-        await sSet('ask-ledger-history', state.askHistory);
-        const chips = document.getElementById('askChips'); if(chips) chips.remove();
-      }catch(e){
-        const thinkingEl = document.getElementById('askThinking');
-        if(thinkingEl) thinkingEl.remove();
-        thread_el.insertAdjacentHTML('beforeend', `<div class="ask-msg assistant"><div class="ask-bubble">Something went wrong answering that — try again.</div></div>`);
-      }
-      thread_el.scrollTop = thread_el.scrollHeight;
-      sendBtn.disabled = false;
-      state.askLoading = false;
-    }
-
-    sendBtn.onclick=()=>send();
-    input.addEventListener('keydown', (e)=>{
-      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
-    });
-    document.getElementById('askChips').addEventListener('click',(e)=>{
-      const chip=e.target.closest('.ask-chip'); if(!chip) return;
-      send(chip.dataset.q);
-    });
-  }
-
   // ---------- render: Coach Profile & Coach Memory ----------
   const COACH_PROFILE_FIELDS = [
     {section:'Identity', layout:'row', fields:[
@@ -3495,11 +4069,6 @@
         <p class="empty" style="padding:4px 0;">Coming soon</p>
       </div>`;
 
-    const memories = allMemoriesFlat().slice().sort((a,b)=> (b.confidence-a.confidence) || (new Date(b.date)-new Date(a.date)) );
-    const memoryListHTML = memories.length
-      ? `<div class="memory-list">${memories.map(memoryItemHTML).join('')}</div>`
-      : '<p class="empty">No long-term memories yet — they build up automatically as you use Ask Lej with a Gemini or Mistral key connected.</p>';
-
     const um = state.userModel||{};
     const hasUserModel = USER_MODEL_FIELDS.some(f=>um[f.key]);
     const userModelGridHTML = USER_MODEL_FIELDS.map(f=>`
@@ -3517,7 +4086,7 @@
           <button class="icon-btn" id="coachBackBtn">← Back</button>
         </div>
         <h2>Profile</h2>
-        <p class="section-intro" style="color:var(--fog);font-size:12.5px;margin:-12px 0 20px;">Tell Ask Lej who you are so it can coach you like it's known you for months, not seconds. Saved with the rest of your ledger.</p>
+        <p class="section-intro" style="color:var(--fog);font-size:12.5px;margin:-12px 0 20px;">Tell Coach Lej who you are so it can coach you like it's known you for months, not seconds. Saved with the rest of your ledger.</p>
         ${profileSectionsHTML}
         <div class="coach-save-row">
           <button class="icon-btn" id="saveCoachProfileBtn">Save Profile</button>
@@ -3525,26 +4094,12 @@
       </section>
       <section class="panel">
         <div class="insights-head">
-          <div><h2>User Model</h2><div class="insights-meta">How Ask Lej reads the way you operate — evolves after every conversation<span class="user-model-meta">${userModelMetaHTML}</span></div></div>
+          <div><h2>User Model</h2><div class="insights-meta">How Coach Lej reads the way you operate — evolves after every conversation<span class="user-model-meta">${userModelMetaHTML}</span></div></div>
           <div class="insights-actions">
             <button class="icon-btn" id="refreshUserModelBtn">${hasUserModel ? '↻ Refresh Now' : '✎ Generate Now'}</button>
           </div>
         </div>
         <div class="user-model-grid">${userModelGridHTML}</div>
-      </section>
-      <section class="panel">
-        <div class="insights-head">
-          <div><h2>Coach Memory</h2><div class="insights-meta">Long-term patterns Ask Lej has learned about you<span class="src-tag">${memoryCount()} stored</span></div></div>
-          <div class="insights-actions">
-            ${memories.length ? '<button class="icon-btn" id="clearMemoryBtn">Clear All</button>' : ''}
-          </div>
-        </div>
-        <form class="coach-note-form" id="coachNoteForm">
-          <textarea id="coachNoteInput" rows="1" placeholder="Add your own note for the coach to remember (e.g. 'I'm training for a marathon in October')…"></textarea>
-          <button type="submit" class="icon-btn">Add Note</button>
-        </form>
-        <div class="memory-toolbar" style="margin-top:14px;"><span class="memory-count">Only the most relevant memories are sent with each question — not the full list.</span></div>
-        ${memoryListHTML}
       </section>`;
 
     document.getElementById('coachBackBtn').onclick = closeCoachProfile;
@@ -3553,7 +4108,7 @@
       const btn = document.getElementById('refreshUserModelBtn');
       const original = btn.textContent;
       btn.disabled=true; btn.textContent='Thinking…';
-      // Use the most recent Ask Lej exchange as fresh evidence, if any exists.
+      // Use the most recent Chat exchange as fresh evidence, if any exists.
       const last = (state.askHistory||[]).length ? state.askHistory[state.askHistory.length-1] : null;
       try{
         await updateUserModel(last ? {q:last.q, a:last.a} : null);
@@ -3574,36 +4129,84 @@
       await saveCoachProfile();
       toast('Coach Profile saved');
     };
-
-    document.getElementById('coachNoteForm').onsubmit = async (e)=>{
-      e.preventDefault();
-      const input = document.getElementById('coachNoteInput');
-      const text = input.value.trim();
-      if(!text) return;
-      addOrMergeMemory({type:'coachNotes', summary:text, evidence:'Added manually by the user', confidence:0.7, source:'user'});
-      renderCoachProfile();
-    };
-
-    const clearBtn = document.getElementById('clearMemoryBtn');
-    if(clearBtn) clearBtn.onclick = async ()=>{
-      if(!confirm('Clear all long-term coach memories? This cannot be undone.')) return;
-      state.coachMemory = {observations:[], patterns:[], strategies:[], milestones:[], weeklyReflections:[], coachNotes:[]};
-      await saveCoachMemory();
-      renderCoachProfile();
-    };
-
-    // Bind to the memory list itself (freshly created every render) rather
-    // than the persistent #view container, so listeners don't pile up across renders.
-    const memListEl = view.querySelector('.memory-list');
-    if(memListEl) memListEl.addEventListener('click', (e)=>{
-      const btn = e.target.closest('.del-memory');
-      if(!btn) return;
-      removeMemory(btn.dataset.type, btn.dataset.id);
-      renderCoachProfile();
-    });
   }
 
   // ---------- pipeline: Mistral -> Gemini -> local ----------
+  // ---------- Correlations (deterministic, no AI needed) ----------
+  // Cross-references categories the AI facts pipeline treats separately —
+  // e.g. "do you sleep worse on days you skip exercise?" — using real
+  // logged data over the last few weeks, not a model's guess.
+  async function computeCorrelationCards(){
+    const days = 21;
+    const dates = []; for(let i=days-1;i>=0;i--) dates.push(shiftDate(todayStr(), -i));
+    const blocksByDate = {};
+    for(const d of dates){ blocksByDate[d] = await peekLedger(d); }
+
+    function splitByCategory(catId){
+      const withCat=[], without=[];
+      dates.forEach(d=>{
+        const rec = state.sleep.records[d];
+        if(!rec) return;
+        const min = (blocksByDate[d]||[]).filter(b=>b.category===catId).reduce((s,b)=>s+b.duration,0);
+        (min>0 ? withCat : without).push(rec);
+      });
+      return {withCat, without};
+    }
+
+    const cards = [];
+
+    const ex = splitByCategory('exercise');
+    if(ex.withCat.length>=2 && ex.without.length>=2){
+      const avgWith = ex.withCat.reduce((s,r)=>s+r.duration,0)/ex.withCat.length;
+      const avgWithout = ex.without.reduce((s,r)=>s+r.duration,0)/ex.without.length;
+      const diff = Math.round(avgWith-avgWithout);
+      if(Math.abs(diff)>=15){
+        cards.push({
+          title:'Sleep vs. Exercise',
+          text: diff>0
+            ? `You sleep about ${minutesToHM(Math.abs(diff))} longer on days you exercise than on days you don't (last ${days} days).`
+            : `You sleep about ${minutesToHM(Math.abs(diff))} less on days you exercise than on days you don't (last ${days} days).`,
+          tone: diff>0? 'positive':'warning',
+          icon:'🔗'
+        });
+      }
+      const qWith = ex.withCat.reduce((s,r)=>s+r.quality,0)/ex.withCat.length;
+      const qWithout = ex.without.reduce((s,r)=>s+r.quality,0)/ex.without.length;
+      const qDiff = Math.round((qWith-qWithout)*10)/10;
+      if(Math.abs(qDiff)>=0.4){
+        cards.push({
+          title:'Sleep Quality vs. Exercise',
+          text: qDiff>0
+            ? `Sleep quality averages ${qWith.toFixed(1)}/5 on exercise days vs ${qWithout.toFixed(1)}/5 on rest days.`
+            : `Sleep quality is actually lower on exercise days (${qWith.toFixed(1)}/5) than rest days (${qWithout.toFixed(1)}/5) — maybe a timing thing worth testing.`,
+          tone: qDiff>0? 'positive':'neutral',
+          icon:'🔗'
+        });
+      }
+    }
+
+    if(cards.length<3){
+      const sc = splitByCategory('self_care');
+      if(sc.withCat.length>=2 && sc.without.length>=2){
+        const a = sc.withCat.reduce((s,r)=>s+r.quality,0)/sc.withCat.length;
+        const b = sc.without.reduce((s,r)=>s+r.quality,0)/sc.without.length;
+        const d = Math.round((a-b)*10)/10;
+        if(Math.abs(d)>=0.4){
+          cards.push({
+            title:'Sleep Quality vs. Self Care',
+            text: d>0
+              ? `Sleep quality runs ${d.toFixed(1)} points higher on days you log Self Care (${a.toFixed(1)}/5 vs ${b.toFixed(1)}/5).`
+              : `Sleep quality runs ${Math.abs(d).toFixed(1)} points lower on days you log Self Care — could be coincidence, worth watching.`,
+            tone: d>0?'positive':'neutral',
+            icon:'🔗'
+          });
+        }
+      }
+    }
+
+    return cards.slice(0,3);
+  }
+
   async function generateInsights(){
     const f = await computeInsightFacts();
     const keys = getAIKeys();
@@ -3628,6 +4231,15 @@
       const checkin = buildCheckinCard(f, prevEntry);
       if(checkin) cards = [checkin, ...cards];
     }
+
+    // Deterministic cross-referenced patterns (sleep vs exercise, etc.) —
+    // computed locally from real logged data, independent of AI/local text
+    // generation above, and appended so they're always present when the
+    // data supports them.
+    try{
+      const correlationCards = await computeCorrelationCards();
+      if(correlationCards.length) cards = cards.concat(correlationCards);
+    }catch(e){ console.warn('Correlation computation failed:', e.message); }
 
     const result = {cards, source, generatedAt: new Date().toISOString(), weekLabel: f.weekLabel};
     state.insightsCache = result;
@@ -3789,45 +4401,6 @@
     </div>`;
   }
 
-  function aiSettingsHTML(){
-    const keys = getAIKeys();
-    return `<div class="ai-settings" id="aiSettingsPanel" style="display:none;">
-      <h3>AI providers (optional)</h3>
-      <p>Add a Gemini or Mistral API key to have your insights written by that model instead of the built-in local coach. Insights tries Mistral first, then Gemini, then the local coach. Ask Lej tries Gemini first, then Mistral, then the local coach. Keys are stored only in this browser — never synced or sent anywhere except directly to that provider.</p>
-      <div class="ai-settings-row"><label for="geminiKeyInput">Gemini API key</label><input type="password" id="geminiKeyInput" placeholder="AIza…" value="${escapeHtml(keys.gemini||'')}"></div>
-      <div class="ai-settings-row"><label for="mistralKeyInput">Mistral API key</label><input type="password" id="mistralKeyInput" placeholder="…" value="${escapeHtml(keys.mistral||'')}"></div>
-      <div class="ai-settings-foot"><button class="icon-btn" id="saveAIKeysBtn">Save keys</button></div>
-    </div>`;
-  }
-
-  function insightsShellHTML(bodyHTML, metaHTML){
-    return `<section class="panel">
-      <div class="insights-head">
-        <div><h2>Insights</h2><div class="insights-meta">What your data means${metaHTML||''}</div></div>
-        <div class="insights-actions">
-          <button class="icon-btn" id="toggleAISettingsBtn"><span class="gear">⚙</span> Providers</button>
-          <button class="icon-btn" id="refreshInsightsBtn">↻ Refresh</button>
-        </div>
-      </div>
-      ${aiSettingsHTML()}
-      ${bodyHTML}
-    </section>`;
-  }
-
-  function bindInsightsControls(onRefresh){
-    document.getElementById('toggleAISettingsBtn').onclick=()=>{
-      const panel=document.getElementById('aiSettingsPanel');
-      panel.style.display = panel.style.display==='none' ? '' : 'none';
-    };
-    document.getElementById('saveAIKeysBtn').onclick=()=>{
-      setAIKeys({
-        gemini: document.getElementById('geminiKeyInput').value.trim(),
-        mistral: document.getElementById('mistralKeyInput').value.trim()
-      });
-      toast('Provider keys saved on this device');
-    };
-    document.getElementById('refreshInsightsBtn').onclick=onRefresh;
-  }
 
   function coachThreadHTML(){
     const entries = (state.coachThread||[]).slice(-6);
@@ -3838,33 +4411,42 @@
     </div>`;
   }
 
-  async function renderInsights(ticket){
-    const myTicket = ticket || startRender();
-    const view=document.getElementById('view');
+  function coachShellHTML(bodyHTML, metaHTML){
+    return `<div class="insights-head">
+        <div><h2>Coach</h2><div class="insights-meta">Automatically generated advice${metaHTML||''}</div></div>
+        <div class="insights-actions">
+          <button class="icon-btn" id="refreshInsightsBtn">↻ Refresh</button>
+        </div>
+      </div>
+      ${bodyHTML}`;
+  }
+
+  function bindCoachControls(onRefresh){
+    document.getElementById('refreshInsightsBtn').onclick=onRefresh;
+  }
+
+  async function renderCoachLejCoach(ticket, bodyEl){
     const cached = state.insightsCache;
 
     if(!cached){
-      view.innerHTML = insightsShellHTML('<div class="loading">Reading your week…</div>');
-      bindInsightsControls(()=>renderInsights(startRender()));
+      bodyEl.innerHTML = coachShellHTML('<div class="loading">Reading your week…</div>');
+      bindCoachControls(()=>renderCoachLejCoach(startRender(), bodyEl));
       document.getElementById('refreshInsightsBtn').disabled=true;
       try{
         await generateInsights();
       }catch(e){
         console.warn('Insight generation failed entirely:', e.message);
       }
-      if(isStaleRender(myTicket)) return;
+      if(isStaleRender(ticket)) return;
       if(!state.insightsCache){
-        // generateInsights() failed and never populated the cache — show an
-        // error instead of recursing back into this branch forever (which
-        // used to hang the tab and freeze the whole page).
-        view.innerHTML = insightsShellHTML('<p class="empty">Could not generate insights right now. Try the Refresh button, or check the Weight/Sleep/Goals tabs for anything that looks off.</p>');
-        bindInsightsControls(()=>renderInsights(startRender()));
+        bodyEl.innerHTML = coachShellHTML('<p class="empty">Could not generate insights right now. Try the Refresh button, or check the Health/Goals tabs for anything that looks off.</p>');
+        bindCoachControls(()=>renderCoachLejCoach(startRender(), bodyEl));
         return;
       }
-      return renderInsights(myTicket);
+      return renderCoachLejCoach(ticket, bodyEl);
     }
 
-    if(isStaleRender(myTicket)) return;
+    if(isStaleRender(ticket)) return;
 
     const hasEnoughData = cached.cards && cached.cards.length>0;
     const meta = ' for '+escapeHtml(cached.weekLabel||'')+
@@ -3873,25 +4455,280 @@
     const body = (hasEnoughData
       ? '<div class="insight-grid">'+cached.cards.map(insightCardHTML).join('')+'</div>'
       : '<div class="insights-empty insight-empty-state"><div class="insights-icon">✨</div><p class="section-intro">Log a bit more this week — time blocks, sleep, or goal progress — and your coach will have something to say.</p></div>')
-      + coachThreadHTML()
-      + weeklyReflectionHTML();
+      + coachThreadHTML();
 
-    view.innerHTML = insightsShellHTML(body, meta);
-    bindInsightsControls(async ()=>{
+    bodyEl.innerHTML = coachShellHTML(body, meta);
+    bindCoachControls(async ()=>{
       const btn=document.getElementById('refreshInsightsBtn');
       btn.disabled=true; btn.classList.add('spin'); btn.innerHTML='<span class="gear">↻</span> Thinking…';
       try{ await generateInsights(); }
       catch(e){ toast('Could not refresh insights — try again'); }
-      if(isStaleRender(myTicket)) return;
-      renderInsights(startRender());
-    });
-    bindWeeklyReflectionControls(()=>{
-      if(isStaleRender(myTicket)) return;
-      renderInsights(startRender());
+      if(isStaleRender(ticket)) return;
+      renderCoachLejCoach(startRender(), bodyEl);
     });
   }
 
-  const renderers = {today:renderToday, goals:renderGoals, weight:renderWeight, dashboard:renderDashboard, insights:renderInsights, ask:renderAskLedger, coach:renderCoachProfile};
+  function renderCoachLejReflection(bodyEl){
+    bodyEl.innerHTML = `<div class="insights-meta" style="margin-bottom:14px;">Generated every week from your logged data</div>${weeklyReflectionHTML()}`;
+    bindWeeklyReflectionControls(()=>renderCoachLejReflection(bodyEl));
+  }
+
+  function renderCoachLejMemory(bodyEl){
+    const memories = allMemoriesFlat().slice().sort((a,b)=> (b.confidence-a.confidence) || (new Date(b.date)-new Date(a.date)) );
+    const memoryListHTML = memories.length
+      ? `<div class="memory-list">${memories.map(memoryItemHTML).join('')}</div>`
+      : '<p class="empty">No long-term memories yet — they build up automatically as you chat with Coach Lej with a Gemini or Mistral key connected.</p>';
+
+    bodyEl.innerHTML = `<div class="insights-head">
+        <div><h2>Memory</h2><div class="insights-meta">Things Coach Lej remembers about you<span class="src-tag">${memoryCount()} stored</span></div></div>
+        <div class="insights-actions">
+          ${memories.length ? '<button class="icon-btn" id="clearMemoryBtn">Clear All</button>' : ''}
+        </div>
+      </div>
+      <form class="coach-note-form" id="coachNoteForm">
+        <textarea id="coachNoteInput" rows="1" placeholder="Add your own note for the coach to remember (e.g. 'I'm training for a marathon in October')…"></textarea>
+        <button type="submit" class="icon-btn">Add Note</button>
+      </form>
+      <div class="memory-toolbar" style="margin-top:14px;"><span class="memory-count">Only the most relevant memories are sent with each question — not the full list.</span></div>
+      ${memoryListHTML}`;
+
+    document.getElementById('coachNoteForm').onsubmit = async (e)=>{
+      e.preventDefault();
+      const input = document.getElementById('coachNoteInput');
+      const text = input.value.trim();
+      if(!text) return;
+      addOrMergeMemory({type:'coachNotes', summary:text, evidence:'Added manually by the user', confidence:0.7, source:'user'});
+      renderCoachLejMemory(bodyEl);
+    };
+    const clearBtn = document.getElementById('clearMemoryBtn');
+    if(clearBtn) clearBtn.onclick = async ()=>{
+      if(!confirm('Clear all long-term coach memories? This cannot be undone.')) return;
+      state.coachMemory = {observations:[], patterns:[], strategies:[], milestones:[], weeklyReflections:[], coachNotes:[]};
+      await saveCoachMemory();
+      renderCoachLejMemory(bodyEl);
+    };
+    const memListEl = bodyEl.querySelector('.memory-list');
+    if(memListEl) memListEl.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.del-memory');
+      if(!btn) return;
+      removeMemory(btn.dataset.type, btn.dataset.id);
+      renderCoachLejMemory(bodyEl);
+    });
+  }
+
+  function renderCoachLejChat(bodyEl){
+    const history = state.askHistory||[];
+    const thread = history.length
+      ? history.flatMap(h=>[{role:'user',text:h.q},{role:'assistant',text:h.a,source:h.source}]).map(askMsgHTML).join('')
+      : '<div class="ask-empty">Ask a question about your logged time, sleep, goals, or weight — Chat reads your data and answers directly.</div>';
+
+    bodyEl.innerHTML = `<div class="insights-head">
+        <div><h2>Chat</h2><div class="insights-meta">Ask anything about your data<span class="src-tag">${escapeHtml(SOURCE_LABEL[getAIKeys().gemini? 'gemini' : getAIKeys().mistral? 'mistral' : 'local']||'Local coach')}</span></div></div>
+        <div class="insights-actions">
+          ${history.length ? '<button class="icon-btn ask-clear-btn" id="askClearBtn">Clear</button>' : ''}
+        </div>
+      </div>
+      <div class="ask-wrap">
+        <div class="ask-chips" id="askChips">${ASK_SUGGESTIONS.map(s=>`<button class="ask-chip" data-q="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}</div>
+        <div class="ask-thread" id="askThread">${thread}</div>
+        <div class="ask-input-row">
+          <textarea id="askInput" rows="1" placeholder="Ask about your time, sleep, goals, or weight…"></textarea>
+          <button class="ask-send-btn" id="askSendBtn">Ask</button>
+        </div>
+      </div>`;
+
+    const clearBtn = document.getElementById('askClearBtn');
+    if(clearBtn) clearBtn.onclick=async ()=>{
+      if(!confirm('Clear the Chat conversation?')) return;
+      state.askHistory=[];
+      await sSet('ask-ledger-history', []);
+      renderCoachLejChat(bodyEl);
+    };
+
+    const thread_el = document.getElementById('askThread');
+    thread_el.scrollTop = thread_el.scrollHeight;
+
+    const input = document.getElementById('askInput');
+    const sendBtn = document.getElementById('askSendBtn');
+
+    async function send(q){
+      const question = (q||input.value).trim();
+      if(!question || state.askLoading) return;
+      state.askLoading = true;
+      input.value='';
+      thread_el.insertAdjacentHTML('beforeend', `<div class="ask-msg user"><div class="ask-bubble">${escapeHtml(question)}</div></div>`+
+        `<div class="ask-msg assistant ask-thinking" id="askThinking"><div class="ask-bubble">Reading your data…</div></div>`);
+      thread_el.scrollTop = thread_el.scrollHeight;
+      sendBtn.disabled = true;
+      try{
+        const {answer, source} = await askLedger(question);
+        const thinkingEl = document.getElementById('askThinking');
+        if(thinkingEl) thinkingEl.remove();
+        thread_el.insertAdjacentHTML('beforeend', askMsgHTML({role:'assistant', text:answer, source}));
+        state.askHistory = (state.askHistory||[]).concat([{q:question, a:answer, source, ts:new Date().toISOString()}]).slice(-30);
+        await sSet('ask-ledger-history', state.askHistory);
+        const chips = document.getElementById('askChips'); if(chips) chips.remove();
+      }catch(e){
+        const thinkingEl = document.getElementById('askThinking');
+        if(thinkingEl) thinkingEl.remove();
+        thread_el.insertAdjacentHTML('beforeend', `<div class="ask-msg assistant"><div class="ask-bubble">Something went wrong answering that — try again.</div></div>`);
+      }
+      thread_el.scrollTop = thread_el.scrollHeight;
+      sendBtn.disabled = false;
+      state.askLoading = false;
+    }
+
+    sendBtn.onclick=()=>send();
+    input.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+    });
+    document.getElementById('askChips').addEventListener('click',(e)=>{
+      const chip=e.target.closest('.ask-chip'); if(!chip) return;
+      send(chip.dataset.q);
+    });
+  }
+
+  const COACH_LEJ_VIEWS = [['coach','Coach'],['chat','Chat'],['reflection','Weekly Reflection'],['memory','Memory']];
+  let coachLejView = 'coach';
+  function coachLejNavHTML(){
+    return `<div class="coachlej-nav">${COACH_LEJ_VIEWS.map(([id,label])=>`<button class="coachlej-tab${coachLejView===id?' active':''}" data-view="${id}">${escapeHtml(label)}</button>`).join('')}</div>`;
+  }
+
+  async function renderCoachLej(ticket){
+    const myTicket = ticket || startRender();
+    const view=document.getElementById('view');
+    view.innerHTML = `<section class="panel coachlej-shell">${coachLejNavHTML()}<div id="coachLejBody"><div class="loading">Loading…</div></div></section>`;
+    document.querySelectorAll('.coachlej-tab').forEach(btn=>{
+      btn.onclick = ()=>{
+        if(coachLejView===btn.dataset.view) return;
+        coachLejView = btn.dataset.view;
+        renderCoachLej(startRender());
+      };
+    });
+    if(isStaleRender(myTicket)) return;
+    const bodyEl = document.getElementById('coachLejBody');
+    if(coachLejView==='coach') return renderCoachLejCoach(myTicket, bodyEl);
+    if(coachLejView==='chat') return renderCoachLejChat(bodyEl);
+    if(coachLejView==='reflection') return renderCoachLejReflection(bodyEl);
+    if(coachLejView==='memory') return renderCoachLejMemory(bodyEl);
+  }
+
+  // ---------- render: Settings ----------
+  // Everything that was scattered across the topbar and other tabs
+  // (export/import, category management, AI providers, account) lives here.
+  function settingsCategoriesHTML(){
+    return allGroups().map(g=>{
+      const items = catsInGroup(g);
+      return `<div class="settings-cat-group"><h4>${escapeHtml(g)}</h4><div class="settings-cat-chips">
+        ${items.map(c=>`<span class="settings-cat-chip" style="--chip-color:${c.color}">${escapeHtml(c.label)}${(c.id!=='other' && !isSleepCat(c.id))?`<button type="button" class="settings-cat-del" data-id="${c.id}" title="Delete">×</button>`:''}</span>`).join('')}
+      </div></div>`;
+    }).join('');
+  }
+
+  function renderSettings(){
+    const view = document.getElementById('view');
+    const theme = getTheme();
+    const signedIn = firebaseAvailable && fbAuth && fbAuth.currentUser;
+    view.innerHTML = `
+    <section class="panel">
+      <h2>Data</h2>
+      <p class="section-intro" style="color:var(--fog);font-size:12.5px;">Back up everything as a JSON file, or restore from one.</p>
+      <div class="settings-btn-row">
+        <button class="icon-btn" id="settingsExportBtn">↓ Export (JSON)</button>
+        <button class="icon-btn" id="settingsImportBtn">↑ Import (JSON)</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Categories</h2>
+      <p class="section-intro" style="color:var(--fog);font-size:12.5px;">Every category used across the Daily Planner, grouped. Tap × to delete one — past entries keep their name but show as "Others".</p>
+      <div id="settingsCatList">${settingsCategoriesHTML()}</div>
+      <form id="settingsAddCatForm" class="add-goal-form" style="margin-top:14px;">
+        <div class="row">
+          <input type="text" id="settingsCatLabel" placeholder="New category, e.g. Meditation" maxlength="40" required>
+          <select id="settingsCatGroup">${allGroups().map(g=>`<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('')}</select>
+        </div>
+        <button type="submit">Add Category</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Appearance</h2>
+      <div class="settings-theme-row">
+        <span>Theme</span>
+        <div class="theme-toggle" id="themeToggle">
+          <button type="button" class="theme-opt${theme==='dark'?' active':''}" data-theme="dark">🌙 Dark</button>
+          <button type="button" class="theme-opt${theme==='light'?' active':''}" data-theme="light">☀️ Light</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>AI Providers</h2>
+      <p class="section-intro" style="color:var(--fog);font-size:12.5px;">Used by Coach, Weekly Reflection, and Chat. Add a Gemini or Mistral API key to have those written by that model instead of the built-in local coach. Keys are stored only in this browser.</p>
+      <div class="ai-settings-row"><label for="geminiKeyInput">Gemini API key</label><input type="password" id="geminiKeyInput" placeholder="AIza…" value="${escapeHtml(getAIKeys().gemini||'')}"></div>
+      <div class="ai-settings-row"><label for="mistralKeyInput">Mistral API key</label><input type="password" id="mistralKeyInput" placeholder="…" value="${escapeHtml(getAIKeys().mistral||'')}"></div>
+      <div class="ai-settings-foot"><button class="icon-btn" id="saveAIKeysBtn">Save keys</button></div>
+    </section>
+
+    <section class="panel">
+      <h2>Profile</h2>
+      <p class="section-intro" style="color:var(--fog);font-size:12.5px;">Your identity, family, and work context — so Coach Lej coaches you like it's known you for months.</p>
+      <button class="icon-btn" id="settingsOpenProfileBtn">Open Profile →</button>
+    </section>
+
+    <section class="panel">
+      <h2>Account</h2>
+      ${firebaseAvailable
+        ? `<p class="section-intro" style="color:var(--fog);font-size:12.5px;">${signedIn? 'Signed in as '+escapeHtml(fbAuth.currentUser.email) : 'Not signed in'}</p>
+           <button class="icon-btn" id="settingsSignOutBtn">Sign Out</button>`
+        : `<p class="section-intro" style="color:var(--fog);font-size:12.5px;">Cloud sync is unavailable — working in local-only mode on this device.</p>`}
+    </section>`;
+
+    document.getElementById('settingsExportBtn').onclick = exportData;
+    document.getElementById('settingsImportBtn').onclick = ()=> document.getElementById('importFileInput').click();
+
+    document.getElementById('settingsCatList').addEventListener('click', async (e)=>{
+      const btn = e.target.closest('.settings-cat-del'); if(!btn) return;
+      const ok = await deleteCategory(btn.dataset.id);
+      if(ok) renderSettings();
+    });
+    document.getElementById('settingsAddCatForm').onsubmit = async (e)=>{
+      e.preventDefault();
+      const label = sanitizeLabel(document.getElementById('settingsCatLabel').value);
+      const group = document.getElementById('settingsCatGroup').value;
+      if(!label) return;
+      const id = slugify(label);
+      if(CATEGORIES.some(c=>c.id===id)){ toast('That category already exists'); return; }
+      const color = CUSTOM_PALETTE[state.customCategories.length % CUSTOM_PALETTE.length];
+      const newCat = {id, label, color, group};
+      CATEGORIES.push(newCat);
+      state.customCategories.push(newCat);
+      await sSet('custom-categories-data', state.customCategories);
+      renderSettings();
+    };
+
+    document.getElementById('themeToggle').addEventListener('click', (e)=>{
+      const btn = e.target.closest('.theme-opt'); if(!btn) return;
+      applyTheme(btn.dataset.theme);
+      renderSettings();
+    });
+
+    document.getElementById('saveAIKeysBtn').onclick = ()=>{
+      setAIKeys({
+        gemini: document.getElementById('geminiKeyInput').value.trim(),
+        mistral: document.getElementById('mistralKeyInput').value.trim()
+      });
+      toast('Provider keys saved on this device');
+    };
+
+    document.getElementById('settingsOpenProfileBtn').onclick = openCoachProfile;
+
+    const signOutBtn = document.getElementById('settingsSignOutBtn');
+    if(signOutBtn) signOutBtn.onclick = ()=> fbAuth.signOut();
+  }
+
+  const renderers = {dashboard:renderHome, today:renderToday, goals:renderGoals, weight:renderHealth, analytics:renderDashboard, coach:renderCoachLej, profile:renderCoachProfile, settings:renderSettings};
   function renderView(){
     const ticket = startRender();
     try{
@@ -3916,21 +4753,18 @@
   // doesn't add another permanent tab to an already-busy nav.
   function openCoachProfile(){
     state.prevTab = state.activeTab;
-    state.activeTab = 'coach';
+    state.activeTab = 'profile';
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     renderView();
   }
   function closeCoachProfile(){
-    state.activeTab = state.prevTab || 'today';
+    state.activeTab = state.prevTab || 'dashboard';
     document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===state.activeTab));
     renderView();
   }
 
   function startApp(){
     document.getElementById('saveAllBtn').onclick = saveAllNow;
-    document.getElementById('coachProfileBtn').onclick = openCoachProfile;
-    document.getElementById('exportBtn').onclick = exportData;
-    document.getElementById('importBtn').onclick = ()=> document.getElementById('importFileInput').click();
     document.getElementById('importFileInput').onchange = async (e)=>{
       const file = e.target.files && e.target.files[0];
       await importDataFromFile(file);
