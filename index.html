@@ -98,8 +98,8 @@
   .bar .fill{height:100%;background:linear-gradient(90deg,var(--sage),var(--amber));border-radius:4px;transition:width .3s;}
   .day-progress span{font-size:12px;color:var(--fog);font-family:'IBM Plex Mono',monospace;}
 
-  .today-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:24px;align-items:start;}
-  @media (max-width:760px){.today-grid{grid-template-columns:1fr;}}
+  .today-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:24px;align-items:start;}
+  @media (max-width:760px){.today-grid{grid-template-columns:minmax(0,1fr);}}
 
   .block-form{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
   .block-form input[type=text]{flex:2;min-width:140px;}
@@ -130,6 +130,10 @@
   .cat-picker select{flex:1;min-width:0;}
   .cat-del-btn{flex-shrink:0;width:34px;background:var(--panel-2);border:1px solid var(--line);color:var(--fog);border-radius:7px;font-size:14px;cursor:pointer;}
   .cat-del-btn:hover{color:var(--coral);border-color:var(--coral);}
+  /* .block-form button (used for the Add submit button) otherwise wins on
+     specificity and paints this delete button amber like a primary action. */
+  .block-form button.cat-del-btn{background:var(--panel-2);color:var(--fog);font-weight:400;}
+  .block-form button.cat-del-btn:hover{color:var(--coral);}
   @media (max-width:760px){.cat-picker{flex-basis:100%;}}
 
   .icon-btn{background:none;border:none;color:var(--fog);font-size:16px;line-height:1;}
@@ -369,9 +373,26 @@
   .home-score-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:28px;font-weight:600;}
   .home-score-meta{flex:1;min-width:180px;}
   .home-score-label{color:var(--fog);font-size:12.5px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+  .home-score-band{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:4px;}
+  .home-score-message{font-size:13px;color:var(--fog);line-height:1.4;margin-bottom:8px;}
   .home-next{font-size:15px;}
   .home-next strong{color:var(--amber);}
   .score-breakdown-toggle{margin-top:8px;background:none;border:none;color:var(--fog);font-size:12px;font-weight:600;text-decoration:underline;padding:0;}
+  .score-dimensions{display:flex;flex-direction:column;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
+  .score-dim-row{display:flex;align-items:center;gap:12px;}
+  .score-dim-row .dim-emoji{font-size:20px;flex-shrink:0;width:24px;text-align:center;}
+  .score-dim-row .dim-main{flex:1;min-width:0;}
+  .score-dim-row .dim-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+  .score-dim-row .dim-label{font-size:13.5px;font-weight:600;}
+  .score-dim-row .dim-num{font-family:'Fraunces',serif;font-size:17px;font-weight:600;}
+  .score-dim-row .dim-sub{font-size:11.5px;color:var(--fog);margin-top:4px;}
+  .score-wins{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+  .score-wins-block{flex:1;min-width:170px;}
+  .score-wins-heading{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--fog);margin-bottom:8px;font-weight:600;}
+  .score-win-row{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:4px 0;}
+  .score-win-row .medal{font-size:15px;flex-shrink:0;width:20px;text-align:center;}
+  .score-win-row .win-label{flex:1;}
+  .score-win-row .win-pct{font-weight:700;font-family:'IBM Plex Mono',monospace;font-size:12.5px;flex-shrink:0;}
   .score-breakdown-toggle:hover{color:var(--bone);}
   .score-breakdown{display:flex;flex-direction:column;gap:7px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
   .score-row{display:flex;align-items:center;gap:10px;font-size:12.5px;}
@@ -601,12 +622,30 @@
     .panel h2{font-size:17px;margin-bottom:13px;}
 
     .day-header{gap:8px;}
+    .day-header input[type=date]{min-width:0;flex:1 1 auto;}
     .day-progress{min-width:0;flex-basis:100%;}
 
     .block-form{gap:6px;}
-    .block-form input[type=text]{flex-basis:100%;}
-    .block-form select{flex:1 1 60%;}
-    .block-form input[type=number]{width:48px;}
+    .block-form input[type=text]{flex-basis:100%;min-width:0;}
+    .block-form select{flex:1 1 60%;min-width:0;}
+    .block-form input[type=number]{width:48px;min-width:0;}
+
+    /* Category picker (group + category selects + delete) was overflowing
+       the viewport on mobile: <select> elements don't shrink below their
+       content width by default in a flex row, which pushed the whole
+       Today panel wider than the screen. Force them to actually shrink. */
+    .cat-picker{min-width:0;gap:6px;}
+    .cat-picker select{min-width:0;flex:1 1 0;}
+    .cat-del-btn{flex-shrink:0;width:34px;}
+
+    .day-type-row select{min-width:0;max-width:100%;}
+
+    .activity-edit .row{gap:6px;}
+    .activity-edit input[type=text]{min-width:0;flex-basis:100%;}
+    .activity-edit select{min-width:0;}
+    .activity-edit input[type=number]{width:48px;min-width:0;}
+    .activity-row{gap:8px;padding:9px 10px;}
+    .activity-task{font-size:13px;}
 
     .day-wheel{max-width:180px;}
 
@@ -1181,16 +1220,28 @@
     return sSet('daynotes:'+date, text);
   }
   // Day type: what kind of day today is meant to be (Family, Work, Giann,
-  // Vacation, Learning, Personal). Drives which score components apply —
-  // see DAY_TYPES / activeScoreComponents() below. Exercise and Self Care
-  // always apply no matter the day type.
+  // Vacation, Learning, Personal). Drives which score components apply AND
+  // how much each one counts — see SCORE_COMPONENTS / activeScoreComponents()
+  // below. Each `weights` map is percentage-of-100 for that day type, so the
+  // score answers "did I have a good day for what this day was supposed to
+  // be?" instead of "did I accomplish the same things every day?" A
+  // Vacation/Personal day leans on Recovery instead of Work/Goals so a
+  // restful day isn't scored against a productivity day's yardstick.
+  // Exercise and Self Care are given a fallback weight (see
+  // activeScoreComponents) even if a day type forgets to list them.
   const DAY_TYPES = {
-    family:   {label:'Family Day',   emoji:'👨‍👩‍👧‍👦', componentIds:['exercise','selfcare','kids','dayLogged']},
-    work:     {label:'Work Day',     emoji:'💼', componentIds:['exercise','selfcare','dayLogged']},
-    giann:    {label:'Giann Day',    emoji:'💞', componentIds:['exercise','selfcare','giann','dayLogged']},
-    vacation: {label:'Vacation Day', emoji:'🌴', componentIds:['exercise','selfcare','dayLogged']},
-    learning: {label:'Learning Day', emoji:'📚', componentIds:['exercise','selfcare','learning','goals','dayLogged']},
-    personal: {label:'Personal Day', emoji:'🧘', componentIds:['exercise','selfcare','goals','dayLogged']}
+    family:   {label:'Family Day',   emoji:'👨‍👩‍👧‍👦',
+      weights:{kids:20, family:20, giann:20, exercise:20, selfcare:20}},
+    work:     {label:'Work Day',     emoji:'💼',
+      weights:{work:50, goals:20, exercise:20, selfcare:10}},
+    giann:    {label:'Giann Day',    emoji:'💞',
+      weights:{giann:40, family:20, exercise:20, selfcare:20}},
+    vacation: {label:'Vacation Day', emoji:'🌴',
+      weights:{recovery:40, family:30, exercise:15, selfcare:15}},
+    learning: {label:'Learning Day', emoji:'📚',
+      weights:{learning:50, goals:20, exercise:15, selfcare:15}},
+    personal: {label:'Personal Day', emoji:'🧘',
+      weights:{recovery:30, goals:30, exercise:20, selfcare:20}}
   };
   const DEFAULT_DAY_TYPE = 'family';
   async function loadDayType(date){
@@ -2536,6 +2587,9 @@
   // the average instead of dragging the score down).
   const KIDS_CAT_IDS = ['kids_playtime','teaching_kids','kids_bedtime','kids_school_prep','kids_talking_time'];
   const LEARNING_ACTIVITY_CAT_IDS = ['learning_instrument','playing_instrument','learn_cooking'];
+  // What counts as actually recovering on a Vacation/Personal day — the
+  // point of Recovery is rest, not another to-do list, so this stays broad.
+  const RECOVERY_CAT_IDS = ['rest','wellness','leisure','vacation_tour'];
   function minutesFor(blocks, catIds){ return blocks.filter(b=>catIds.includes(b.category)).reduce((s,b)=>s+b.duration,0); }
   function countFor(blocks, catId){ return blocks.filter(b=>b.category===catId && b.duration>0).length; }
   function pctFromMinutes(minutes, targetMin){ return targetMin>0 ? Math.min(100, Math.round(minutes/targetMin*100)) : 0; }
@@ -2554,33 +2608,44 @@
     const moved = items.filter(goalMovedToday).length;
     return pctFromCount(moved, 1);
   }
+  // No `weight` here anymore — weight is decided per day type (see
+  // DAY_TYPES above) and attached dynamically in activeScoreComponents(),
+  // since "how much this counts" depends on what kind of day it was meant
+  // to be, not on the component itself.
   const SCORE_COMPONENTS = [
-    {id:'exercise', label:'Exercise (≥15m)', weight:2,
+    {id:'exercise', label:'Exercise (≥15m)',
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['exercise']), 15)},
-    {id:'selfcare', label:'Self Care (2 logged)', weight:2,
+    {id:'selfcare', label:'Self Care (2 logged)',
       evaluate: ctx=> pctFromCount(countFor(ctx.blocks,'self_care'), 2)},
-    {id:'family', label:'Family Time', weight:2,
+    {id:'family', label:'Family Time',
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['family_time']), 15)},
-    {id:'kids', label:'Time with Kids (≥1h)', weight:2,
+    {id:'kids', label:'Time with Kids (≥1h)',
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,KIDS_CAT_IDS), 60)},
-    {id:'giann', label:'Time with Giann (≥30m)', weight:2,
+    {id:'giann', label:'Time with Giann (≥30m)',
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['giann']), 30)},
-    {id:'learning', label:'Learning', weight:2,
+    {id:'learning', label:'Learning',
       evaluate: ctx=>{
         const activityPct = pctFromMinutes(minutesFor(ctx.blocks, LEARNING_ACTIVITY_CAT_IDS), 20);
         const goalsPct = goalsMovedTodayPct(ctx.goals, {onlyKind:'learning'});
         return goalsPct===null ? activityPct : Math.round((activityPct+goalsPct)/2);
       }},
-    {id:'goals', label:'Moved a Goal Forward', weight:2,
+    {id:'goals', label:'Moved a Goal Forward',
       evaluate: ctx=> goalsMovedTodayPct(ctx.goals, {excludeKinds:['learning']})},
-    {id:'dayLogged', label:'Day Logged', weight:1,
-      evaluate: ctx=> Math.min(100, Math.round(ctx.total/1440*100))}
+    {id:'work', label:'Work (≥4h)',
+      evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['work']), 240)},
+    {id:'recovery', label:'🌿 Recovery (≥1h)',
+      evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks, RECOVERY_CAT_IDS), 60)}
   ];
+  // Fallback weight if a day type's `weights` map doesn't mention exercise
+  // or self-care — they're meant to matter at least a little on every kind
+  // of day, even a Recovery-leaning one, without dominating it.
+  const ALWAYS_ON_FALLBACK_WEIGHT = {exercise:15, selfcare:15};
   function activeScoreComponents(dayType){
     const cfg = DAY_TYPES[dayType] || DAY_TYPES[DEFAULT_DAY_TYPE];
-    // Exercise and Self Care always apply, no matter what day type is picked.
-    const ids = new Set(['exercise','selfcare', ...cfg.componentIds]);
-    return SCORE_COMPONENTS.filter(c=>ids.has(c.id));
+    const weights = Object.assign({}, ALWAYS_ON_FALLBACK_WEIGHT, cfg.weights);
+    return SCORE_COMPONENTS
+      .filter(c=>weights[c.id])
+      .map(c=>Object.assign({}, c, {weight: weights[c.id]}));
   }
   function homeScoreBreakdown(blocks, dayType){
     const ctx = {blocks, total: blocks.reduce((s,b)=>s+b.duration,0), goals: state.goals.goals||[]};
@@ -2613,6 +2678,122 @@
         ${parts.map(p=>`${p.pct}%×${p.weight}`).join(' + ')} = ${weightedSum}
         <br>${weightedSum} ÷ (${parts.map(p=>p.weight).join('+')} = ${totalWeight}) = <strong>${score}</strong>
       </div>
+    </div>`;
+  }
+
+  // ---------- Score dimensions (Life Balance / Progress / Consistency) ----------
+  // Rather than one flat weighted average, roll the same per-component
+  // percentages up into three human-meaningful pillars first, then blend
+  // the pillars into the overall score. This makes "why is my score 83"
+  // answerable at a glance — 91 on Life Balance, 64 on Progress, 88 on
+  // Consistency tells a story a single number can't. A pillar with no
+  // applicable components today (e.g. no goals ever set) drops out of the
+  // overall blend instead of dragging it down, same as individual
+  // components already do.
+  const SCORE_DIMENSIONS = {
+    lifeBalance: {id:'lifeBalance', label:'Life Balance', emoji:'🌱', weight:50,
+      sub:'Family • Relationships • Health • Personal',
+      componentIds:['exercise','selfcare','family','kids','giann','recovery']},
+    progress:    {id:'progress',    label:'Progress',     emoji:'🎯', weight:30,
+      sub:'Learning • Goals • Important tasks',
+      componentIds:['learning','goals','work']},
+    consistency: {id:'consistency', label:'Consistency',  emoji:'🔥', weight:20,
+      sub:'Habits • Logging • Streaks',
+      componentIds:null} // computed from streaks/logging, not SCORE_COMPONENTS
+  };
+  function dimensionScoreFromParts(parts, componentIds){
+    const subset = parts.filter(p=>componentIds.includes(p.id));
+    if(!subset.length) return null;
+    const weightedSum = subset.reduce((s,p)=>s+p.pct*p.weight,0);
+    const totalWeight = subset.reduce((s,p)=>s+p.weight,0);
+    return Math.round(weightedSum/totalWeight);
+  }
+  // Consistency is about behavior (did the habit happen today, is the
+  // streak alive) rather than volume of data entered: half today's daily
+  // habits actually logged, half how healthy current streaks are (a
+  // 7-day+ streak on a tracked habit maxes that half out).
+  function consistencyScore(blocks, streaks){
+    const habitsDone = DEFAULT_DAILY_CATEGORY_IDS.filter(id=>blocks.some(b=>b.category===id && b.duration>0)).length;
+    const habitPct = pctFromCount(habitsDone, DEFAULT_DAILY_CATEGORY_IDS.length);
+    const tracked = (streaks||[]).filter(s=>STREAK_CATEGORY_IDS.includes(s.catId));
+    const streakPct = tracked.length
+      ? Math.round(tracked.reduce((s,x)=>s+Math.min(100, Math.round(x.streak/7*100)), 0) / tracked.length)
+      : 0;
+    return Math.round((habitPct + streakPct) / 2);
+  }
+  function homeScoreDimensions(blocks, dayType, streaks){
+    const parts = homeScoreBreakdown(blocks, dayType);
+    return {
+      lifeBalance: dimensionScoreFromParts(parts, SCORE_DIMENSIONS.lifeBalance.componentIds),
+      progress: dimensionScoreFromParts(parts, SCORE_DIMENSIONS.progress.componentIds),
+      consistency: consistencyScore(blocks, streaks)
+    };
+  }
+  function overallScoreFromDimensions(dims){
+    const entries = ['lifeBalance','progress','consistency']
+      .map(k=> dims[k]===null || dims[k]===undefined ? null : {v:dims[k], w:SCORE_DIMENSIONS[k].weight})
+      .filter(Boolean);
+    if(!entries.length) return 0;
+    const weightedSum = entries.reduce((s,e)=>s+e.v*e.w,0);
+    const totalWeight = entries.reduce((s,e)=>s+e.w,0);
+    return Math.round(weightedSum/totalWeight);
+  }
+  function scoreDimensionsHTML(dims){
+    const rows = ['lifeBalance','progress','consistency'].map(k=>{
+      const cfg = SCORE_DIMENSIONS[k];
+      const v = dims[k];
+      const pct = v===null || v===undefined ? 0 : v;
+      const display = v===null || v===undefined ? '—' : v;
+      const color = pct>=80?'var(--sage)':pct>=60?'var(--amber)':'var(--coral)';
+      return `<div class="score-dim-row">
+        <span class="dim-emoji">${cfg.emoji}</span>
+        <div class="dim-main">
+          <div class="dim-top"><span class="dim-label">${escapeHtml(cfg.label)}</span><span class="dim-num">${display}</span></div>
+          <div class="bar"><div class="fill" style="width:${pct}%;background:${color}"></div></div>
+          <div class="dim-sub">${escapeHtml(cfg.sub)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="score-dimensions">${rows}</div>`;
+  }
+
+  // Turns the raw 0-100 number into something with meaning at a glance.
+  // Low bands are phrased as a lighter day + a next step, never as failure.
+  const SCORE_BANDS = [
+    {min:90, max:100, emoji:'🌟', label:'Excellent', message:'Today hit on nearly everything that mattered. Enjoy it.'},
+    {min:80, max:89,  emoji:'🟢', label:'Strong day', message:'A strong day — most of what counts got done.'},
+    {min:70, max:79,  emoji:'🙂', label:'Good day', message:'A good day overall, with a little room to build on.'},
+    {min:60, max:69,  emoji:'🟡', label:'Mixed day', message:'Some things landed, some didn\'t — a fairly normal mixed day.'},
+    {min:40, max:59,  emoji:'🟠', label:'Needs attention', message:'Today was lighter than planned. Pick one important thing to finish tomorrow.'},
+    {min:0,  max:39,  emoji:'🔴', label:'Reset day', message:'Today didn\'t go as planned, and that\'s okay. Tomorrow is a reset — pick one thing to focus on.'}
+  ];
+  function scoreBand(score){
+    return SCORE_BANDS.find(b=>score>=b.min && score<=b.max) || SCORE_BANDS[SCORE_BANDS.length-1];
+  }
+  function scoreRingColor(score){
+    return score>=80 ? 'var(--sage)' : score>=60 ? 'var(--amber)' : 'var(--coral)';
+  }
+  // "Today's Wins" / "one thing to improve" — reuses the same weighted
+  // components as the breakdown, just re-framed as actionable highlights
+  // instead of a bar chart. The improve slot only shows when there's a
+  // genuinely separate weak spot to name (not just the bronze medal again).
+  function scoreWinsHTML(blocks, dayType){
+    const parts = homeScoreBreakdown(blocks, dayType);
+    if(!parts.length) return '';
+    const sorted = parts.slice().sort((a,b)=>b.pct-a.pct);
+    const medals = ['🥇','🥈','🥉'];
+    const top = sorted.slice(0, Math.min(3, sorted.length));
+    const worst = sorted[sorted.length-1];
+    const showImprove = sorted.length>3 && worst.pct<100;
+    return `<div class="score-wins">
+      <div class="score-wins-block">
+        <div class="score-wins-heading">Today's Wins</div>
+        ${top.map((p,i)=>`<div class="score-win-row"><span class="medal">${medals[i]}</span><span class="win-label">${escapeHtml(p.label)}</span><span class="win-pct">${p.pct}%</span></div>`).join('')}
+      </div>
+      ${showImprove ? `<div class="score-wins-block">
+        <div class="score-wins-heading">One thing to improve</div>
+        <div class="score-win-row"><span class="medal">🎯</span><span class="win-label">${escapeHtml(worst.label)}</span><span class="win-pct">${worst.pct}%</span></div>
+      </div>` : ''}
     </div>`;
   }
 
@@ -2671,7 +2852,9 @@
     const total = blocks.reduce((s,b)=>s+b.duration,0);
     const habitsDone = DEFAULT_DAILY_CATEGORY_IDS.filter(id=>blocks.some(b=>b.category===id && b.duration>0)).length;
     const exerciseMin = blocks.filter(b=>b.category==='exercise').reduce((s,b)=>s+b.duration,0);
-    const score = homeScore(blocks, dayType);
+    const dims = homeScoreDimensions(blocks, dayType, streaks);
+    const score = overallScoreFromDimensions(dims);
+    const band = scoreBand(score);
     const view = document.getElementById('view');
     view.innerHTML = `
     <section class="panel home-hero">
@@ -2679,17 +2862,21 @@
       <div class="home-score-row">
         <div class="home-score-ring">
           <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--panel-3)" stroke-width="10"/>
-            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--amber)" stroke-width="10" stroke-linecap="round"
+            <circle cx="60" cy="60" r="52" fill="none" stroke="${scoreRingColor(score)}" stroke-width="10" stroke-linecap="round"
               stroke-dasharray="${(score/100*326.7).toFixed(1)} 326.7" transform="rotate(-90 60 60)"/>
           </svg>
           <div class="home-score-num">${score}</div>
         </div>
         <div class="home-score-meta">
           <div class="home-score-label">Today's Score</div>
+          <div class="home-score-band">${band.emoji} ${escapeHtml(band.label)}</div>
+          <div class="home-score-message">${escapeHtml(band.message)}</div>
           <div class="home-next">${nextTaskHTML(blocks)}</div>
           <button type="button" class="score-breakdown-toggle" id="scoreBreakdownToggle">${homeScoreBreakdownOpen?'Hide':'Show'} breakdown</button>
         </div>
       </div>
+      ${scoreDimensionsHTML(dims)}
+      ${scoreWinsHTML(blocks, dayType)}
       ${homeScoreBreakdownOpen ? homeScoreBreakdownHTML(blocks, dayType) : ''}
       <div class="day-progress" style="margin-top:16px;">
         <div class="bar"><div class="fill" style="width:${Math.min(100,total/1440*100)}%"></div></div>
