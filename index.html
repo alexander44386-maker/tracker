@@ -876,6 +876,7 @@
     {id:'reading',label:'Reading',color:'#4a76ab',group:'Work & Growth'},
     {id:'learning_instrument',label:'Learning Instrument',color:'#6f95c4',group:'Work & Growth'},
     {id:'learn_cooking',label:'Learn Cooking',color:'#9ab6dc',group:'Work & Growth'},
+    {id:'learning',label:'Learning',color:'#b3c8e0',group:'Work & Growth'},
     {id:'other_work',label:'Others',color:'#c7d9ee',group:'Work & Growth'},
     // Health — green
     {id:'exercise',label:'Exercise',color:'#2f7a4f',group:'Health'},
@@ -1373,6 +1374,19 @@
     // Insights instead of just showing "no data yet".
     state.sleep = (sleep && typeof sleep==='object') ? sleep : {records:{}};
     if(!state.sleep.records || typeof state.sleep.records!=='object') state.sleep.records = {};
+    // One-time-per-load migration: recompute quality for every existing
+    // night from its stored duration, so history logged before quality
+    // became automatic (when it just sat at a static default) reflects
+    // real values too, not just nights synced going forward.
+    {
+      let migrated = false;
+      Object.keys(state.sleep.records).forEach(d=>{
+        const rec = state.sleep.records[d];
+        const correctQuality = sleepQualityFromDuration(rec.duration);
+        if(rec.quality !== correctQuality){ rec.quality = correctQuality; migrated = true; }
+      });
+      if(migrated) await sSet('sleep-data', state.sleep);
+    }
 
     state.goals = (goals && typeof goals==='object') ? goals : {goals:[]};
     if(!Array.isArray(state.goals.goals)) state.goals.goals = [];
@@ -1756,6 +1770,18 @@
   // Sleep — and legacy single-block Sleep, for logs made before the split —
   // logged that same morning (wakeDate). This is what the Sleep tab,
   // dashboard, and insights all read as "that day's sleep."
+  // Quality is derived automatically from duration — there's no manual
+  // rating UI, so a static default (previously always 3) just sat there
+  // unchanged forever. 8h+ is full marks; each hour short drops a point,
+  // down to a floor of 1 so even a rough night still logs something.
+  function sleepQualityFromDuration(minutes){
+    const hours = minutes/60;
+    if(hours>=8) return 5;
+    if(hours>=7) return 4;
+    if(hours>=6) return 3;
+    if(hours>=5) return 2;
+    return 1;
+  }
   async function syncSleepRecordForWakeDay(wakeDate){
     const prevDate = shiftDate(wakeDate, -1);
     const morningBlocks = state.ledgerCache[wakeDate] || await loadLedger(wakeDate);
@@ -1770,7 +1796,7 @@
     const existing = state.sleep.records[wakeDate] || {};
     state.sleep.records[wakeDate] = {
       duration: totalMin,
-      quality: existing.quality || 3,
+      quality: sleepQualityFromDuration(totalMin),
       notes: existing.notes || ''
     };
     await sSet('sleep-data', state.sleep);
@@ -1841,8 +1867,9 @@
   }
   // ---------- Sleep (part of the combined Health page) ----------
   // Duration comes from Morning/Night Sleep blocks logged in the Daily
-  // Planner. Quality defaults to 3/5 and factors into Analytics correlations
-  // and record cards, but there's no editing UI for it on this page anymore.
+  // Planner. Quality is auto-derived from duration (see
+  // sleepQualityFromDuration) and factors into Analytics correlations
+  // and record cards — there's no manual editing UI for it.
   function sleepTrendSVG(entries){
     if(!entries.length) return '<p class="empty">Log Morning/Night Sleep blocks in the Daily Planner to see your trend.</p>';
     const w=600,h=160,padL=34,padB=22,padT=14;
@@ -2593,6 +2620,11 @@
   function minutesFor(blocks, catIds){ return blocks.filter(b=>catIds.includes(b.category)).reduce((s,b)=>s+b.duration,0); }
   function countFor(blocks, catId){ return blocks.filter(b=>b.category===catId && b.duration>0).length; }
   function pctFromMinutes(minutes, targetMin){ return targetMin>0 ? Math.min(100, Math.round(minutes/targetMin*100)) : 0; }
+  // Unlike pctFromMinutes (which scales credit gradually up to the target),
+  // this is all-or-nothing: hit the threshold and you get full credit, and
+  // there's no partial credit below it. Used for components where "did you
+  // do it at all today" is the point, not "how close did you get."
+  function pctFromThreshold(minutes, targetMin){ return minutes>=targetMin ? 100 : 0; }
   function pctFromCount(count, targetCount){ return targetCount>0 ? Math.min(100, Math.round(count/targetCount*100)) : 0; }
   // Instead of averaging overall completion % (which barely moves day to
   // day), this looks at whether any *active* goal was actually pushed
@@ -2617,8 +2649,8 @@
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['exercise']), 15)},
     {id:'selfcare', label:'Self Care (2 logged)',
       evaluate: ctx=> pctFromCount(countFor(ctx.blocks,'self_care'), 2)},
-    {id:'family', label:'Family Time',
-      evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['family_time']), 15)},
+    {id:'family', label:'Family Time (≥20m)',
+      evaluate: ctx=> pctFromThreshold(minutesFor(ctx.blocks,['family_time']), 20)},
     {id:'kids', label:'Time with Kids (≥1h)',
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,KIDS_CAT_IDS), 60)},
     {id:'giann', label:'Time with Giann (≥30m)',
@@ -2636,10 +2668,11 @@
     {id:'recovery', label:'🌿 Recovery (≥1h)',
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks, RECOVERY_CAT_IDS), 60)}
   ];
-  // Fallback weight if a day type's `weights` map doesn't mention exercise
-  // or self-care — they're meant to matter at least a little on every kind
-  // of day, even a Recovery-leaning one, without dominating it.
-  const ALWAYS_ON_FALLBACK_WEIGHT = {exercise:15, selfcare:15};
+  // Fallback weight if a day type's `weights` map doesn't mention exercise,
+  // self-care, or learning — they're meant to matter at least a little on
+  // every kind of day, even a Recovery-leaning one, without dominating it.
+  // (A day type can still override this, e.g. Learning Day weights it at 50.)
+  const ALWAYS_ON_FALLBACK_WEIGHT = {exercise:15, selfcare:15, learning:15};
   function activeScoreComponents(dayType){
     const cfg = DAY_TYPES[dayType] || DAY_TYPES[DEFAULT_DAY_TYPE];
     const weights = Object.assign({}, ALWAYS_ON_FALLBACK_WEIGHT, cfg.weights);
