@@ -124,6 +124,11 @@
   .timeline-bar{display:flex;width:100%;height:22px;border-radius:6px;overflow:hidden;background:var(--panel-3);}
   .timeline-seg{height:100%;}
   .daily-notes{width:100%;min-height:90px;resize:vertical;background:var(--panel-2);border:1px solid var(--line);color:var(--bone);padding:10px 12px;border-radius:8px;font-size:13.5px;line-height:1.5;}
+  .why-picker{display:flex;flex-wrap:wrap;gap:6px;}
+  .why-chip{background:var(--panel-2);border:1px solid var(--line);color:var(--fog);padding:6px 11px;border-radius:16px;font-size:12.5px;font-weight:600;}
+  .why-chip:hover{color:var(--bone);}
+  .why-chip.is-selected{background:var(--amber);border-color:var(--amber);color:#1c1406;}
+  .why-callout{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--bone);margin-top:14px;}
 
   /* Two-level category picker: group dropdown -> cascading category dropdown + delete */
   .cat-picker{display:flex;gap:6px;flex:2;min-width:220px;}
@@ -941,6 +946,7 @@
     date: todayStr(),
     ledgerCache: {},
     notesCache: {},
+    whyTagsCache: {},
     dayTypeCache: {},
     sleep: {records:{}},
     goals: {goals:[]},
@@ -1102,21 +1108,43 @@
     cloudSyncTimer = setTimeout(pushToCloud, 600);
   }
 
+  // Keys changed locally since the last successful push. Only these get
+  // sent up — see pushToCloud below for why.
+  const dirtyKeys = new Set();
+
   async function pushToCloud(){
     try{
       if(!fbAuth) throw new Error('firebase unavailable');
       const user = fbAuth.currentUser;
       if(!user) throw new Error('not signed in');
+      if(!dirtyKeys.size) return true;
       const token = await user.getIdToken();
+      // PATCH only the keys that actually changed on this device, instead
+      // of PUTting the entire snapshot. A whole-document PUT is
+      // last-write-wins on EVERYTHING: if phone A pushes after phone B
+      // made an unrelated change in between, A's stale copy of B's data
+      // wins and B's change is silently lost. Firebase's PATCH verb
+      // merges the given top-level keys in place and leaves every other
+      // key on the server untouched, so two devices editing different
+      // dates (or even the same date, sequentially) no longer clobber
+      // each other's writes.
+      const keysToSync = Array.from(dirtyKeys);
+      const patch = {};
+      keysToSync.forEach(k=>{
+        const raw = localStorage.getItem(lsKey(k));
+        patch[k] = raw!==null ? JSON.parse(raw) : null; // null deletes that key server-side
+      });
       const res = await fetch(CLOUD_LEDGER_URL.replace('.json', `.json?auth=${token}`), {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(buildLocalSnapshot())
+        body: JSON.stringify(patch)
       });
       if(!res.ok) throw new Error('bad response');
+      keysToSync.forEach(k=>dirtyKeys.delete(k));
       return true;
     }catch(e){
-      // Cloud unreachable (offline, or FIREBASE_DB_URL not set yet) — local copy still safe.
+      // Cloud unreachable (offline, or FIREBASE_DB_URL not set yet) — local
+      // copy still safe, and the keys stay marked dirty for the next try.
       console.warn('Firebase sync skipped:', e.message);
       return false;
     }
@@ -1154,6 +1182,7 @@
     try{
       localStorage.setItem(lsKey(key), JSON.stringify(val));
       pendingKeys.delete(key);
+      dirtyKeys.add(key);
       queueCloudSync();
       return true;
     }catch(e){
@@ -1163,7 +1192,7 @@
     }
   }
   async function sDelete(key){
-    try{ localStorage.removeItem(lsKey(key)); queueCloudSync(); return true; }catch(e){ return false; }
+    try{ localStorage.removeItem(lsKey(key)); dirtyKeys.add(key); queueCloudSync(); return true; }catch(e){ return false; }
   }
   function sListKeys(prefix){
     const out=[];
@@ -1219,6 +1248,63 @@
   async function saveNotes(date, text){
     state.notesCache[date] = text;
     return sSet('daynotes:'+date, text);
+  }
+  // ---------- "Why did today's plan miss?" ----------
+  // The ledger is already excellent at answering "what did I spend time
+  // on" — this answers the question a pure activity log can't: "why did
+  // today go the way it did". A handful of tags per day is enough that,
+  // after a few weeks, Weekly Review can surface real patterns (see
+  // weeklyWhyCalloutHTML) like "your lower-scoring Work Days keep
+  // coinciding with unexpected family interruptions" — something no
+  // amount of time-tracking alone can tell you.
+  const WHY_REASONS = [
+    {id:'too_much_work', label:'Too much work'},
+    {id:'unexpected_task', label:'Unexpected task'},
+    {id:'family_interruption', label:'Family interruption'},
+    {id:'low_energy', label:'Low energy'},
+    {id:'poor_sleep', label:'Poor sleep'},
+    {id:'procrastination', label:'Procrastination'},
+    {id:'too_much_phone', label:'Too much phone/social media'},
+    {id:'forgot', label:'Forgot'},
+    {id:'unrealistic_goal', label:'Goal was unrealistic'},
+    {id:'other', label:'Other'}
+  ];
+  async function loadWhyTags(date){
+    if(state.whyTagsCache[date]!==undefined) return state.whyTagsCache[date];
+    const tags = await sGet('whytags:'+date, []);
+    state.whyTagsCache[date] = tags;
+    return tags;
+  }
+  async function saveWhyTags(date, tags){
+    state.whyTagsCache[date] = tags;
+    return sSet('whytags:'+date, tags);
+  }
+  function whyTagsPickerHTML(selected){
+    selected = selected || [];
+    return `<div class="why-picker" id="whyPicker">
+      ${WHY_REASONS.map(r=>`<button type="button" class="why-chip${selected.includes(r.id)?' is-selected':''}" data-why="${r.id}">${escapeHtml(r.label)}</button>`).join('')}
+    </div>`;
+  }
+  // Surfaces a real pattern instead of a coincidence: only speaks up when
+  // at least 2 lower-scoring days (score<70) this week share a "why" tag.
+  // With just a handful of days to look at, calling out a single-day tag
+  // as "your pattern" would be reading a lot into very little data — so
+  // this stays quiet rather than overclaiming. As more weeks accumulate
+  // this could look further back, but even a weekly signal like "low
+  // energy showed up on your two toughest days" is more useful than pure
+  // silence, and honest about the sample size it's drawn from.
+  async function weeklyWhyCalloutHTML(weekDaysWithData){
+    const lowDays = weekDaysWithData.filter(d=>d.score<70);
+    if(lowDays.length<2) return '';
+    const tagsByDate = await Promise.all(lowDays.map(d=>sGet('whytags:'+d.date, [])));
+    const counts = {};
+    tagsByDate.forEach(tags=>(tags||[]).forEach(t=>{ counts[t]=(counts[t]||0)+1; }));
+    const [topId, topCount] = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0] || [];
+    if(!topId || topCount<2) return '';
+    const label = (WHY_REASONS.find(r=>r.id===topId)||{}).label || topId;
+    return `<div class="why-callout">
+      <strong>${escapeHtml(label)}</strong> showed up on ${topCount} of your ${lowDays.length} lower-scoring days this week — worth keeping an eye on.
+    </div>`;
   }
   // Day type: what kind of day today is meant to be (Family, Work, Giann,
   // Vacation, Learning, Personal). Drives which score components apply AND
@@ -1283,11 +1369,13 @@
     Object.keys(state.ledgerCache).forEach(d=>{ values['ledger:'+d] = state.ledgerCache[d]; });
     // Write everything to localStorage first so nothing is lost even if the network is down.
     const results = keys.map(k=>{
-      try{ localStorage.setItem(lsKey(k), JSON.stringify(values[k])); pendingKeys.delete(k); return true; }
+      try{ localStorage.setItem(lsKey(k), JSON.stringify(values[k])); pendingKeys.delete(k); dirtyKeys.add(k); return true; }
       catch(e){ pendingKeys.add(k); return false; }
     });
     const localOk = results.every(Boolean);
-    // Then push the full snapshot to Firebase right away (skip the debounce).
+    // Then push these keys to Firebase right away (skip the debounce) —
+    // pushToCloud only sends what's in dirtyKeys, which now includes
+    // everything this "Save all" pass just wrote.
     clearTimeout(cloudSyncTimer);
     const cloudOk = await pushToCloud();
     if(btn){ btn.disabled=false; btn.title='Save'; btn.setAttribute('aria-label','Save'); }
@@ -1334,13 +1422,16 @@
     try{
       Object.keys(parsed).forEach(k=>{
         localStorage.setItem(lsKey(k), JSON.stringify(parsed[k]));
+        dirtyKeys.add(k);
       });
     }catch(e){
       toast('Could not write imported data — your browser storage may be full or blocked');
       return;
     }
-    // Reload state from the freshly-written localStorage and push it to
-    // the cloud right away so every device stays in sync with the import.
+    // Reload state from the freshly-written localStorage and push every
+    // imported key to the cloud right away (pushToCloud sends whatever's
+    // in dirtyKeys, which now covers the whole import) so every device
+    // stays in sync.
     state.ledgerCache = {};
     await loadAll();
     clearTimeout(cloudSyncTimer);
@@ -1510,6 +1601,7 @@
   async function renderToday(ticket){
     const myTicket = ticket || startRender();
     const dayType = await loadDayType(state.date);
+    const whyTags = await loadWhyTags(state.date);
     if(isStaleRender(myTicket)) return;
     const blocks = state.ledgerCache[state.date] || [];
     const total = blocks.reduce((s,b)=>s+b.duration,0);
@@ -1549,6 +1641,8 @@
           ${dayTimelineHTML(blocks)}
           <h3 class="section-label">Daily Notes</h3>
           <textarea id="dailyNotes" class="daily-notes" placeholder="Anything worth remembering about today…" maxlength="2000">${escapeHtml(state.notesCache[state.date] || '')}</textarea>
+          <h3 class="section-label">Why did today miss?<span style="color:var(--fog);font-weight:500;"> (optional — tap any that applied)</span></h3>
+          ${whyTagsPickerHTML(whyTags)}
         </div>
         <div class="wheel-col">
           ${dayWheelSVG(blocks)}
@@ -1564,10 +1658,19 @@
       toast(`✔ ${DAY_TYPES[e.target.value].label} set`);
     });
     document.getElementById('dailyNotes').addEventListener('change', (e)=>{ saveNotes(state.date, e.target.value); });
+    document.getElementById('whyPicker').addEventListener('click', async (e)=>{
+      const btn = e.target.closest('.why-chip');
+      if(!btn) return;
+      const id = btn.dataset.why;
+      const current = state.whyTagsCache[state.date] || [];
+      const next = current.includes(id) ? current.filter(t=>t!==id) : current.concat([id]);
+      await saveWhyTags(state.date, next);
+      btn.classList.toggle('is-selected');
+    });
 
-    document.getElementById('prevDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,-1); await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date)]); renderToday(); };
-    document.getElementById('nextDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,1); await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date)]); renderToday(); };
-    document.getElementById('dateInput').onchange = async (e)=>{ editingBlockId=null; state.date=e.target.value; await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date)]); renderToday(); };
+    document.getElementById('prevDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,-1); await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date), loadWhyTags(state.date)]); renderToday(); };
+    document.getElementById('nextDay').onclick = async ()=>{ editingBlockId=null; state.date=shiftDate(state.date,1); await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date), loadWhyTags(state.date)]); renderToday(); };
+    document.getElementById('dateInput').onchange = async (e)=>{ editingBlockId=null; state.date=e.target.value; await Promise.all([loadLedger(state.date), loadNotes(state.date), loadDayType(state.date), loadWhyTags(state.date)]); renderToday(); };
     document.getElementById('categoryGroupSelect').onchange = async (e)=>{
       const groupSel = e.target;
       if(groupSel.value === '__addgroup__'){
@@ -2468,14 +2571,18 @@
   }
 
   // ---------- render: Dashboard ----------
+  // Read-only: these back historical/analytics views (Health tab week
+  // chart, Weekly Review), so they use peekLedger — loadLedger would
+  // silently seed and WRITE default blank blocks into any of those past
+  // days that were never opened, making empty days look "logged".
   async function loadWeek(){
     const dates=[]; for(let i=6;i>=0;i--) dates.push(shiftDate(todayStr(),-i));
-    const results = await Promise.all(dates.map(d=>loadLedger(d)));
+    const results = await Promise.all(dates.map(d=>peekLedger(d)));
     return dates.map((d,i)=>({date:d, blocks:results[i]}));
   }
   async function loadPrevWeek(){
     const dates=[]; for(let i=13;i>=7;i--) dates.push(shiftDate(todayStr(),-i));
-    const results = await Promise.all(dates.map(d=>loadLedger(d)));
+    const results = await Promise.all(dates.map(d=>peekLedger(d)));
     return dates.map((d,i)=>({date:d, blocks:results[i]}));
   }
   // ---------- trend helpers (sparklines + up/down indicators) ----------
@@ -2565,31 +2672,37 @@
   // already loaded into state — no heavyweight week/month aggregation
   // like the Reports tab below.
   // ---------- Streaks ----------
-  // Counts consecutive days a category has logged time>0, scanning
-  // backward with peekLedger so it never seeds/writes historical days.
+  // Loads the last `maxDays` of ledgers ONCE, concurrently, into an
+  // in-memory map, then computes every category's streak from that map.
+  // The old version re-scanned up to 200 days per category sequentially
+  // (await-in-a-loop) — for N tracked categories that's N×200 sequential
+  // storage reads. This is 200 reads total, done in parallel, reused for
+  // every category.
+  async function loadRecentDayMap(maxDays){
+    maxDays = maxDays || 200;
+    const dates = []; for(let i=0;i<maxDays;i++) dates.push(shiftDate(todayStr(), -i));
+    const blocksArr = await Promise.all(dates.map(d=>peekLedger(d)));
+    const map = {};
+    dates.forEach((d,i)=>{ map[d] = blocksArr[i]; });
+    return {dates, map};
+  }
   // If today isn't logged yet, the day is treated as "in progress" (not a
   // break) — the streak is measured through yesterday until today closes.
-  async function computeStreak(catId, maxDays){
-    maxDays = maxDays || 200;
-    let cursor = todayStr();
-    const todayBlocks = await peekLedger(cursor);
-    const todayDone = todayBlocks.some(b=>b.category===catId && b.duration>0);
-    if(!todayDone) cursor = shiftDate(cursor, -1);
+  function streakFromMap(catId, dates, map){
+    let start = 0;
+    const todayDone = (map[dates[0]]||[]).some(b=>b.category===catId && b.duration>0);
+    if(!todayDone) start = 1;
     let streak = 0;
-    for(let i=0;i<maxDays;i++){
-      const blocks = await peekLedger(cursor);
-      const done = blocks.some(b=>b.category===catId && b.duration>0);
+    for(let i=start;i<dates.length;i++){
+      const done = (map[dates[i]]||[]).some(b=>b.category===catId && b.duration>0);
       if(!done) break;
       streak++;
-      cursor = shiftDate(cursor, -1);
     }
     return {catId, streak, todayDone};
   }
-  const STREAK_CATEGORY_IDS = DEFAULT_DAILY_CATEGORY_IDS.concat(['exercise']);
   async function computeAllStreaks(){
-    const results = [];
-    for(const id of STREAK_CATEGORY_IDS){ results.push(await computeStreak(id)); }
-    return results.sort((a,b)=>b.streak-a.streak);
+    const {dates, map} = await loadRecentDayMap(200);
+    return STREAK_CATEGORY_IDS.map(id=>streakFromMap(id, dates, map)).sort((a,b)=>b.streak-a.streak);
   }
   function streaksHTML(streaks){
     const active = streaks.filter(s=>s.streak>0);
@@ -2638,7 +2751,10 @@
     if(excludeKinds) items = items.filter(g=>!excludeKinds.includes(goalKind(g)));
     if(!items.length) return null;
     const moved = items.filter(goalMovedToday).length;
-    return pctFromCount(moved, 1);
+    // Share of active goals actually moved today, not "did you touch at
+    // least one" — with 10 active goals, moving 1 is real progress but
+    // isn't the same as moving all 10, so it shouldn't score the same 100%.
+    return pctFromCount(moved, items.length);
   }
   // No `weight` here anymore — weight is decided per day type (see
   // DAY_TYPES above) and attached dynamically in activeScoreComponents(),
@@ -2650,7 +2766,9 @@
     {id:'selfcare', label:'Self Care (2 logged)',
       evaluate: ctx=> pctFromCount(countFor(ctx.blocks,'self_care'), 2)},
     {id:'family', label:'Family Time (≥20m)',
-      evaluate: ctx=> pctFromThreshold(minutesFor(ctx.blocks,['family_time']), 20)},
+      // Gradual, like Exercise — a 19-minute day and a 0-minute day
+      // shouldn't score identically just because both missed a hard cliff.
+      evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,['family_time']), 20)},
     {id:'kids', label:'Time with Kids (≥1h)',
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks,KIDS_CAT_IDS), 60)},
     {id:'giann', label:'Time with Giann (≥30m)',
@@ -2668,39 +2786,71 @@
     {id:'recovery', label:'🌿 Recovery (≥1h)',
       evaluate: ctx=> pctFromMinutes(minutesFor(ctx.blocks, RECOVERY_CAT_IDS), 60)}
   ];
-  // Fallback weight if a day type's `weights` map doesn't mention exercise,
-  // self-care, or learning — they're meant to matter at least a little on
-  // every kind of day, even a Recovery-leaning one, without dominating it.
-  // (A day type can still override this, e.g. Learning Day weights it at 50.)
-  const ALWAYS_ON_FALLBACK_WEIGHT = {exercise:15, selfcare:15, learning:15};
+  // Day-type weights ARE the whole story now — no fallback merge on top.
+  // Every DAY_TYPES entry above sums to exactly 100 on its own, so "Work
+  // 50%" on a Work Day really is 50% of that day's components, not 50/115
+  // once a hidden Learning fallback got added in. A day type that wants
+  // exercise/self-care/learning to count just lists them itself (see
+  // Learning Day).
   function activeScoreComponents(dayType){
     const cfg = DAY_TYPES[dayType] || DAY_TYPES[DEFAULT_DAY_TYPE];
-    const weights = Object.assign({}, ALWAYS_ON_FALLBACK_WEIGHT, cfg.weights);
+    const weights = cfg.weights;
     return SCORE_COMPONENTS
       .filter(c=>weights[c.id])
       .map(c=>Object.assign({}, c, {weight: weights[c.id]}));
   }
-  function homeScoreBreakdown(blocks, dayType){
-    const ctx = {blocks, total: blocks.reduce((s,b)=>s+b.duration,0), goals: state.goals.goals||[]};
+  function homeScoreBreakdown(blocks, dayType, goals){
+    const ctx = {blocks, total: blocks.reduce((s,b)=>s+b.duration,0), goals: goals || state.goals.goals || []};
     return activeScoreComponents(dayType).map(c=>({id:c.id, label:c.label, weight:c.weight, pct:c.evaluate(ctx)}))
-      .filter(c=>c.pct!==null);
+      .filter(c=>c.pct!==null)
+      // gap/impact power "biggest opportunity" ranking (see
+      // rankedImprovementOpportunities) — a low-weight component sitting at
+      // 0% is a smaller opportunity than a high-weight one sitting at 60%.
+      .map(c=>Object.assign(c, {gap:100-c.pct, impact:(100-c.pct)*c.weight}));
   }
-  function homeScore(blocks, dayType){
-    const parts = homeScoreBreakdown(blocks, dayType);
-    if(!parts.length) return 0;
-    const weightedSum = parts.reduce((s,p)=>s+p.pct*p.weight,0);
-    const totalWeight = parts.reduce((s,p)=>s+p.weight,0);
-    return Math.round(weightedSum/totalWeight);
+  // Ranks by weighted improvement impact, not raw pct — "what should I fix
+  // first" is a bigger-gap-times-bigger-weight question, not "which number
+  // is lowest". A 20%-scored component worth 5 points matters far less than
+  // a 70%-scored component worth 50.
+  function rankedImprovementOpportunities(parts){
+    return parts.filter(p=>p.pct<100).slice().sort((a,b)=>b.impact-a.impact);
   }
-  function homeScoreBreakdownHTML(blocks, dayType){
-    const parts = homeScoreBreakdown(blocks, dayType).slice().sort((a,b)=>a.pct-b.pct);
-    const weightedSum = parts.reduce((s,p)=>s+p.pct*p.weight,0);
-    const totalWeight = parts.reduce((s,p)=>s+p.weight,0);
+  // Single source of truth for "the score". The headline ring, the
+  // breakdown, the dimension bars, and the weekly best/worst day all call
+  // this — they can no longer disagree with each other because they're
+  // all reading the same numbers instead of two separate scoring engines.
+  const CONSISTENCY_WEIGHT = 20;
+  function calculateDailyScore(blocks, dayType, opts){
+    opts = opts || {};
+    const parts = homeScoreBreakdown(blocks, dayType, opts.goals);
+    const consistencyPct = consistencyScore(blocks, opts.streaks);
+    const rows = parts.concat(
+      (consistencyPct===null||consistencyPct===undefined) ? [] : [{id:'consistency', pct:consistencyPct, weight:CONSISTENCY_WEIGHT}]
+    );
+    const weightedSum = rows.reduce((s,p)=>s+p.pct*p.weight,0);
+    const totalWeight = rows.reduce((s,p)=>s+p.weight,0);
     const score = totalWeight ? Math.round(weightedSum/totalWeight) : 0;
+    const wAvg = arr => arr.length ? Math.round(arr.reduce((s,p)=>s+p.pct*p.weight,0)/arr.reduce((s,p)=>s+p.weight,0)) : null;
+    const lbParts = parts.filter(p=>SCORE_DIMENSIONS.lifeBalance.componentIds.includes(p.id));
+    const progParts = parts.filter(p=>SCORE_DIMENSIONS.progress.componentIds.includes(p.id));
+    const dims = {
+      lifeBalance: wAvg(lbParts), lifeBalanceWeight: lbParts.reduce((s,p)=>s+p.weight,0),
+      progress: wAvg(progParts), progressWeight: progParts.reduce((s,p)=>s+p.weight,0),
+      consistency: consistencyPct, consistencyWeight: CONSISTENCY_WEIGHT
+    };
+    return {score, dims, components: parts, consistencyPct, opportunities: rankedImprovementOpportunities(parts)};
+  }
+  function homeScoreBreakdownHTML(result, dayType){
+    const rows = result.components.slice().sort((a,b)=>a.pct-b.pct).concat(
+      (result.consistencyPct===null||result.consistencyPct===undefined) ? [] :
+      [{label:'🔥 Consistency (habits &amp; streaks)', weight:CONSISTENCY_WEIGHT, pct:result.consistencyPct}]
+    );
+    const weightedSum = rows.reduce((s,p)=>s+p.pct*p.weight,0);
+    const totalWeight = rows.reduce((s,p)=>s+p.weight,0);
     const cfg = DAY_TYPES[dayType] || DAY_TYPES[DEFAULT_DAY_TYPE];
     return `<div class="score-breakdown">
-      <div class="score-day-type-note">${cfg.emoji} <strong>${escapeHtml(cfg.label)}</strong> — showing the ${parts.length} component${parts.length===1?'':'s'} that count today</div>
-      ${parts.map(p=>`
+      <div class="score-day-type-note">${cfg.emoji} <strong>${escapeHtml(cfg.label)}</strong> — every row below is exactly what produced today's score</div>
+      ${rows.map(p=>`
       <div class="score-row">
         <span class="score-row-label">${escapeHtml(p.label)}</span>
         <div class="score-row-bar"><div class="fill" style="width:${p.pct}%;background:${p.pct>=100?'var(--sage)':p.pct>=50?'var(--amber)':'var(--coral)'}"></div></div>
@@ -2708,68 +2858,63 @@
         <span class="score-row-weight">×${p.weight}</span>
       </div>`).join('')}
       <div class="score-formula">
-        ${parts.map(p=>`${p.pct}%×${p.weight}`).join(' + ')} = ${weightedSum}
-        <br>${weightedSum} ÷ (${parts.map(p=>p.weight).join('+')} = ${totalWeight}) = <strong>${score}</strong>
+        ${rows.map(p=>`${p.pct}%×${p.weight}`).join(' + ')} = ${weightedSum}
+        <br>${weightedSum} ÷ (${rows.map(p=>p.weight).join('+')} = ${totalWeight}) = <strong>${result.score}</strong>
       </div>
     </div>`;
   }
 
   // ---------- Score dimensions (Life Balance / Progress / Consistency) ----------
   // Rather than one flat weighted average, roll the same per-component
-  // percentages up into three human-meaningful pillars first, then blend
-  // the pillars into the overall score. This makes "why is my score 83"
-  // answerable at a glance — 91 on Life Balance, 64 on Progress, 88 on
-  // Consistency tells a story a single number can't. A pillar with no
-  // applicable components today (e.g. no goals ever set) drops out of the
-  // overall blend instead of dragging it down, same as individual
-  // components already do.
+  // percentages up into three human-meaningful pillars for display. Each
+  // pillar's own weight in the final score (see calculateDailyScore) is now
+  // the SUM of the weights the current day type actually assigned to its
+  // components — not a fixed 50/30/20 for every day type. That's what
+  // keeps a Work Day's 50%-weighted "Work" component genuinely worth about
+  // half the final score instead of being diluted into a flat 30% Progress
+  // bucket. Consistency isn't drawn from day-type components at all, so it
+  // keeps a fixed weight (CONSISTENCY_WEIGHT).
   const SCORE_DIMENSIONS = {
-    lifeBalance: {id:'lifeBalance', label:'Life Balance', emoji:'🌱', weight:50,
+    lifeBalance: {id:'lifeBalance', label:'Life Balance', emoji:'🌱',
       sub:'Family • Relationships • Health • Personal',
       componentIds:['exercise','selfcare','family','kids','giann','recovery']},
-    progress:    {id:'progress',    label:'Progress',     emoji:'🎯', weight:30,
+    progress:    {id:'progress',    label:'Progress',     emoji:'🎯',
       sub:'Learning • Goals • Important tasks',
       componentIds:['learning','goals','work']},
-    consistency: {id:'consistency', label:'Consistency',  emoji:'🔥', weight:20,
-      sub:'Habits • Logging • Streaks',
+    consistency: {id:'consistency', label:'Consistency',  emoji:'🔥',
+      sub:'Intentional habits • Streaks',
       componentIds:null} // computed from streaks/logging, not SCORE_COMPONENTS
   };
-  function dimensionScoreFromParts(parts, componentIds){
-    const subset = parts.filter(p=>componentIds.includes(p.id));
-    if(!subset.length) return null;
-    const weightedSum = subset.reduce((s,p)=>s+p.pct*p.weight,0);
-    const totalWeight = subset.reduce((s,p)=>s+p.weight,0);
-    return Math.round(weightedSum/totalWeight);
-  }
+  // Intentional habits are the routine behaviors the user is actually
+  // trying to build — distinct from DEFAULT_DAILY_CATEGORY_IDS, which is
+  // just the starter template every new day gets pre-populated with.
+  // Social Media and Rest live in that template so there's always a row
+  // ready to fill in, but logging them isn't a "habit win": not logging
+  // Social Media is often the GOOD outcome, and Rest isn't something
+  // everyone needs every day. Scoring consistency off the template would
+  // punish exactly the behavior the tracker should reward.
+  const INTENTIONAL_HABIT_IDS = ['self_care','sleep_morning','meals','exercise'];
+  const STREAK_CATEGORY_IDS = INTENTIONAL_HABIT_IDS;
   // Consistency is about behavior (did the habit happen today, is the
-  // streak alive) rather than volume of data entered: half today's daily
-  // habits actually logged, half how healthy current streaks are (a
-  // 7-day+ streak on a tracked habit maxes that half out).
+  // streak alive) rather than volume of data entered: half today's
+  // intentional habits actually logged, half how healthy current streaks
+  // are (a 7-day+ streak on a tracked habit maxes that half out). When no
+  // `streaks` context is available (e.g. scoring an arbitrary past day for
+  // the weekly review), consistency falls back to just that day's own
+  // habit completion — there's no "current streak" for a day that isn't
+  // today.
+  function habitConsistencyPct(blocks){
+    const habitsDone = INTENTIONAL_HABIT_IDS.filter(id=>blocks.some(b=>b.category===id && b.duration>0)).length;
+    return pctFromCount(habitsDone, INTENTIONAL_HABIT_IDS.length);
+  }
   function consistencyScore(blocks, streaks){
-    const habitsDone = DEFAULT_DAILY_CATEGORY_IDS.filter(id=>blocks.some(b=>b.category===id && b.duration>0)).length;
-    const habitPct = pctFromCount(habitsDone, DEFAULT_DAILY_CATEGORY_IDS.length);
-    const tracked = (streaks||[]).filter(s=>STREAK_CATEGORY_IDS.includes(s.catId));
+    const habitPct = habitConsistencyPct(blocks);
+    if(!streaks) return habitPct;
+    const tracked = streaks.filter(s=>INTENTIONAL_HABIT_IDS.includes(s.catId));
     const streakPct = tracked.length
       ? Math.round(tracked.reduce((s,x)=>s+Math.min(100, Math.round(x.streak/7*100)), 0) / tracked.length)
       : 0;
     return Math.round((habitPct + streakPct) / 2);
-  }
-  function homeScoreDimensions(blocks, dayType, streaks){
-    const parts = homeScoreBreakdown(blocks, dayType);
-    return {
-      lifeBalance: dimensionScoreFromParts(parts, SCORE_DIMENSIONS.lifeBalance.componentIds),
-      progress: dimensionScoreFromParts(parts, SCORE_DIMENSIONS.progress.componentIds),
-      consistency: consistencyScore(blocks, streaks)
-    };
-  }
-  function overallScoreFromDimensions(dims){
-    const entries = ['lifeBalance','progress','consistency']
-      .map(k=> dims[k]===null || dims[k]===undefined ? null : {v:dims[k], w:SCORE_DIMENSIONS[k].weight})
-      .filter(Boolean);
-    if(!entries.length) return 0;
-    const weightedSum = entries.reduce((s,e)=>s+e.v*e.w,0);
-    const totalWeight = entries.reduce((s,e)=>s+e.w,0);
-    return Math.round(weightedSum/totalWeight);
   }
   function scoreDimensionsHTML(dims){
     const rows = ['lifeBalance','progress','consistency'].map(k=>{
@@ -2806,26 +2951,27 @@
   function scoreRingColor(score){
     return score>=80 ? 'var(--sage)' : score>=60 ? 'var(--amber)' : 'var(--coral)';
   }
-  // "Today's Wins" / "one thing to improve" — reuses the same weighted
+  // "Today's Wins" / "Biggest opportunity" — reuses the same weighted
   // components as the breakdown, just re-framed as actionable highlights
-  // instead of a bar chart. The improve slot only shows when there's a
-  // genuinely separate weak spot to name (not just the bronze medal again).
-  function scoreWinsHTML(blocks, dayType){
-    const parts = homeScoreBreakdown(blocks, dayType);
+  // instead of a bar chart. The opportunity is ranked by weighted impact
+  // (see rankedImprovementOpportunities), not just "which pct is lowest",
+  // so it names whichever gap actually moves the score most if closed.
+  function scoreWinsHTML(result){
+    const parts = result.components;
     if(!parts.length) return '';
     const sorted = parts.slice().sort((a,b)=>b.pct-a.pct);
     const medals = ['🥇','🥈','🥉'];
     const top = sorted.slice(0, Math.min(3, sorted.length));
-    const worst = sorted[sorted.length-1];
-    const showImprove = sorted.length>3 && worst.pct<100;
+    const opportunity = result.opportunities[0];
+    const showOpportunity = opportunity && !top.some(p=>p.id===opportunity.id);
     return `<div class="score-wins">
       <div class="score-wins-block">
         <div class="score-wins-heading">Today's Wins</div>
         ${top.map((p,i)=>`<div class="score-win-row"><span class="medal">${medals[i]}</span><span class="win-label">${escapeHtml(p.label)}</span><span class="win-pct">${p.pct}%</span></div>`).join('')}
       </div>
-      ${showImprove ? `<div class="score-wins-block">
-        <div class="score-wins-heading">One thing to improve</div>
-        <div class="score-win-row"><span class="medal">🎯</span><span class="win-label">${escapeHtml(worst.label)}</span><span class="win-pct">${worst.pct}%</span></div>
+      ${showOpportunity ? `<div class="score-wins-block">
+        <div class="score-wins-heading">Biggest opportunity</div>
+        <div class="score-win-row"><span class="medal">🎯</span><span class="win-label">${escapeHtml(opportunity.label)}</span><span class="win-pct">${opportunity.pct}%</span></div>
       </div>` : ''}
     </div>`;
   }
@@ -2837,18 +2983,45 @@
     if(h<18) return 'Good afternoon';
     return 'Good evening';
   }
-  function nextTaskHTML(blocks){
-    const exerciseMin = minutesFor(blocks, ['exercise']);
-    if(exerciseMin<15) return `Log <strong>${15-exerciseMin}m more Exercise</strong> to hit today's minimum`;
-    const selfCareCount = countFor(blocks, 'self_care');
-    if(selfCareCount<2) return `Log Self Care <strong>${selfCareCount===0?'twice':'once more'}</strong> today`;
-    const missing = DEFAULT_DAILY_CATEGORY_IDS
-      .map(id=>({id, block: blocks.find(b=>b.category===id)}))
-      .filter(x=>!x.block || x.block.duration<=0);
-    if(missing.length) return `Log <strong>${escapeHtml(catOf(missing[0].id).label)}</strong> for today`;
+  // Minutes-based targets for the components that speak in minutes, so the
+  // "next move" can say exactly how much more is needed instead of a
+  // generic nudge. Kept separate from SCORE_COMPONENTS so the scoring
+  // engine itself doesn't need to know how to phrase a suggestion.
+  const COMPONENT_MINUTE_TARGETS = {
+    exercise: {catIds:['exercise'], target:15},
+    family:   {catIds:['family_time'], target:20},
+    kids:     {catIds:KIDS_CAT_IDS, target:60},
+    giann:    {catIds:['giann'], target:30},
+    work:     {catIds:['work'], target:240},
+    recovery: {catIds:RECOVERY_CAT_IDS, target:60}
+  };
+  function nextActionForComponent(comp, blocks){
+    const t = COMPONENT_MINUTE_TARGETS[comp.id];
+    if(t){
+      const have = minutesFor(blocks, t.catIds);
+      const remain = Math.max(0, t.target - have);
+      const plainLabel = comp.label.replace(/\s*\(.*?\)\s*$/,'');
+      if(remain<=0) return `Keep it going on <strong>${escapeHtml(plainLabel)}</strong>`;
+      return `+${minutesToHM(remain)} <strong>${escapeHtml(plainLabel)}</strong> to hit today's target`;
+    }
+    if(comp.id==='selfcare'){
+      const have = countFor(blocks,'self_care');
+      return `Log Self Care <strong>${have===0?'twice':'once more'}</strong> today`;
+    }
+    if(comp.id==='goals') return `Move <strong>a goal</strong> forward today`;
+    if(comp.id==='learning') return `Put in some <strong>Learning</strong> time, or move a learning goal forward`;
+    return `Focus on <strong>${escapeHtml(comp.label)}</strong>`;
+  }
+  // Day-type aware: the suggestion always comes from whatever the
+  // day-type's own weighted components say is the biggest opportunity, so
+  // a Vacation Day never tells you to log more Exercise ahead of Recovery,
+  // and a Work Day leads with Work/Goals instead of a generic checklist.
+  function nextTaskHTML(result, blocks){
+    const top = result.opportunities[0];
+    if(top) return nextActionForComponent(top, blocks);
     const openGoal = (state.goals.goals||[]).find(g=>goalPct(g)<100);
     if(openGoal) return `Keep pushing on <strong>${escapeHtml(openGoal.title)}</strong> (${goalPct(openGoal)}%)`;
-    return `All caught up — nothing pending 🎉`;
+    return `All caught up — nothing pending today 🎉`;
   }
   function homeSleepHTML(){
     const rec = state.sleep.records[state.date];
@@ -2883,10 +3056,13 @@
     if(isStaleRender(myTicket)) return;
     const blocks = state.ledgerCache[state.date] || [];
     const total = blocks.reduce((s,b)=>s+b.duration,0);
-    const habitsDone = DEFAULT_DAILY_CATEGORY_IDS.filter(id=>blocks.some(b=>b.category===id && b.duration>0)).length;
+    // Matches INTENTIONAL_HABIT_IDS — the same habits the Consistency
+    // dimension scores — so this card can never show a different "habits
+    // done" count than the one actually feeding the score.
+    const habitsDone = INTENTIONAL_HABIT_IDS.filter(id=>blocks.some(b=>b.category===id && b.duration>0)).length;
     const exerciseMin = blocks.filter(b=>b.category==='exercise').reduce((s,b)=>s+b.duration,0);
-    const dims = homeScoreDimensions(blocks, dayType, streaks);
-    const score = overallScoreFromDimensions(dims);
+    const result = calculateDailyScore(blocks, dayType, {streaks, goals: state.goals.goals});
+    const score = result.score;
     const band = scoreBand(score);
     const view = document.getElementById('view');
     view.innerHTML = `
@@ -2904,13 +3080,13 @@
           <div class="home-score-label">Today's Score</div>
           <div class="home-score-band">${band.emoji} ${escapeHtml(band.label)}</div>
           <div class="home-score-message">${escapeHtml(band.message)}</div>
-          <div class="home-next">${nextTaskHTML(blocks)}</div>
+          <div class="home-next">${nextTaskHTML(result, blocks)}</div>
           <button type="button" class="score-breakdown-toggle" id="scoreBreakdownToggle">${homeScoreBreakdownOpen?'Hide':'Show'} breakdown</button>
         </div>
       </div>
-      ${scoreDimensionsHTML(dims)}
-      ${scoreWinsHTML(blocks, dayType)}
-      ${homeScoreBreakdownOpen ? homeScoreBreakdownHTML(blocks, dayType) : ''}
+      ${scoreDimensionsHTML(result.dims)}
+      ${scoreWinsHTML(result)}
+      ${homeScoreBreakdownOpen ? homeScoreBreakdownHTML(result, dayType) : ''}
       <div class="day-progress" style="margin-top:16px;">
         <div class="bar"><div class="fill" style="width:${Math.min(100,total/1440*100)}%"></div></div>
         <span>${minutesToHM(total)} logged today · ${total<1440? minutesToHM(1440-total)+' remaining':'day complete ✓'}</span>
@@ -2919,7 +3095,7 @@
 
     <div class="dash-grid">
       <div class="metric-grid" style="grid-column:1 / -1;">
-        ${metricCardHTML(habitsDone+'/'+DEFAULT_DAILY_CATEGORY_IDS.length,'','Habits completed')}
+        ${metricCardHTML(habitsDone+'/'+INTENTIONAL_HABIT_IDS.length,'','Habits completed')}
         ${metricCardHTML(exerciseMin>0? minutesToHM(exerciseMin):'Not yet', '', 'Workout status')}
         ${homeSleepHTML()}
         ${homeWeightHTML()}
@@ -2980,7 +3156,10 @@
     // could act on) ----
     const weekDayTypes = await Promise.all(week.map(w=>loadDayType(w.date)));
     const weekDaysWithData = week
-      .map((w,i)=>({date:w.date, dayType:weekDayTypes[i], total:w.blocks.reduce((s,b)=>s+b.duration,0), score:homeScore(w.blocks, weekDayTypes[i])}))
+      // Same calculateDailyScore() the Home screen uses — no streaks
+      // context for a specific past day (streaks are a "through today"
+      // concept), so Consistency here is that day's own habit completion.
+      .map((w,i)=>({date:w.date, dayType:weekDayTypes[i], total:w.blocks.reduce((s,b)=>s+b.duration,0), score:calculateDailyScore(w.blocks, weekDayTypes[i], {goals}).score}))
       .filter(d=>d.total>0);
     let bestDay=null, worstDay=null;
     if(weekDaysWithData.length){
@@ -2993,6 +3172,7 @@
     const dayTypeMixHTML = Object.keys(DAY_TYPES).filter(k=>dayTypeCounts[k]).map(k=>
       `<span class="daytype-chip"><span>${DAY_TYPES[k].emoji}</span>${dayTypeCounts[k]} ${escapeHtml(DAY_TYPES[k].label)}${dayTypeCounts[k]===1?'':'s'}</span>`
     ).join('') || '<span class="empty">No days logged this week yet.</span>';
+    const whyCalloutHTML = await weeklyWhyCalloutHTML(weekDaysWithData);
 
     const weightEntries = Object.keys(state.weight.records).sort().map(d=>({date:d, weight:state.weight.records[d].weight}));
 
@@ -3035,6 +3215,7 @@
         <div class="lbl" style="margin-bottom:8px;">Day type mix this week</div>
         ${dayTypeMixHTML}
       </div>
+      ${whyCalloutHTML}
     </section>
 
     <div class="dash-grid">
@@ -3102,10 +3283,13 @@
   }
 
   // ---------- monthly data helpers ----------
+  // Read-only — opening the analytics tab must never write storage entries
+  // for every missing day of the month (that included FUTURE days still to
+  // come, which loadLedger would have happily seeded too).
   async function loadMonth(ym){
     const n = daysInMonth(ym);
     const dates=[]; for(let i=1;i<=n;i++) dates.push(ym+'-'+pad2(i));
-    const results = await Promise.all(dates.map(d=>loadLedger(d)));
+    const results = await Promise.all(dates.map(d=>peekLedger(d)));
     return dates.map((d,i)=>({date:d, blocks:results[i]}));
   }
   function monthHeatmapHTML(monthDays){
@@ -3182,7 +3366,7 @@
   async function loadAllLedgerDays(){
     const keys = sListKeys('ledger:');
     const dates = keys.map(k=>k.slice('ledger:'.length)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
-    const results = await Promise.all(dates.map(d=>loadLedger(d)));
+    const results = await Promise.all(dates.map(d=>peekLedger(d)));
     return dates.map((d,i)=>({date:d, blocks:results[i]}));
   }
 
@@ -3239,8 +3423,12 @@
     });
     return total;
   }
+  // Counts days with real logged activity (duration>0 on at least one
+  // block) — NOT (dayMap[d]||[]).length>0, which used to count the six
+  // zero-duration placeholder blocks every empty day gets pre-populated
+  // with, silently marking untouched days as "logged".
   function daysWithAnyLog(dayMap, dates){
-    return dates.filter(d=>(dayMap[d]||[]).length>0).length;
+    return dates.filter(d=>(dayMap[d]||[]).some(b=>b.duration>0)).length;
   }
   function daysWithSleepLog(dates){
     return dates.filter(d=>!!state.sleep.records[d]).length;
@@ -3266,7 +3454,9 @@
     return best;
   }
   function computeLongestStreak(allDays){
-    const activeDates = allDays.filter(d=>d.blocks.length>0).map(d=>d.date).sort();
+    // duration>0, not just blocks.length>0 — same placeholder-block bug as
+    // daysWithAnyLog above; six blank 0-minute blocks aren't a logged day.
+    const activeDates = allDays.filter(d=>d.blocks.some(b=>b.duration>0)).map(d=>d.date).sort();
     let longest=0, cur=0, prev=null, endDate=null;
     activeDates.forEach(d=>{
       cur = (prev && shiftDate(prev,1)===d) ? cur+1 : 1;
